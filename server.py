@@ -3,14 +3,24 @@ import tornado.web
 import tornado.websocket
 import time
 import inspect
-import json
+import json, subprocess, os, sys
+import threading, Queue
+
+# The following is a hack to make python
+# also count the files in "./lib" as if they
+# were in the same directory as this file.
+lib_path = os.path.abspath('./lib')
+sys.path.append(lib_path)
+
+import shell_command, cryo_delegate
 
 # Configurable parameters for the server:
 # -------------------------------------- #
 # PORT: the operating port
 PORT 		= 80
 RUN_DATE 	= time.strftime( "%H:%M:%S on %B %d %Y" )
-VERSION 	= 0
+VERSION 	= "0.1"
+GIT_HASH	= shell_command.shell_command("git rev-parse --short HEAD").rstrip()
 # -------------------------------------- #
 
 RESPONSE 	= 1
@@ -69,9 +79,13 @@ class JActionableRequestHandler:
 	# of the server, etc. 
 	def validate_version(self):
 		return {
-			'start_date'	: "Program started: %s " % RUN_DATE,
+			'start_date'	: RUN_DATE,
+			'git_hash'		: GIT_HASH,
 			'version'		: VERSION
 		}
+
+	def test_query(self):
+		return cryomanager.ask("which one is true, a or b?")
 
 # The global actionablrequesthandler: there is only one instance of this, 
 # even though there may be many instances of JHandlers for different clients.
@@ -94,7 +108,14 @@ application = tornado.web.Application( [
 	(r"/(.*)", DebugStaticFileHandler, {'path': 'assets/'}),
 ])
 
-# This starts the application
-application.listen(PORT)
-# This: I have no idea what it does.
-tornado.ioloop.IOLoop.instance().start()
+try:
+	cryomanager = cryo_delegate.CryoManager()
+	cryomanager.start()
+
+	# This starts the application
+	application.listen(PORT)
+	# This: I have no idea what it does.
+	tornado.ioloop.IOLoop.instance().start()
+except KeyboardInterrupt:
+	print "umm..."
+	os._exit(0)
