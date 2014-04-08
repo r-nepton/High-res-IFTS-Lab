@@ -1,4 +1,4 @@
-## cryo-server ##
+# cryo-server #
 
 This application is designed to control and monitor the cryogenic system in the LWLab. 
 
