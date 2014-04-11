@@ -2,10 +2,8 @@
 # It is used to directly interrogate about the state of
 # the cryostat. 
 
+import dataconduits
+
 class Cryostat(object):
 	def __init__(self):
 		pass
-
-class DataConduit:
-	def __init__(self):
-		
