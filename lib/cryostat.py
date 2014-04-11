@@ -5,3 +5,7 @@
 class Cryostat(object):
 	def __init__(self):
 		pass
+
+class DataConduit:
+	def __init__(self):
+		

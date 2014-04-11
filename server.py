@@ -48,7 +48,10 @@ class JHandler(tornado.websocket.WebSocketHandler):
 		if 'transaction_id' in data:
 			# The result is an actionable transaction. 
 			if 'action' in data['data']:
-				response = actionablerequesthandler.invoke( data['data']['action'] )
+				arguments = {}
+				if 'arguments' in data['data']:
+					arguments = data['data']['arguments']
+				response = actionablerequesthandler.invoke( data['data']['action'],  arguments)
 			else:
 				response = "Invalid action: no action specified";
 		else:
@@ -68,24 +71,32 @@ class JHandler(tornado.websocket.WebSocketHandler):
 # does whatever is necessary. You could also return a hash from the actionable
 # functions, and then the system will JSON your return value.
 class JActionableRequestHandler:
-	def invoke(self, action):
+	def invoke(self, action, arguments):
 		print "Attempted to invoke action %s" % action
 		if hasattr(self, action):
-			return getattr(self, action)()
+			return getattr(self, action)(arguments)
 		else:
-			return "Invalid action: action %s is not implemented." % action
+			return cryomanager.ask(action, arguments)
+			#return "JActionableRequestHandler reports: invalid action: action '%s' is not implemented." % action
 
 	# This function tells us some information about the current running version
 	# of the server, etc. 
-	def validate_version(self):
+	def validate_version(self, arguments):
 		return {
 			'start_date'	: RUN_DATE,
 			'git_hash'		: GIT_HASH,
 			'version'		: VERSION
 		}
 
-	def test_query(self):
-		return cryomanager.ask("which one is true, a or b?")
+	def cryo_invoke(self, data):
+		action = ''
+		arguments = {}
+		if 'action' in data:
+			action = data['action']
+		if 'arguments' in data:
+			arguments = data['arguments']
+
+		return cryomanager.ask(action, arguments)
 
 # The global actionablrequesthandler: there is only one instance of this, 
 # even though there may be many instances of JHandlers for different clients.
@@ -109,6 +120,8 @@ application = tornado.web.Application( [
 ])
 
 try:
+	# Start up the cryomanager's thread, which does all communicaton
+	# with the Cryostat object.
 	cryomanager = cryo_delegate.CryoManager()
 	cryomanager.start()
 
@@ -117,5 +130,5 @@ try:
 	# This: I have no idea what it does.
 	tornado.ioloop.IOLoop.instance().start()
 except KeyboardInterrupt:
-	print "umm..."
+	print "Killing everything due to KeyboardInterrupt."
 	os._exit(0)

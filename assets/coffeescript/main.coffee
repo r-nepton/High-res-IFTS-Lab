@@ -25,4 +25,4 @@ $ ->
  	# Since the socket should never close, this is always unexpected.
  	socket.onclose = ->
  		console.log "Socket connection was closed, unexpectedly."
- 		alert "I don't know why, but the socket was closed (!)"
+ 		console.log "I don't know why, but the socket was closed (!)"
