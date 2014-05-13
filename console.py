@@ -10,6 +10,7 @@ lib_path = os.path.abspath('./lib')
 sys.path.append(lib_path)
 
 from cryo_delegate import *
+from sensors import *
 
-d = GenericCryoDataModel("test")
+d = GenericTemperatureSensor(1)
 d.initialize()

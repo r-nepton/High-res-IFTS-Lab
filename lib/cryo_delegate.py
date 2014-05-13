@@ -1,10 +1,11 @@
 import threading
 import Queue
-import sqlite3, json
+import sqlite3, json, os, sys
 from dataconduits import *
 
-database_connection = sqlite3.connect('data/database.db')
 
+lib_path = os.path.abspath('./lib/sensors')
+sys.path.append(lib_path)
 # The cryo-delegate is a daemon-like thread which
 # runs in parallel to the web server thread. It queries
 # the cryostat periodically, records and manages the log
@@ -13,6 +14,7 @@ database_connection = sqlite3.connect('data/database.db')
 class CryoManager(object):
 	def __init__(self):
 		self.thread 	= CryoManagerThread(self)
+		self.sensors_list = []
 		# Now, start the object which provokes the cryomanager every 30 seconds
 		# via its "wake" method.
 		self.stop_wake_thread = threading.Event()
@@ -34,6 +36,11 @@ class CryoManager(object):
 	def start(self):
 		self.thread.start() 
 
+	def thread_initialize(self, args=None):
+		global database_connection
+		database_connection = sqlite3.connect('data/database.db')
+		self.sensors_list = [ GenericTemperatureSensor(1) ]
+
 	# I think this function will respond to queries in a queue-like
 	# way, but it will also block until they respond. This function
 	# should be called from whatever other thread, and should expect
@@ -49,11 +56,24 @@ class CryoManager(object):
 		# Return the responder object.
 		return responder
 
+	def temperature(self, arguments):
+		print "arguments: %s" % arguments
+		if 'number' in arguments:
+			return {'history': self.sensors_list[0].tail(arguments[u'number']) }
+		return self.sensors_list[0].tail(1)[0]
+
+	def sensors(self, arguments):
+		return { 'sensors': [ {'title':s.name, 'units':s.units } for s in self.sensors_list ] }
+
 	# This function is called periodically by a timer thread (e.g. every 30 seconds) via the
 	# CryoManagerThread object. It does regular housekeeping things, checks on temperatures
 	# and so on.
-	def wake(self):
+	def wake(self, args=None):
 		print "Waking up for maintenance."
+		print "Polling sensors..."
+		for s in self.sensors_list:
+			s.poll()
+		database_connection.commit()
 		print "Going back to sleep."
 
 class CryoManagerThread(threading.Thread):
@@ -74,9 +94,9 @@ class CryoManagerThread(threading.Thread):
 				# Copy the response data into the responder object, which 
 				# we received by reference. That way the other thread can
 				# read it when we are done with the queue.
-				print "The response is: ", response
-				for k,v in response.iteritems():
-					data['responder'][k] = v
+				if response != None:
+					for k,v in response.iteritems():
+						data['responder'][k] = v
 				# Mark the task as done (free up the queue).
 			except Exception:
 				print "Error: invalid command."
@@ -90,13 +110,22 @@ class CryoManagerThread(threading.Thread):
 class GenericCryoDataModel(object):
 	def __init__(self, name):
 		self.name 			= name
-		self.conduit 		= GenericDataConduit()
-		self.database_name 	= self.name
-		self.db 	 	 	= database_connection.cursor() # database connection.
+		if hasattr(self, 'conduit') == False:
+			self.conduit 		= GenericDataConduit()
+		if hasattr(self, 'database_name') == False:
+			self.database_name 	= self.name
+		if hasattr(self, 'units') == False:
+			self.units = "count"
+
+		self.db = database_connection.cursor() # database connection.
 		self.initialize()
-		
+
 	def __del__(self):
-		database_connection.commit()
+		print "Saving database '%s'..." % self.name
+		try:
+			database_connection.commit()
+		except Exception():
+			pass
 
 	# This function returns the database configuration. It should almost always
 	# be the same.
@@ -107,6 +136,10 @@ class GenericCryoDataModel(object):
 		q 	+= "value 	varchar(512) null"
 		q 	+= ")"
 		return q
+
+	def poll(self):
+		# Insert a data entry.
+		self.insert_data( self.conduit.get_data() )
 
 	# Inser the data value (a python hash) into the database
 	# using the current time.
@@ -124,13 +157,17 @@ class GenericCryoDataModel(object):
 		# Set up the databsae.
 		self.db.execute( self.database_configuration() )
 
-
 class WakeThread(threading.Thread):
 	def __init__(self, event, cryomanager):
 		threading.Thread.__init__(self)
 		self.cryomanager = cryomanager
+		# Connect to the SQLite database.
 		self.stopped = event
 
 	def run(self):
+		self.cryomanager.ask('thread_initialize',{})
 		while not self.stopped.wait(10):
-			self.cryomanager.wake()
+			self.cryomanager.ask('wake', {})
+
+# Now, import all of the sensors.
+from sensors import *

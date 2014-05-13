@@ -26,3 +26,7 @@ $ ->
  	socket.onclose = ->
  		console.log "Socket connection was closed, unexpectedly."
  		console.log "I don't know why, but the socket was closed (!)"
+
+ 	element = $('.log').append('<div id="temperature_chart" style="width: 900px; height: 500px;"></div>')
+ 	t = new ScatterPlot("Temperature", element)
+ 	t.plot()
