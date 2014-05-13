@@ -1,5 +1,9 @@
 import threading
 import Queue
+import sqlite3, json
+from dataconduits import *
+
+database_connection = sqlite3.connect('data/database.db')
 
 # The cryo-delegate is a daemon-like thread which
 # runs in parallel to the web server thread. It queries
@@ -84,7 +88,42 @@ class CryoManagerThread(threading.Thread):
 # data sources. It understands how to create its own database
 # table, write its own log files, and perform queries upon itself.
 class GenericCryoDataModel(object):
-	pass
+	def __init__(self, name):
+		self.name 			= name
+		self.conduit 		= GenericDataConduit()
+		self.database_name 	= self.name
+		self.db 	 	 	= database_connection.cursor() # database connection.
+		self.initialize()
+		
+	def __del__(self):
+		database_connection.commit()
+
+	# This function returns the database configuration. It should almost always
+	# be the same.
+	def database_configuration(self):
+		q 	= "CREATE TABLE IF NOT EXISTS %s (" % self.database_name
+		q 	+= "id INTEGER PRIMARY KEY,\n"
+		q 	+= "time 	timestamp(14) not null,"
+		q 	+= "value 	varchar(512) null"
+		q 	+= ")"
+		return q
+
+	# Inser the data value (a python hash) into the database
+	# using the current time.
+	def insert_data(self, value):
+		q 	= "INSERT INTO %s (time, value) VALUES (CURRENT_TIMESTAMP, ?)" % self.database_name
+		self.db.execute(q, [json.dumps(value)]) 
+
+	# Get the last X number of entries into the database.
+	def tail(self, number=10):
+		q 	= "SELECT value,CAST(strftime('%%s',time) as INT) FROM %s ORDER BY time DESC LIMIT ?" % self.database_name
+		self.db.execute(q, [number])
+		return [ { 'time': f[1], 'data': json.loads(f[0]) }  for f in self.db.fetchall() ]
+
+	def initialize(self):
+		# Set up the databsae.
+		self.db.execute( self.database_configuration() )
+
 
 class WakeThread(threading.Thread):
 	def __init__(self, event, cryomanager):
