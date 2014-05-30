@@ -20,7 +20,7 @@ the coffeescript into javascript.
 
 Once everything is installed (the internet has plenty of tutorials), use the command (from the root directory) 
 
- coffee -wc --join ./assets/web.js ./assets/coffscript/
+ coffee -wc --join ./assets/web.js ./assets/coffeescript/
 
 ## Running the software ##
 
