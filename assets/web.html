@@ -6,12 +6,19 @@
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 	<script> 
 		google.load("visualization", "1", {packages:["corechart"]}); 
+
+		document.ontouchstart = function(e){ 
+ 			e.preventDefault(); 
+		}
 	</script>
 	<script src="/web.js"></script>
 	<script src="/marked.js"></script>
 
 	<link rel="stylesheet" href="/style.css" />
 	<link rel="stylesheet" href="/github-markdown.css" />
+
+	<meta content='width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;' name='viewport' />
+	<meta name="viewport" content="width=device-width" />
 </head>
 <body>
 

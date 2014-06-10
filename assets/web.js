@@ -118,35 +118,6 @@
     return $('.log').append(t);
   };
 
-  window.config = [];
-
-  window.config.websocket_url = "ws://cerulean:80/json";
-
-  window.config.server_version = "0.1";
-
-  $(function() {
-    log("#cryo-server");
-    window.socket = new WebSocket(window.config.websocket_url);
-    window.jevent('SocketOpened', function() {});
-    console.log('The socket was opened.');
-    socket.onopen = function() {
-      console.log("Socket connection opened successfully.");
-      window.pycon = new PyAPI(window.socket);
-      return setTimeout(window.connection_ready, 300);
-    };
-    return socket.onclose = function() {
-      console.log("Socket connection was closed, unexpectedly.");
-      return console.log("I don't know why, but the socket was closed (!)");
-    };
-  });
-
-  window.connection_ready = function() {
-    console.log("Window ready.");
-    window.dashboard = new Dashboard();
-    window.temperature_plot = new TemperaturePlot();
-    return window.pressure_plot = new PressurePlot();
-  };
-
   this.ScatterPlot = (function() {
     function ScatterPlot(title, element) {
       this.title = title;
@@ -216,13 +187,13 @@
       var element;
       element = $('<div id="temperature_plot" style="width: 650px; height: 250px;"></div>');
       element.appendTo('.log');
-      this.t = new ScatterPlot("Temperature", element);
+      this.t = new ScatterPlot("Pulse Tube Stage #1 Temperature", element);
       this.update();
       setInterval((function(_this) {
         return function() {
-          return _this.update;
+          return _this.update();
         };
-      })(this), 30000);
+      })(this), 5000);
     }
 
     TemperaturePlot.prototype.update = function() {
@@ -252,7 +223,7 @@
             _results = [];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               d = _ref[_i];
-              _results.push((d.time - Date.now() / 1000) / 60);
+              _results.push(Math.min(0, (d.time - Date.now() / 1000) / 60));
             }
             return _results;
           })();
@@ -267,17 +238,16 @@
 
   this.PressurePlot = (function() {
     function PressurePlot() {
-      var element;
-      element = $('<div id="pressure_plot" style="width: 650px; height: 250px;"></div>');
-      element.appendTo('.log');
-      this.t = new ScatterPlot("Pressure", element);
-      this.t.options.vAxis.format = "22E";
+      this.element = $('<div id="pressure_plot" style="width: 650px; height: 250px;"></div>');
+      this.element.appendTo('.log');
+      this.t = new ScatterPlot("Pressure", this.element);
+      this.t.options.vAxis.format = "";
       this.update();
       setInterval((function(_this) {
         return function() {
-          return _this.update;
+          return _this.update();
         };
-      })(this), 30000);
+      })(this), 5000);
     }
 
     PressurePlot.prototype.update = function() {
@@ -291,13 +261,18 @@
           var d;
           _this.t.xtitle = "Time [minutes from now]";
           _this.t.ytitle = "Pressure [T]";
+          console.log("Received pressure update: ", r);
+          if (r.history[0].data.error != null) {
+            _this.element.hide();
+            return;
+          }
           _this.t.y = (function() {
             var _i, _len, _ref, _results;
             _ref = r.history;
             _results = [];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               d = _ref[_i];
-              _results.push(d.data.pressure);
+              _results.push(Math.log(d.data.pressure) / Math.log(10));
             }
             return _results;
           })();
@@ -307,7 +282,7 @@
             _results = [];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               d = _ref[_i];
-              _results.push((d.time - Date.now() / 1000) / 60);
+              _results.push(Math.min(0, (d.time - Date.now() / 1000) / 60));
             }
             return _results;
           })();
@@ -344,18 +319,23 @@
       this.element = $('<div class="dashboard-element"></div>');
       this.symbol = "T";
       this.value = "195 K";
+      this.state_ok = true;
       this.update();
       setInterval((function(_this) {
         return function() {
-          return _this.update;
+          return _this.update();
         };
-      })(this), 30000);
+      })(this), 5000);
     }
 
     DashboardElement.prototype.render = function() {
       var string;
       string = "<div class='left'>" + this.symbol + "</div>";
-      string += "<div class='right'>" + this.value + "</div>";
+      if (this.state_ok) {
+        string += "<div class='right'>" + this.value + "</div>";
+      } else {
+        string += "<div class='right'>N/A</div>";
+      }
       return this.element.html(string);
     };
 
@@ -381,10 +361,15 @@
         action: "temperature"
       }, (function(_this) {
         return function(r) {
-          if (r.data.temperature < 1) {
-            _this.value = (r.data.temperature * 1000).toPrecision(3) + " mK";
+          if (r.data.error != null) {
+            _this.state_ok = false;
           } else {
-            _this.value = r.data.temperature.toPrecision(3) + " K";
+            _this.state_ok = true;
+            if (r.data.temperature < 1) {
+              _this.value = (r.data.temperature * 1000).toPrecision(3) + " mK";
+            } else {
+              _this.value = r.data.temperature.toPrecision(3) + " K";
+            }
           }
           return _this.render();
         };
@@ -409,7 +394,13 @@
         action: "pressure"
       }, (function(_this) {
         return function(r) {
-          _this.value = r.data.pressure.toExponential(1) + " T";
+          console.log("Received pressure dashboard reading: ", r);
+          if (r.data.error != null) {
+            _this.state_ok = false;
+          } else {
+            _this.state_ok = true;
+            _this.value = r.data.pressure.toExponential(1) + " T";
+          }
           return _this.render();
         };
       })(this));
@@ -418,5 +409,34 @@
     return PressureDashboardElement;
 
   })(DashboardElement);
+
+  window.config = [];
+
+  window.config.websocket_url = "ws://cerulean:80/json";
+
+  window.config.server_version = "0.1";
+
+  $(function() {
+    log("#cryo-server");
+    window.socket = new WebSocket(window.config.websocket_url);
+    window.jevent('SocketOpened', function() {});
+    console.log('The socket was opened.');
+    socket.onopen = function() {
+      console.log("Socket connection opened successfully.");
+      window.pycon = new PyAPI(window.socket);
+      return setTimeout(window.connection_ready, 300);
+    };
+    return socket.onclose = function() {
+      console.log("Socket connection was closed, unexpectedly.");
+      return console.log("I don't know why, but the socket was closed (!)");
+    };
+  });
+
+  window.connection_ready = function() {
+    console.log("Window ready.");
+    window.dashboard = new Dashboard();
+    window.temperature_plot = new TemperaturePlot();
+    return window.pressure_plot = new PressurePlot();
+  };
 
 }).call(this);

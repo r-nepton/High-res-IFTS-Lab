@@ -1,12 +1,13 @@
 .dashboard-element {
 	background-color: black;
-	width: 265px;
+	width: 256px;
 	height: 65px;
 	font-weight: bold;
 	font-size: 30pt;
 	padding: 5px;
 	display: inline-block;
-	margin-right: 20px;
+	margin-right: 10px;
+	margin-bottom: 10px;
 }
 
 .dashboard-element .left {
