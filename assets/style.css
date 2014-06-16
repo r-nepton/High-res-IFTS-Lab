@@ -25,3 +25,21 @@
 	float: left;
 	text-align: center;
 }
+
+div.menubutton {
+	width: 100px;
+	display: inline-block;
+	margin: 5px;
+	text-align: center;
+	font-weight: bold;
+	padding: 2px;
+	margin-left: 0;
+	margin-right: 5px;
+	cursor: hand;
+}
+
+div.log {
+	width: 800px;
+	margin-left: auto;
+	margin-right: auto;
+}

@@ -1,7 +1,7 @@
 # Configuration parameters:
 # -------------------------------------- #
 window.config = []
-window.config.websocket_url = "ws://cerulean:80/json"
+window.config.websocket_url = "ws://#{window.location.host}/json"
 window.config.server_version = "0.1"
 # -------------------------------------- #
 
@@ -27,7 +27,16 @@ $ ->
 
 window.connection_ready = ->
 	console.log "Window ready."
-	# Insert the temperature chart.
+	# Create the menu region
+	$('.log').append $('<div class="menu"></div>')
+	window.overview_button = new OverviewMenuButton()
+	window.graphs_button = new GraphsMenuButton()
+	# Create the dashboard elements.
 	window.dashboard = new Dashboard()
-	window.temperature_plot = new TemperaturePlot()
-	window.pressure_plot = new PressurePlot()
+	# Create the graphs.
+	$('.log').append('<div class="graphs"></div>')
+	$('.graphs').hide()
+	window.graphs = []
+	window.graphs.push new TemperaturePlot2()
+	window.graphs.push new TemperaturePlot()
+	window.graphs.push new PressurePlot()

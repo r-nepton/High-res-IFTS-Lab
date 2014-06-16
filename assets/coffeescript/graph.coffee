@@ -14,6 +14,10 @@ class @ScatterPlot
 
 	plot: (x = @x, y = @y) ->
 		@x = x; @y = y;
+		# Only draw the plot if it's worth drawing.
+		if !$('.graphs').is(':visible') or x.length == 0
+			return
+
 		drawChart = =>
 			console.log "drawing chart..."
 			table = []
@@ -46,8 +50,8 @@ class @ScatterPlot
 class @TemperaturePlot
 	constructor: ->
 		element = $('<div id="temperature_plot" style="width: 650px; height: 250px;"></div>')
-		element.appendTo('.log')
-		@t = new ScatterPlot("Pulse Tube Stage #1 Temperature", element)
+		element.appendTo('.graphs')
+		@t = new ScatterPlot("Pulse Tube Stage #2 Temperature", element)
 		@update()
 		# Set a timer to constantly update the plot.
 		setInterval( => 
@@ -63,10 +67,30 @@ class @TemperaturePlot
 			@t.x = ( Math.min(0,(d.time - Date.now()/1000)/60) for d in r.history )
 			@t.plot()
 
+class @TemperaturePlot2
+	constructor: ->
+		element = $('<div id="temperature_plot" style="width: 650px; height: 250px;"></div>')
+		element.appendTo('.graphs')
+		@t = new ScatterPlot("Pulse Tube Stage #1 Temperature", element)
+		@update()
+		# Set a timer to constantly update the plot.
+		setInterval( => 
+			@update()
+		, 5000)
+
+	update: ->
+		# Request historical data from the server.
+		pycon.transaction { action: "temperature_2", arguments: {'number':50} }, (r) =>
+			@t.xtitle = "Time [minutes from now]"
+			@t.ytitle = "Temperature [Kelvin]"	
+			@t.y = ( d.data.temperature for d in r.history )
+			@t.x = ( Math.min(0,(d.time - Date.now()/1000)/60) for d in r.history )
+			@t.plot()
+
 class @PressurePlot
 	constructor: ->
 		@element = $('<div id="pressure_plot" style="width: 650px; height: 250px;"></div>')
-		@element.appendTo('.log')
+		@element.appendTo('.graphs')
 		@t = new ScatterPlot("Pressure", @element)
 		@t.options.vAxis.format = ""
 		@update() 

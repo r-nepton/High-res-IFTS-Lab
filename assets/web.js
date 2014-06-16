@@ -112,12 +112,6 @@
     }
   };
 
-  window.log = function(text) {
-    var t;
-    t = marked.parse(text);
-    return $('.log').append(t);
-  };
-
   this.ScatterPlot = (function() {
     function ScatterPlot(title, element) {
       this.title = title;
@@ -149,6 +143,9 @@
       }
       this.x = x;
       this.y = y;
+      if (!$('.graphs').is(':visible') || x.length === 0) {
+        return;
+      }
       drawChart = (function(_this) {
         return function() {
           var chart, data, i, table, xmax, xmin, xrange, ymax, ymin, yrange, _i, _ref;
@@ -186,8 +183,8 @@
     function TemperaturePlot() {
       var element;
       element = $('<div id="temperature_plot" style="width: 650px; height: 250px;"></div>');
-      element.appendTo('.log');
-      this.t = new ScatterPlot("Pulse Tube Stage #1 Temperature", element);
+      element.appendTo('.graphs');
+      this.t = new ScatterPlot("Pulse Tube Stage #2 Temperature", element);
       this.update();
       setInterval((function(_this) {
         return function() {
@@ -236,10 +233,64 @@
 
   })();
 
+  this.TemperaturePlot2 = (function() {
+    function TemperaturePlot2() {
+      var element;
+      element = $('<div id="temperature_plot" style="width: 650px; height: 250px;"></div>');
+      element.appendTo('.graphs');
+      this.t = new ScatterPlot("Pulse Tube Stage #1 Temperature", element);
+      this.update();
+      setInterval((function(_this) {
+        return function() {
+          return _this.update();
+        };
+      })(this), 5000);
+    }
+
+    TemperaturePlot2.prototype.update = function() {
+      return pycon.transaction({
+        action: "temperature_2",
+        "arguments": {
+          'number': 50
+        }
+      }, (function(_this) {
+        return function(r) {
+          var d;
+          _this.t.xtitle = "Time [minutes from now]";
+          _this.t.ytitle = "Temperature [Kelvin]";
+          _this.t.y = (function() {
+            var _i, _len, _ref, _results;
+            _ref = r.history;
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              d = _ref[_i];
+              _results.push(d.data.temperature);
+            }
+            return _results;
+          })();
+          _this.t.x = (function() {
+            var _i, _len, _ref, _results;
+            _ref = r.history;
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              d = _ref[_i];
+              _results.push(Math.min(0, (d.time - Date.now() / 1000) / 60));
+            }
+            return _results;
+          })();
+          return _this.t.plot();
+        };
+      })(this));
+    };
+
+    return TemperaturePlot2;
+
+  })();
+
   this.PressurePlot = (function() {
     function PressurePlot() {
       this.element = $('<div id="pressure_plot" style="width: 650px; height: 250px;"></div>');
-      this.element.appendTo('.log');
+      this.element.appendTo('.graphs');
       this.t = new ScatterPlot("Pressure", this.element);
       this.t.options.vAxis.format = "";
       this.update();
@@ -410,9 +461,88 @@
 
   })(DashboardElement);
 
+  this.MenuButton = (function() {
+    function MenuButton() {
+      if (this.text == null) {
+        this.text = "Generic Menu Button";
+      }
+      if (this.background_color == null) {
+        this.background_color = "#000000";
+      }
+      if (this.text_color == null) {
+        this.text_color = "#FFFFFF";
+      }
+      this.element = $("<div class='menubutton'></div>");
+      this.element.on('click', this.action);
+      this.element.on('tap', this.action);
+      this.element.appendTo($('.menu'));
+      this.render();
+    }
+
+    MenuButton.prototype.action = function() {
+      return true;
+    };
+
+    MenuButton.prototype.render = function() {
+      this.element.css('background-color', this.background_color);
+      this.element.css('color', this.text_color);
+      return this.element.html(this.text);
+    };
+
+    return MenuButton;
+
+  })();
+
+  this.OverviewMenuButton = (function(_super) {
+    __extends(OverviewMenuButton, _super);
+
+    function OverviewMenuButton() {
+      this.text = "overview";
+      OverviewMenuButton.__super__.constructor.call(this);
+    }
+
+    OverviewMenuButton.prototype.action = function() {
+      $('.graphs').hide();
+      return $('#dashboard').show();
+    };
+
+    return OverviewMenuButton;
+
+  })(MenuButton);
+
+  this.GraphsMenuButton = (function(_super) {
+    __extends(GraphsMenuButton, _super);
+
+    function GraphsMenuButton() {
+      this.text = "graphs";
+      this.background_color = "#3366cc";
+      GraphsMenuButton.__super__.constructor.call(this);
+    }
+
+    GraphsMenuButton.prototype.action = function() {
+      var g, _i, _len, _ref;
+      $('.graphs').show();
+      _ref = window.graphs;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        g = _ref[_i];
+        g.t.plot();
+      }
+      return $('#dashboard').hide();
+    };
+
+    return GraphsMenuButton;
+
+  })(MenuButton);
+
+  window.log = function(text) {
+    var t;
+    t = marked.parse(text);
+    return $('.log').append(t);
+  };
+
   window.config = [];
 
-  window.config.websocket_url = "ws://cerulean:80/json";
+  window.config.websocket_url = "ws://" + window.location.host + "/json";
 
   window.config.server_version = "0.1";
 
@@ -434,9 +564,16 @@
 
   window.connection_ready = function() {
     console.log("Window ready.");
+    $('.log').append($('<div class="menu"></div>'));
+    window.overview_button = new OverviewMenuButton();
+    window.graphs_button = new GraphsMenuButton();
     window.dashboard = new Dashboard();
-    window.temperature_plot = new TemperaturePlot();
-    return window.pressure_plot = new PressurePlot();
+    $('.log').append('<div class="graphs"></div>');
+    $('.graphs').hide();
+    window.graphs = [];
+    window.graphs.push(new TemperaturePlot2());
+    window.graphs.push(new TemperaturePlot());
+    return window.graphs.push(new PressurePlot());
   };
 
 }).call(this);

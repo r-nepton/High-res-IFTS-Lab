@@ -39,7 +39,7 @@ class CryoManager(object):
 	def thread_initialize(self, args=None):
 		global database_connection
 		database_connection = sqlite3.connect('data/database.db')
-		self.sensors_list = [ PulseTubeFirstStageTemperatureSensor(), GenericPressureSensor(1), FAATemperatureSensor(), GGGTemperatureSensor(), MagnetRuOxTemperatureSensor() ]
+		self.sensors_list = [ PulseTubeSecondStageTemperatureSensor(), GenericPressureSensor(1), FAATemperatureSensor(), GGGTemperatureSensor(), MagnetRuOxTemperatureSensor(), PulseTubeFirstStageTemperatureSensor() ]
 
 	# I think this function will respond to queries in a queue-like
 	# way, but it will also block until they respond. This function
@@ -67,8 +67,17 @@ class CryoManager(object):
 
 	def temperature(self, arguments):
 		if 'number' in arguments:
-			return {'history': self.sensors_list[2].tail(arguments[u'number']) }
-		data = self.sensors_list[2].tail(1)
+			return {'history': self.sensors_list[0].tail(arguments[u'number']) }
+		data = self.sensors_list[0].tail(1)
+		if len(data) == 0:
+			return { "error":"unknown" }
+		else:
+			return data[0]
+
+	def temperature_2(self, arguments):
+		if 'number' in arguments:
+			return {'history': self.sensors_list[5].tail(arguments[u'number']) }
+		data = self.sensors_list[5].tail(1)
 		if len(data) == 0:
 			return { "error":"unknown" }
 		else:
