@@ -18,7 +18,7 @@ $ ->
 	socket.onopen = ->
 		console.log "Socket connection opened successfully."
 		window.pycon = new PyAPI window.socket
-		setTimeout window.connection_ready, 300
+		setTimeout window.connection_ready, 200
 
 	# Since the socket should never close, this is always unexpected.
 	socket.onclose = ->
@@ -31,6 +31,8 @@ window.connection_ready = ->
 	$('.log').append $('<div class="menu"></div>')
 	window.overview_button = new OverviewMenuButton()
 	window.graphs_button = new GraphsMenuButton()
+	window.log_button = new LogMenuButton()
+	#window.log_button = new ReportMenuButton()
 	# Create the dashboard elements.
 	window.dashboard = new Dashboard()
 	# Create the graphs.
@@ -40,3 +42,10 @@ window.connection_ready = ->
 	window.graphs.push new TemperaturePlot2()
 	window.graphs.push new TemperaturePlot()
 	window.graphs.push new PressurePlot()
+	window.graphs.push new CurrentPlot()
+
+	# Create the logs.
+	window.logs_controller = new LogsController( $('<div class="logs"></div>').hide() )
+
+	# Create the report.
+	#window.report_controller = new ReportController()

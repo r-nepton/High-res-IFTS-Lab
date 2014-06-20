@@ -5,9 +5,37 @@
 	font-weight: bold;
 	font-size: 30pt;
 	padding: 5px;
+	margin-top:10px;
 	display: inline-block;
 	margin-right: 10px;
 	margin-bottom: 10px;
+}
+
+input.log_textbox {
+	width: 650px;
+	height: 36px;
+	font-size: 15pt;
+	padding-left: 10px;
+	padding-right: 10px;
+	margin-top: 10px;
+}
+
+.log_element_message {
+	font-size: 15pt;
+}
+
+.log_element {
+	width: 650px;
+	margin-top: 10px;
+	border-bottom: 1px solid #EEEEEE;
+}
+
+.log_element_timestamp {
+	float: right;
+	position: relative;
+	top: 8px;
+	font-style: italic;
+	color: grey;
 }
 
 .dashboard-element .left {
@@ -17,6 +45,11 @@
 	font-weight: bold;
 	font-size: 30pt;
 	float: left;
+}
+
+.dashboard-element.h2o .left {
+	font-size: 24pt;
+	margin-top:5px;
 }
 
 .dashboard-element .right {
@@ -36,6 +69,10 @@ div.menubutton {
 	margin-left: 0;
 	margin-right: 5px;
 	cursor: hand;
+}
+
+#control {
+	height: 40px;
 }
 
 div.log {

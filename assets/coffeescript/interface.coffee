@@ -27,7 +27,9 @@ class @OverviewMenuButton extends MenuButton
 
 	action: ->
 		$('.graphs').hide()
+		$('.logs').hide()
 		$('#dashboard').show()
+		$('.report').hide()
 
 class @GraphsMenuButton extends MenuButton
 	constructor: ->
@@ -40,3 +42,31 @@ class @GraphsMenuButton extends MenuButton
 		for g in window.graphs
 			g.t.plot()
 		$('#dashboard').hide()
+		$('.logs').hide()
+		$('.report').hide()
+
+class @LogMenuButton extends MenuButton
+	constructor: ->
+		@text = "log"
+		@background_color = "#AAB95D"
+		super()
+
+	action: ->
+		$('.logs').show()
+		$('#dashboard').hide()
+		$('.graphs').hide()
+		$('.report').hide()
+
+		window.logs_controller.focus()
+
+class @ReportMenuButton extends MenuButton
+	constructor: ->
+		@text = "report"
+		@background_color = "#FA2A00"
+		super()
+
+	action: ->
+		$('.logs').hide()
+		$('#dashboard').hide()
+		$('.graphs').hide()
+		$('.report').show()

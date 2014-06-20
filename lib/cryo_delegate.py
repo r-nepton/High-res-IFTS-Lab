@@ -1,6 +1,6 @@
 import threading
 import Queue
-import sqlite3, json, os, sys
+import sqlite3, json, os, sys, numpy
 from dataconduits import *
 
 
@@ -14,7 +14,9 @@ sys.path.append(lib_path)
 class CryoManager(object):
 	def __init__(self):
 		self.thread 	= CryoManagerThread(self)
-		self.sensors_list = []
+		self.sensors_list = {}
+		self.user_log_writer   	= None
+		self.robot_log_writer   = None
 		# Now, start the object which provokes the cryomanager every 30 seconds
 		# via its "wake" method.
 		self.stop_wake_thread = threading.Event()
@@ -24,7 +26,6 @@ class CryoManager(object):
 	# This function is used to call a function on itself based
 	# upon a string argument.
 	def invoke(self, action, arguments):
-		print "Attempted to invoke action %s" % action
 		if hasattr(self, action):
 			return getattr(self, action)(arguments) 
 		else:
@@ -39,7 +40,15 @@ class CryoManager(object):
 	def thread_initialize(self, args=None):
 		global database_connection
 		database_connection = sqlite3.connect('data/database.db')
-		self.sensors_list = [ PulseTubeSecondStageTemperatureSensor(), GenericPressureSensor(1), FAATemperatureSensor(), GGGTemperatureSensor(), MagnetRuOxTemperatureSensor(), PulseTubeFirstStageTemperatureSensor() ]
+		self.sensors_list = {
+			'pulse_tube_first_stage': 	PulseTubeFirstStageTemperatureSensor(),
+			'pulse_tube_second_stage': 	PulseTubeSecondStageTemperatureSensor(),
+			'pressure':  				GenericPressureSensor(1),
+			'FAA_temperature': 			FAATemperatureSensor(),
+			'magnet_current':			MagnetCurrentSensor(),
+			'compressor':				CompressorSensor()
+		} 
+		self.user_log_writer   	= UserLogWriter()
 
 	# I think this function will respond to queries in a queue-like
 	# way, but it will also block until they respond. This function
@@ -58,8 +67,46 @@ class CryoManager(object):
 
 	def pressure(self, arguments):
 		if 'number' in arguments:
-			return {'history': self.sensors_list[1].tail(arguments[u'number']) }
-		data = self.sensors_list[1].tail(1)
+			return {'history': self.sensors_list['pressure'].tail(arguments[u'number']) }
+		data = self.sensors_list['pressure'].tail(1)
+		if len(data) == 0:
+			return { "error":"unknown" }
+		else:
+			return data[0]
+
+	def magnet_current(self, arguments):
+		if 'number' in arguments:
+			return {'history': self.sensors_list['magnet_current'].tail(arguments[u'number']) }
+		data = self.sensors_list['magnet_current'].tail(1)
+		if len(data) == 0:
+			return { "error":"unknown" }
+		else:
+			return data[0]
+
+	def write_log(self, arguments):
+		if 'log' in arguments:
+			self.user_log_writer.write_log(arguments['log'])
+		return {'result': 'success'}
+
+	def user_log(self, arguments):
+		if 'number' in arguments:
+			return {'history': self.user_log_writer.tail(arguments[u'number']) }
+		data = self.user_log_writer.tail(1)
+		if len(data) == 0:
+			return { "error":"unknown" }
+		else:
+			return data[0]
+
+	def sensor(self, arguments):
+		if 'sensor' in arguments:
+			s = self.sensors_list[arguments[u'sensor']]
+		else: 
+			return { "error": "sensor unspecified" }
+
+		if 'number' in arguments:
+			return {'history': s.tail(arguments[u'number']) }
+		
+		data = s.tail(1)
 		if len(data) == 0:
 			return { "error":"unknown" }
 		else:
@@ -67,8 +114,8 @@ class CryoManager(object):
 
 	def temperature(self, arguments):
 		if 'number' in arguments:
-			return {'history': self.sensors_list[0].tail(arguments[u'number']) }
-		data = self.sensors_list[0].tail(1)
+			return {'history': self.sensors_list['pulse_tube_second_stage'].tail(arguments[u'number']) }
+		data = self.sensors_list['pulse_tube_second_stage'].tail(1)
 		if len(data) == 0:
 			return { "error":"unknown" }
 		else:
@@ -76,15 +123,15 @@ class CryoManager(object):
 
 	def temperature_2(self, arguments):
 		if 'number' in arguments:
-			return {'history': self.sensors_list[5].tail(arguments[u'number']) }
-		data = self.sensors_list[5].tail(1)
+			return {'history': self.sensors_list['pulse_tube_first_stage'].tail(arguments[u'number']) }
+		data = self.sensors_list['pulse_tube_first_stage'].tail(1)
 		if len(data) == 0:
 			return { "error":"unknown" }
 		else:
 			return data[0]
 
 	def sensors(self, arguments):
-		return { 'sensors': [ {'title':s.name, 'units':s.units } for s in self.sensors_list ] }
+		return { 'sensors': [ {'title':s.name, 'units':s.units } for k,s in self.sensors_list.iteritems() ] }
 
 	# This function is called periodically by a timer thread (e.g. every 30 seconds) via the
 	# CryoManagerThread object. It does regular housekeeping things, checks on temperatures
@@ -92,7 +139,7 @@ class CryoManager(object):
 	def wake(self, args=None):
 		print "Waking up for maintenance."
 		print "Polling sensors..."
-		for s in self.sensors_list:
+		for k,s in self.sensors_list.iteritems():
 			s.poll()
 		database_connection.commit()
 		print "Going back to sleep."
@@ -168,6 +215,20 @@ class GenericCryoDataModel(object):
 		q 	= "INSERT INTO %s (time, value) VALUES (CURRENT_TIMESTAMP, ?)" % self.database_name
 		self.db.execute(q, [json.dumps(value)]) 
 
+	# Get the last X entries, averaged with the specified resolution (all in seconds or unix time).
+	def range(self, start, end, resolution=30):
+		q	= "SELECT value,CAST(strftime('%%s',time) as INT) FROM %s WHERE time < ? AND time > ?" % (self.database_name)
+		self.db.execute(q, [start, end])
+		data = []
+		# Preload the range with blank data.
+		for p in numpy.linspace(start,end,step=resolution):
+			data.append { 'time': p, 'data': 'unknown', 'count':0 }
+		# Average together the data.
+		for r in self.db.fetchall():
+			# Determine the right index for the space.
+			index = numpy.ceil( (end - start) / resolution )
+			
+
 	# Get the last X number of entries into the database.
 	def tail(self, number=10):
 		q 	= "SELECT value,CAST(strftime('%%s',time) as INT) FROM %s ORDER BY time DESC LIMIT ?" % self.database_name
@@ -192,3 +253,4 @@ class WakeThread(threading.Thread):
 
 # Now, import all of the sensors.
 from sensors import *
+from log_writer import *

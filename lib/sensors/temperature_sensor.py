@@ -45,12 +45,12 @@ class RuOxTemperatureSensorConduit(GenericDataConduit):
 		try:
 			self.serial_connection.write("disconnect\r")
 			# First, connect to the octal multiplexer and set the channel.
-			self.serial_connection.write("CONN 6, 'disconnect'\r")
-			self.serial_connection.write("CHAN %d\r" % self.SIM925_port)
+			#self.serial_connection.write("CONN 6, 'disconnect'\r")
+			#self.serial_connection.write("CHAN %d\r" % self.SIM925_port)
 			# The channel switching time is 50 ms. Delay to ensure correct switch.
-			time.sleep(0.05)
+			#time.sleep(0.05)
 			# Now disconnect from the mux and connect to the bridge reader.
-			self.serial_connection.write("disconnect\r")
+			#self.serial_connection.write("disconnect\r")
 			self.serial_connection.write("CONN 1, 'disconnect'\r")
 			# Clear out the buffer.
 			self.serial_connection.read(2000)
