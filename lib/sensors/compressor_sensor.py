@@ -63,11 +63,6 @@ class CompressorSensorConduit(GenericDataConduit):
 			'units'					: 'celsius' 
 		}
 
-	def sum_data(d1, d2):
-		data = [ 'inlet_temperature', 'outlet_temperature', 'oil_temperature']
-		for field in data:
-			if d1[field] 
-
 class CompressorSensor(GenericCryoDataModel):
 	def __init__(self): 
 		self.name 			= "Compressor temperature sensor (inlet, outlet, oil, helium)" 
