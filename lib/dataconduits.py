@@ -1,6 +1,10 @@
 import random
+import cryo_delegate
+import sqlite3, json, os, sys, numpy
 # A GenericDataConduit represents a method
 # for getting data from a device.
+
+
 class GenericDataConduit:
 	def __init__(self):
 		self.name = "GenericDataConduit"
@@ -13,8 +17,8 @@ class GenericDataConduit:
 
 	def sum_data(d1, d2):
 		data = [ 'inlet_temperature', 'outlet_temperature', 'oil_temperature']
-		for field in data:
-			if d1[field] 
+	#	for field in data:
+	#		if d1[field] 
 
 class RandomDataConduit(GenericDataConduit):
 	def __init__(self):
@@ -36,13 +40,13 @@ class GenericCryoDataModel(object):
 		if hasattr(self, 'units') == False:
 			self.units = "count"
 
-		self.db = database_connection.cursor() # database connection.
+		self.db = cryo_delegate.database_connection.cursor() # database connection.
 		self.initialize()
 
 	def __del__(self):
 		print "Saving database '%s'..." % self.name
 		try:
-			database_connection.commit()
+			cryo_delegate.database_connection.commit()
 		except Exception():
 			pass
 
@@ -67,17 +71,17 @@ class GenericCryoDataModel(object):
 		self.db.execute(q, [json.dumps(value)]) 
 
 	# Get the last X entries, averaged with the specified resolution (all in seconds or unix time).
-	def range(self, start, end, resolution=30):
-		q	= "SELECT value,CAST(strftime('%%s',time) as INT) FROM %s WHERE time < ? AND time > ?" % (self.database_name)
-		self.db.execute(q, [start, end])
-		data = []
+	#def range(self, start, end, resolution=30):
+	#	q	= "SELECT value,CAST(strftime('%%s',time) as INT) FROM %s WHERE time < ? AND time > ?" % (self.database_name)
+	#	self.db.execute(q, [start, end])
+	#	data = []
 		# Preload the range with blank data.
-		for p in numpy.linspace(start,end,step=resolution):
-			data.append { 'time': p, 'data': 'unknown', 'count':0 }
+	#	for p in numpy.linspace(start,end,step=resolution):
+	#		data.append { 'time': p, 'data': 'unknown', 'count':0 }
 		# Average together the data.
-		for r in self.db.fetchall():
+	#	for r in self.db.fetchall():
 			# Determine the right index for the space.
-			index = numpy.ceil( (end - start) / resolution )
+	#		index = numpy.ceil( (end - start) / resolution )
 			
 
 	# Get the last X number of entries into the database.

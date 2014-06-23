@@ -3,6 +3,7 @@ import Queue
 import sqlite3, json, os, sys, numpy
 from dataconduits import *
 
+database_connection = None
 
 lib_path = os.path.abspath('./lib/sensors')
 sys.path.append(lib_path)
