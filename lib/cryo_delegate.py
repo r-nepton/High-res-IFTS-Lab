@@ -1,6 +1,7 @@
 import threading
 import Queue
 import sqlite3, json, os, sys, numpy
+from StringIO import StringIO
 from dataconduits import *
 
 database_connection = None
@@ -40,7 +41,24 @@ class CryoManager(object):
 
 	def thread_initialize(self, args=None):
 		global database_connection
+
+		# First, we'll copy the file system database into a string, then load it into memory.
+		print "Attempting to load database into memory..."
 		database_connection = sqlite3.connect('data/database.db')
+		tempfile = StringIO()
+		for line in database_connection.iterdump():
+			tempfile.write('%s\n' % line)
+		database_connection.close()
+		tempfile.seek(0)
+
+		# Now we'll load the script into memory...
+		print "Database loaded. Now converting to memory database..."
+		database_connection = sqlite3.connect(':memory:')
+		database_connection.cursor().executescript( tempfile.read() )
+		database_connection.commit()
+
+		print "Database loaded."
+
 		self.sensors_list = {
 			'pulse_tube_first_stage': 	PulseTubeFirstStageTemperatureSensor(),
 			'pulse_tube_second_stage': 	PulseTubeSecondStageTemperatureSensor(),
@@ -50,6 +68,24 @@ class CryoManager(object):
 			'compressor':				CompressorSensor()
 		} 
 		self.user_log_writer   	= UserLogWriter()
+
+	# This function saves the memory database back to disk.
+	def save_to_disk(self, arguments):
+		# Collect together all of the information.
+		tempfile = StringIO()
+		for line in database_connection.iterdump():
+			tempfile.write('%s\n' % line)
+		tempfile.seek(0)
+
+		# Now write the archive database to disk.
+		archive_database = sqlite3.connect('data/database.db')
+		archive_database.cursor().executescript( tempfile.read() )
+		archive_database.commit()
+		archive_database.close()
+
+	def __del__(self):
+		self.save_to_disk()
+		database_connection.close()
 
 	# I think this function will respond to queries in a queue-like
 	# way, but it will also block until they respond. This function
@@ -182,8 +218,12 @@ class WakeThread(threading.Thread):
 
 	def run(self):
 		self.cryomanager.ask('thread_initialize',{})
+		iteration = 0
 		while not self.stopped.wait(10):
+			iteration += 1
 			self.cryomanager.ask('wake', {})
+			if iteration%1 == 0:
+				self.cryomanager.ask('save_to_disk', {})
 
 # Now, import all of the sensors.
 from sensors import *

@@ -6,4 +6,4 @@ class SerialDummy:
 		pass
 
 	def read(self, *args):
-		pass
+		return ""
