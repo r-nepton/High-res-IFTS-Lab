@@ -1,11 +1,18 @@
-import random, serial, re
+import random, serial, serial_dummy, re
 from cryo_delegate import *
 
 class PressureSensorConduit(GenericDataConduit):
 	def __init__(self, interface_number):
-		self.serial_connection = serial.Serial(0, 9600, timeout=0.2)
+		# Try to connect to the relevant serial port.
+		try:
+			self.serial_connection = serial.Serial(0, 9600, timeout=0.2)
+		except Exception:
+			print "There was a problem connecting to the serial port constructor of: %s" % type(self)
+			self.serial_connection = serial_dummy.SerialDummy()
+
 		self.name = "Generic Temperature Sensor #%d" % interface_number
 		self.units = "Torr"
+		self.fields = [ 'pressure' ]
 		self.cold_cathode_max_pressure = 5e-5 # torr.
 		# It is necessary to configure the unit to use air as the pressure sensing medium. 
 		# Otherwise it is calibrated for nitrogen, which leads to incorrect measurements.

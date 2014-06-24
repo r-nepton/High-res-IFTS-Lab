@@ -5,9 +5,10 @@ from cryo_delegate import *
 # The four channels are laid out on page 45 of the HPD104 operating manual.
 class CompressorSensorConduit(GenericDataConduit):
 	def __init__(self):
-		self.name = "Compressor temperature sensor (inlet, outlet, oil, helium)"
+		self.name = "Compressor temperature sensor (inlet, outlet, oil)"
 		self.units = "Celsius"
 		self.syncom_connection = SyncomMultiDropAdapter()
+		self.fields 		= [ 'inlet_temperature', 'outlet_temperature', 'oil_temperature' ]
 
 	def get_data(self):
 		# Set up the system so it is connected to the right machine.
@@ -65,7 +66,7 @@ class CompressorSensorConduit(GenericDataConduit):
 
 class CompressorSensor(GenericCryoDataModel):
 	def __init__(self): 
-		self.name 			= "Compressor temperature sensor (inlet, outlet, oil, helium)" 
+		self.name 			= "Compressor temperature sensor (inlet, outlet, oil)" 
 		self.database_name 	= "compressor"
 		# The interface number comes from the HPD operating manual, page 45.
 		self.conduit 		= CompressorSensorConduit()

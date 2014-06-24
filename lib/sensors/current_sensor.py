@@ -1,4 +1,4 @@
-import random, serial, time
+import random, serial, serial_dummy, time
 from cryo_delegate import *
 
 # The current sensor measures the current from the SIM970. It actually measures
@@ -7,8 +7,14 @@ class MagnetCurrentSensorConduit(GenericDataConduit):
 	def __init__(self):
 		self.name = "SIM970 Magnet Current Sensor #%d" % 2
 		self.units = "Amperes"
-		self.serial_connection = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.5)
+		try:
+			self.serial_connection = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.5)
+		except Exception:
+			print "There was a problem connecting to the serial port constructor of: %s" % type(self)
+			self.serial_connection = serial_dummy.SerialDummy()
+
 		self.SIM970_port = 2
+		self.fields = [ 'current' ]
 
 	def get_data(self):
 		# Set up the system so it is connected to the right machine.

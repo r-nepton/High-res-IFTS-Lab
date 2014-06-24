@@ -1,8 +1,12 @@
-import serial
+import serial, serial_dummy
 
 class SyncomMultiDropAdapter:
 	def __init__(self):
-		self.serial_connection = serial.Serial('/dev/ttyUSB1', 9600, timeout=0.1)
+		try:
+			self.serial_connection = serial.Serial('/dev/ttyUSB1', 9600, timeout=0.1)
+		except Exception: 
+			print "There was a problem connecting to the serial port constructor of: %s" % type(self)
+			self.serial_connection = serial_dummy.SerialDummy()
 
 	def write(self, data = [0x63, 0x0D, 0x8F, 0x00]):
 		STX		 	= 0x02 # STX byte
