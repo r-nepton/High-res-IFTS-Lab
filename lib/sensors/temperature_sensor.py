@@ -1,4 +1,4 @@
-import random, serial, time
+import random, serial, serial_dummy, time
 from cryo_delegate import *
 
 # The temperature sensor reads the diode temperatures from the SIM922.
@@ -7,8 +7,15 @@ class DiodeTemperatureSensorConduit(GenericDataConduit):
 	def __init__(self, interface_number):
 		self.name = "SIM922 Silicon Diode Temperature Sensor #%d" % interface_number
 		self.units = "Kelvin"
-		self.serial_connection = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.5)
+
+		try:
+			self.serial_connection = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.5)
+		except Exception:
+			print "There was a problem connecting to the serial port constructor of: %s" % type(self)
+			self.serial_connection = serial_dummy.SerialDummy()
+
 		self.SIM922_port = interface_number
+		self.fields = [ 'temperature' ]
 
 	def get_data(self):
 		# Set up the system so it is connected to the right machine.
@@ -37,8 +44,15 @@ class RuOxTemperatureSensorConduit(GenericDataConduit):
 	def __init__(self, interface_number):
 		self.name = "SIM921 Ruthenium Oxide Temperature Sensor #%d" % interface_number
 		self.units = "Kelvin"
-		self.serial_connection = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.5)
+
+		try:
+			self.serial_connection = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.5)
+		except Exception:
+			print "There was a problem connecting to the serial port constructor of: %s" % type(self)
+			self.serial_connection = serial_dummy.SerialDummy()
+
 		self.SIM925_port = interface_number
+		self.fields = [ 'temperature' ]
 
 	def get_data(self):
 		# Set up the system so it is connected to the right machine.
@@ -77,7 +91,7 @@ class PulseTubeFirstStageTemperatureSensor(GenericCryoDataModel):
 		self.database_name 	= "pulse_tube_first_stage_temperature"
 		# The interface number comes from the HPD operating manual, page 45.
 		self.conduit 		= DiodeTemperatureSensorConduit(1)
-		self.units 			= self.conduit.units
+		self.units 			= self.conduit.units	
 		
 		GenericCryoDataModel.__init__(self, self.name)
 

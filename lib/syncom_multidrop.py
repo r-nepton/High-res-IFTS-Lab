@@ -1,11 +1,15 @@
-import serial
+import serial, serial_dummy
 
 # This Syncom MultiDrop adapter is based around the specifications in the 
 # Syncom datasheets describing the protocol design. It is also specifically
 # adapted to work with a compressr
 class SyncomMultiDropAdapter:
 	def __init__(self):
-		self.serial_connection = serial.Serial('/dev/ttyUSB1', 9600, timeout=0.1)
+		try:
+			self.serial_connection = serial.Serial('/dev/ttyUSB1', 9600, timeout=0.1)
+		except Exception: 
+			print "There was a problem connecting to the serial port constructor of: %s" % type(self)
+			self.serial_connection = serial_dummy.SerialDummy()
 
 	def clear_buffer(self):
 		self.serial_connection.read(100)

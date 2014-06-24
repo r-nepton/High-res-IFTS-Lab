@@ -9,8 +9,9 @@ import threading, Queue
 lib_path = os.path.abspath('./lib')
 sys.path.append(lib_path)
 
+from plotting import *
 from cryo_delegate import *
 from sensors import *
 
-d = GenericTemperatureSensor(1)
-d.initialize()
+cryo_delegate = CryoManager()
+cryo_delegate.thread_initialize()
