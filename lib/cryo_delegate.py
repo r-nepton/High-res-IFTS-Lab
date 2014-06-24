@@ -45,7 +45,10 @@ class CryoManager(object):
 		# First, we'll copy the file system database into a string, then load it into memory.
 		print "Attempting to load database into memory..."
 		database_connection = sqlite3.connect('data/database.db')
-		tempfile = StringIO()
+		database_connection.execute("PRAGMA synchronous=OFF")
+		database_connection.execute("PRAGMA cache_size=-512000")
+
+		"""tempfile = StringIO()
 		for line in database_connection.iterdump():
 			tempfile.write('%s\n' % line)
 		database_connection.close()
@@ -55,7 +58,7 @@ class CryoManager(object):
 		print "Database loaded. Now converting to memory database..."
 		database_connection = sqlite3.connect(':memory:')
 		database_connection.cursor().executescript( tempfile.read() )
-		database_connection.commit()
+		database_connection.commit()"""
 
 		print "Database loaded."
 
@@ -84,7 +87,6 @@ class CryoManager(object):
 		archive_database.close()
 
 	def __del__(self):
-		self.save_to_disk()
 		database_connection.close()
 
 	# I think this function will respond to queries in a queue-like
@@ -218,12 +220,8 @@ class WakeThread(threading.Thread):
 
 	def run(self):
 		self.cryomanager.ask('thread_initialize',{})
-		iteration = 0
 		while not self.stopped.wait(10):
-			iteration += 1
 			self.cryomanager.ask('wake', {})
-			if iteration%1 == 0:
-				self.cryomanager.ask('save_to_disk', {})
 
 # Now, import all of the sensors.
 from sensors import *

@@ -124667,3 +124667,116 @@ Attempted to invoke action magnet_current
 Message received: {"data":{"action":"temperature_2"},"transaction_id":"T0.05573876388370991"} 
 Attempted to invoke action temperature_2
 Message received: {"data":{"action":"sensor","arguments":{"sensor":"compressor"}},"transaction_id":"T0.3569643513765186"} 
+Attempting to load database into memory...
+Database loaded.
+Opening...
+Message received: {"data":{"action":"validate_version"},"transaction_id":"T0.3409979632124305"} 
+Attempted to invoke action validate_version
+Message received: {"data":{"action":"temperature"},"transaction_id":"T0.07424169662408531"} 
+Attempted to invoke action temperature
+Message received: {"data":{"action":"temperature_2"},"transaction_id":"T0.5731270154938102"} 
+Attempted to invoke action temperature_2
+Message received: {"data":{"action":"pressure"},"transaction_id":"T0.6445999662391841"} 
+Attempted to invoke action pressure
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"magnet_current"}},"transaction_id":"T0.7946317398454994"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"compressor"}},"transaction_id":"T0.21067383140325546"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"compressor"}},"transaction_id":"T0.6636684965342283"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"pulse_tube_second_stage","number":50}},"transaction_id":"T0.2233834550715983"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"FAA_temperature","number":50}},"transaction_id":"T0.8874332802370191"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"pressure","arguments":{"number":50}},"transaction_id":"T0.8998947732616216"} 
+Attempted to invoke action pressure
+Message received: {"data":{"action":"magnet_current","arguments":{"number":50}},"transaction_id":"T0.8841352022718638"} 
+Attempted to invoke action magnet_current
+Message received: {"data":{"action":"user_log","arguments":{"number":5}},"transaction_id":"T0.8625771547667682"} 
+Attempted to invoke action user_log
+Message received: {"data":{"action":"temperature"},"transaction_id":"T0.8800687368493527"} 
+Attempted to invoke action temperature
+Message received: {"data":{"action":"temperature_2"},"transaction_id":"T0.6850138567388058"} 
+Attempted to invoke action temperature_2
+Message received: {"data":{"action":"pressure"},"transaction_id":"T0.4845925341360271"} 
+Attempted to invoke action pressure
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"magnet_current"}},"transaction_id":"T0.07891581300646067"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"compressor"}},"transaction_id":"T0.9332611130084842"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"compressor"}},"transaction_id":"T0.44646355556324124"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"pulse_tube_second_stage","number":50}},"transaction_id":"T0.3673244265373796"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"FAA_temperature","number":50}},"transaction_id":"T0.9722734533715993"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"pressure","arguments":{"number":50}},"transaction_id":"T0.2006489704363048"} 
+Attempted to invoke action pressure
+Message received: {"data":{"action":"magnet_current","arguments":{"number":50}},"transaction_id":"T0.5259267780929804"} 
+Attempted to invoke action magnet_current
+Waking up for maintenance.
+Polling sensors...
+Closing...
+Opening...
+Message received: {"data":{"action":"validate_version"},"transaction_id":"T0.8424035063944757"} 
+Attempted to invoke action validate_version
+Message received: {"data":{"action":"temperature"},"transaction_id":"T0.14010850270278752"} 
+Attempted to invoke action temperature
+Going back to sleep.
+Message received: {"data":{"action":"temperature_2"},"transaction_id":"T0.39550135121680796"} 
+Attempted to invoke action temperature_2
+Message received: {"data":{"action":"pressure"},"transaction_id":"T0.8745069226715714"} 
+Attempted to invoke action pressure
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"magnet_current"}},"transaction_id":"T0.7840787440072745"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"compressor"}},"transaction_id":"T0.6074898354709148"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"compressor"}},"transaction_id":"T0.7538432611618191"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"pulse_tube_second_stage","number":50}},"transaction_id":"T0.9041728924494237"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"FAA_temperature","number":50}},"transaction_id":"T0.9175647082738578"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"pressure","arguments":{"number":50}},"transaction_id":"T0.7668158593587577"} 
+Attempted to invoke action pressure
+Message received: {"data":{"action":"magnet_current","arguments":{"number":50}},"transaction_id":"T0.26972664543427527"} 
+Attempted to invoke action magnet_current
+Message received: {"data":{"action":"user_log","arguments":{"number":5}},"transaction_id":"T0.7042260451707989"} 
+Attempted to invoke action user_log
+Message received: {"data":{"action":"temperature"},"transaction_id":"T0.3536394799593836"} 
+Attempted to invoke action temperature
+Message received: {"data":{"action":"temperature_2"},"transaction_id":"T0.21797076938673854"} 
+Attempted to invoke action temperature_2
+Message received: {"data":{"action":"pressure"},"transaction_id":"T0.8185247334185988"} 
+Attempted to invoke action pressure
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"magnet_current"}},"transaction_id":"T0.7298731384798884"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"compressor"}},"transaction_id":"T0.9307350534945726"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"compressor"}},"transaction_id":"T0.34320913441479206"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"pulse_tube_second_stage","number":50}},"transaction_id":"T0.5655978473369032"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"FAA_temperature","number":50}},"transaction_id":"T0.259430387057364"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"pressure","arguments":{"number":50}},"transaction_id":"T0.7208464879076928"} 
+Attempted to invoke action pressure
+Message received: {"data":{"action":"magnet_current","arguments":{"number":50}},"transaction_id":"T0.9899555151350796"} 
+Attempted to invoke action magnet_current
+Message received: {"data":{"action":"temperature"},"transaction_id":"T0.8574780975468457"} 
+Attempted to invoke action temperature
+Message received: {"data":{"action":"temperature_2"},"transaction_id":"T0.5211064303293824"} 
+Attempted to invoke action temperature_2
+Message received: {"data":{"action":"pressure"},"transaction_id":"T0.3524763958994299"} 
+Attempted to invoke action pressure
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"magnet_current"}},"transaction_id":"T0.6974711057264358"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"compressor"}},"transaction_id":"T0.8577466842252761"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"compressor"}},"transaction_id":"T0.7196835146751255"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"pulse_tube_second_stage","number":50}},"transaction_id":"T0.9661693586967885"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"sensor","arguments":{"sensor":"FAA_temperature","number":50}},"transaction_id":"T0.7693536449223757"} 
+Attempted to invoke action sensor
+Message received: {"data":{"action":"pressure","arguments":{"number":50}},"t
