@@ -39,6 +39,10 @@ class CryoManager(object):
 	def start(self):
 		self.thread.start() 
 
+	def load_database(self, database_name):
+		database_connection.close()
+		database_connection = sqlite3.connect('data/' + database_name)
+
 	def thread_initialize(self, args=None):
 		global database_connection
 
