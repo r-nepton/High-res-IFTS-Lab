@@ -104,6 +104,11 @@ class CryoManager(object):
 		# Return the responder object.
 		return responder
 
+	# This function is called every one second, and is used to step the current
+	# process. A process is a class, which describes a long time-scale operation.
+	def step(self, arguments):
+		pass
+
 	def pressure(self, arguments):
 		if 'number' in arguments:
 			return {'history': self.sensors_list['pressure'].tail(arguments[u'number']) }
@@ -220,8 +225,16 @@ class WakeThread(threading.Thread):
 
 	def run(self):
 		self.cryomanager.ask('thread_initialize',{})
-		while not self.stopped.wait(10):
-			self.cryomanager.ask('wake', {})
+		index = 0
+		while not self.stopped.wait(1):
+			index = index % 60
+			if index % 20 == 0: 
+				# Poll all sensors every 20 seconds.
+				self.cryomanager.ask('wake', {})
+			
+			# If we are in the middle of a process, we want to call
+			# the "step" function. 
+			self.cryomanager.ask('step', {})
 
 # Now, import all of the sensors.
 from sensors import *
