@@ -39,16 +39,12 @@ class CryoManager(object):
 	def start(self):
 		self.thread.start() 
 
-	def load_database(self, database_name):
-		database_connection.close()
-		database_connection = sqlite3.connect('data/' + database_name)
-
-	def thread_initialize(self, args=None):
+	def thread_initialize(self, database_file='data/database.db'):
 		global database_connection
 
 		# First, we'll copy the file system database into a string, then load it into memory.
 		print "Attempting to load database into memory..."
-		database_connection = sqlite3.connect('data/database.db')
+		database_connection = sqlite3.connect(database_file)
 		database_connection.execute("PRAGMA synchronous=OFF")
 		database_connection.execute("PRAGMA cache_size=-512000")
 

@@ -14,4 +14,3 @@ from cryo_delegate import *
 from sensors import *
 
 cryo_delegate = CryoManager()
-cryo_delegate.thread_initialize()
