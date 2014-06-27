@@ -10,7 +10,7 @@ class GenericOperation(object):
 
 		# The "yield" command finishes the operation. After each step, the operator
 		# checks the yield flag to determine if the operation is completed.
-		self.yield = False
+		self.finished = False
 		self.last_tick_time = 0
 
 	# This function returns the time elapsed since the start of the operation, in seconds.
@@ -20,7 +20,7 @@ class GenericOperation(object):
 	# The step function is called whenever a generic operation is stepped.
 	def step(self):
 		# If the operation is completed, don't run.
-		if self.yield == True:
+		if self.finished == True:
 			return
 		# If the step index is zero, we are now starting the operation.
 		if self.step_index == 0:
@@ -31,7 +31,7 @@ class GenericOperation(object):
 
 		# It is possible that the "started()" event caused the operation
 		# to finish, e.g. via an error. So check AGAIN that it's not done.
-		if self.yield == True:
+		if self.finished == True:
 			return
 
 		# Okay, now perform the next step of the operation.
