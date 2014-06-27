@@ -8,6 +8,8 @@ database_connection = None
 
 lib_path = os.path.abspath('./lib/sensors')
 sys.path.append(lib_path)
+lib_path = os.path.abspath('./lib/operations')
+sys.path.append(lib_path)
 # The cryo-delegate is a daemon-like thread which
 # runs in parallel to the web server thread. It queries
 # the cryostat periodically, records and manages the log
@@ -241,4 +243,5 @@ class WakeThread(threading.Thread):
 
 # Now, import all of the sensors.
 from sensors import *
+from operations import *
 from log_writer import *
