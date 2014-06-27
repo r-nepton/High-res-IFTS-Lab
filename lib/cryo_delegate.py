@@ -44,6 +44,8 @@ class CryoManager(object):
 
 		# First, we'll copy the file system database into a string, then load it into memory.
 		print "Attempting to load database into memory..."
+		if not isinstance(database_file, basestring):
+			database_file = 'data/database.db'
 		database_connection = sqlite3.connect(database_file)
 		database_connection.execute("PRAGMA synchronous=OFF")
 		database_connection.execute("PRAGMA cache_size=-512000")
@@ -235,6 +237,7 @@ class WakeThread(threading.Thread):
 			# If we are in the middle of a process, we want to call
 			# the "step" function. 
 			self.cryomanager.ask('step', {})
+			index += 1
 
 # Now, import all of the sensors.
 from sensors import *

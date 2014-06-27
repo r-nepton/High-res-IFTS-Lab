@@ -55,8 +55,26 @@ class MagUpOperation(GenericOperation):
 		# Set the PID controller to manual mode.
 		self.PID_interface.set_manual_mode()
 
-	def tick(self):
+	def tick(self, dt):
 		# Don't run the operation if yield is called. There are already
 		# some other checks for this, but here's another.
 		if self.yield:
 			return
+
+		# Figure out the ramping step. Upper limit: max ramp step.
+		ramping_step = min( self.ramping_rate * dt, self.absolute_max_step_size )
+
+		# Measure the current data, and double-check that the current is sensible.
+		current = self.current_sensor.get_data()
+		if isinstance(current['current'],basestring):
+			# The current is not sensible.
+			self.yield = True
+			print "The current cannot be read, indicating an error. Terminating MagUp operation."
+			return
+
+		# Make sure that we're below the final current.
+		if current['current'] >= final_current:
+			self.yield = True
+			print "The current is over the specified current."
+
+		self.PID_interface.set_current( current['current'] + ramping_step )

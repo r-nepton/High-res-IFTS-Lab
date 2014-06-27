@@ -27,7 +27,7 @@ class PIDControllerSensorConduit(GenericDataConduit):
 	# Set the current. Actually, you're setting a voltage, but through a resistance
 	# model, you can get the current back.
 	def set_current(self, current):
-		pass
+		print "Setting current -> %s" % current
 
 	# Measure voltage output, mode, settings, who knows.
 	def get_data(self):

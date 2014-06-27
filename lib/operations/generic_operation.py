@@ -11,6 +11,7 @@ class GenericOperation(object):
 		# The "yield" command finishes the operation. After each step, the operator
 		# checks the yield flag to determine if the operation is completed.
 		self.yield = False
+		self.last_tick_time = 0
 
 	# This function returns the time elapsed since the start of the operation, in seconds.
 	def time(self):
@@ -25,6 +26,7 @@ class GenericOperation(object):
 		if self.step_index == 0:
 			# Calculate the start time.
 			self.start_time = int(time.time())
+			self.last_tick_time = self.start_time
 			self.started()
 
 		# It is possible that the "started()" event caused the operation
@@ -33,12 +35,16 @@ class GenericOperation(object):
 			return
 
 		# Okay, now perform the next step of the operation.
-		self.tick()
+		self.tick( time.time() - self.last_tick_time )
+
+		# Now record the tick time.
+		self.last_tick_time = time.time()
 		step += 1
 
 	# The tick function is called every step, and should be overriden by children of GenericOperation to implement
-	# functionality.
-	def tick(self):
+	# functionality. The parameter "dt" corresponds to the time since the last
+	# tick.
+	def tick(self, dt):
 		raise Exception("You can't actually run a GenericOperation!")
 
 	# The "started" event is called on the first step.
