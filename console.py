@@ -9,7 +9,7 @@ import threading, Queue
 lib_path = os.path.abspath('./lib')
 sys.path.append(lib_path)
 
-from plotting import *
+#from plotting import *
 from cryo_delegate import *
 from sensors import *
 
