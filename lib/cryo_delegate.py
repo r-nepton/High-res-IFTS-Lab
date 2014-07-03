@@ -21,6 +21,7 @@ class CryoManager(object):
 		self.sensors_list = {}
 		self.user_log_writer   	= None
 		self.robot_log_writer   = None
+		self.operations 		= [ ]
 		# Now, start the object which provokes the cryomanager every 30 seconds
 		# via its "wake" method.
 		self.stop_wake_thread = threading.Event()
@@ -74,6 +75,7 @@ class CryoManager(object):
 			'magnet_current':			MagnetCurrentSensor(),
 			'compressor':				CompressorSensor()
 		} 
+		self.PID_controller = PIDControllerInterface()
 		self.user_log_writer   	= UserLogWriter()
 
 	# This function saves the memory database back to disk.
@@ -108,10 +110,39 @@ class CryoManager(object):
 		# Return the responder object.
 		return responder
 
+	def ramp_up(self, arguments):
+		if 'current' in arguments and 'time' in arguments and 'authentication' in arguments:
+			if arguments['authentication'] == "charlie":
+				current = arguments['current']
+				time = arguments['time']
+		
+				self.operations.append( MagUpOperation( time, current, self.PID_controller, self.sensors_list['magnet_current'].conduit ) )
+				return { 'result': 'success' }
+
+		return { 'result': 'failure' }
+
+	def ramp_down(self, arguments):
+		if 'time' in arguments and 'authentication' in arguments:
+			if arguments['authentication'] == "charlie":
+				time = arguments['time']
+		
+				self.operations.append( MagDownOperation( time, self.PID_controller, self.sensors_list['magnet_current'].conduit ) )
+				return { 'result': 'success' }
+
+		return { 'result': 'failure' }
+
 	# This function is called every one second, and is used to step the current
 	# process. A process is a class, which describes a long time-scale operation.
 	def step(self, arguments):
-		pass
+		if len(self.operations) > 0:
+			if self.operations[0].finished:
+				# Instruct the operation that it is finished.
+				self.operations[0].ended()
+				# Remove the operation from the queue.
+				self.operations.pop(0)
+			else:
+				# Run the operation.
+				self.operations[0].step()
 
 	def pressure(self, arguments):
 		if 'number' in arguments:

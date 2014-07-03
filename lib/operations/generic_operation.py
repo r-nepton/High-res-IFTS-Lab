@@ -19,6 +19,7 @@ class GenericOperation(object):
 
 	# The step function is called whenever a generic operation is stepped.
 	def step(self):
+		print "Attempted operation step."
 		# If the operation is completed, don't run.
 		if self.finished == True:
 			return
@@ -39,7 +40,7 @@ class GenericOperation(object):
 
 		# Now record the tick time.
 		self.last_tick_time = time.time()
-		step += 1
+		self.step_index += 1
 
 	# The tick function is called every step, and should be overriden by children of GenericOperation to implement
 	# functionality. The parameter "dt" corresponds to the time since the last
@@ -49,8 +50,8 @@ class GenericOperation(object):
 
 	# The "started" event is called on the first step.
 	def started(self):
-		raise Exception("You can't actually run a GenericOperation!")
+		pass
 
 	# The "terminated" event is called on the last step.
-	def terminated(self):
-		raise Exception("You can't actually run a GenericOperation!")
+	def ended(self):
+		pass

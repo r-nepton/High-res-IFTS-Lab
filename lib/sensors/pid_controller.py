@@ -7,9 +7,9 @@ class PIDControllerInterface(object):
 		self.units 	= "Amperes"
 
 		# The maximum allowable manual output step:
-		self.max_manual_output_step = 0.010
+		self.max_manual_output_step = 0.003
 		# The expected circuit resistance is 25 ohm.
-		self.anticipated_circuit_resistance = 25
+		self.anticipated_circuit_resistance = 0.15
 
 		try:
 			self.serial_connection = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.1)
@@ -25,16 +25,16 @@ class PIDControllerInterface(object):
 			self.serial_connection.write("disconnect\r")
 			self.serial_connection.write("CONN 3, 'disconnect'\r")
 			self.serial_connection.read(100)
-			self.serial_connection.write("*IDN?")
+			self.serial_connection.write("*IDN?\r")
 			result = self.serial_connection.read(100)
-
 			if result[0:32] == "Stanford_Research_Systems,SIM960":
 				# I guess everything worked correctly. Let's clean up now.
 				self.serial_connection.write("disconnect\r")
 				return True
-			else 
+			else:
 				# I guess everything worked correctly. Let's clean up now.
 				self.serial_connection.write("disconnect\r")
+				print "Failed to verify connection with SIM960."
 				return False
 
 		except Exception:
@@ -55,13 +55,14 @@ class PIDControllerInterface(object):
 			self.serial_connection.write("AMAN?\r")
 			result = self.serial_connection.read(100)		
 
-			if result == "0\n":
+			if result == "0\r\n":
 				return True
 			else:
 				raise Exception("I can't change the mode of the PID controller, for some reason.")
 
 
-		except Exception:
+		except Exception as e:
+			print e
 			return False
 
 		return False
@@ -79,7 +80,7 @@ class PIDControllerInterface(object):
 			self.serial_connection.write("AMAN?\r")
 			result = self.serial_connection.read(100)		
 
-			if result == "1\n":
+			if result == "1\r\n":
 				return True
 			else:
 				raise Exception("I can't change the mode of the PID controller, for some reason.")
@@ -93,26 +94,28 @@ class PIDControllerInterface(object):
 	# model, you can get the current back.
 	def set_manual_output_voltage(self, voltage):
 		try:
+			print "Set voltage -> %s" % voltage
 			self.serial_connection.write("disconnect\r")
 			self.serial_connection.write("CONN 3, 'disconnect'\r")
 			self.serial_connection.read(100)
 			# We'll check the manual output differential.
 			self.serial_connection.write("MOUT?\r")
 			result = float(self.serial_connection.read(100))
-			if abs(current - result) > self.max_manual_output_step:
-				raise Exception("The requested manual output is too large.")
+			if abs(voltage - result) > self.max_manual_output_step:
+				raise Exception("The requested manual output is too large. voltage = %s, step = %s" % (voltage, (voltage - result) ))
 			else:
 				# Ready to set the voltage. The format is, e.g.: "MOUT +3.123"
 				self.serial_connection.write("MOUT %+2.3f\r" % voltage)
 				return True
 
-		except Exception:
+		except Exception as e:
+			print e
 			return False
 
 		return False
 
 	# Get the current output value on the manual circuit.
-	def get_manual_output(self, voltage):
+	def get_manual_output(self):
 		try:
 			self.serial_connection.write("disconnect\r")
 			self.serial_connection.write("CONN 3, 'disconnect'\r")
@@ -122,7 +125,8 @@ class PIDControllerInterface(object):
 			result = float(self.serial_connection.read(100))
 			return result
 
-		except Exception:
+		except Exception as e:
+			print e
 			return False
 
 		return False
@@ -134,11 +138,17 @@ class PIDControllerInterface(object):
 		# 1.000 V on the PID -> 1.877 V on the output of the power supply.
 		return (current * self.anticipated_circuit_resistance) / 1.877
 
+	def voltage_current_model(self, voltage):
+		# Experimental test: while in voltage-controlled mode, 
+		# 1.000 V on the PID -> 1.877 V on the output of the power supply.
+		return (voltage / self.anticipated_circuit_resistance) * 1.877
+
 	# Set the output current (indirectly, via voltage). Returns true if
 	# the operation is successful. 
 	def set_current(self, current):
 		# We can't actually set the current directly, so we must rely on a
 		# current output model.
-		voltage = current_voltage_model( current )
+		print "Set current -> %s" % current
+		voltage = self.current_voltage_model( current )
 
-		return set_manual_output_voltage( voltage )
+		return self.set_manual_output_voltage( voltage )

@@ -57,7 +57,7 @@ class @TemperaturePlot
 		# Set a timer to constantly update the plot.
 		setInterval( => 
 			@update()
-		, 5000)
+		, 15000)
 
 	update: ->
 		# Request historical data from the server.
@@ -77,7 +77,7 @@ class @TemperaturePlot2
 		# Set a timer to constantly update the plot.
 		setInterval( => 
 			@update()
-		, 5000)
+		, 15000)
 
 	update: ->
 		# Request historical data from the server.
@@ -98,7 +98,7 @@ class @PressurePlot
 		# Set a timer to constantly update the plot.
 		setInterval( => 
 			@update()
-		, 5000)
+		, 15000)
 
 	update: ->
 		# Request historical data from the server.
@@ -124,7 +124,7 @@ class @CurrentPlot
 		# Set a timer to constantly update the plot.
 		setInterval( => 
 			@update()
-		, 5000)
+		, 15000)
 
 	update: ->
 		# Request historical data from the server.
@@ -166,7 +166,7 @@ class @DashboardElement
 		@update()
 		setInterval( => 
 			@update()
-		, 5000)
+		, 15000)
 
 	render: ->
 		string = "<div class='left'>#{@symbol}</div>"

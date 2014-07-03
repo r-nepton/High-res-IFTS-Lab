@@ -14,3 +14,7 @@ from cryo_delegate import *
 from sensors import *
 
 cryo_delegate = CryoManager()
+
+sensor 	= MagnetCurrentSensorConduit()
+pid 	= PIDControllerInterface()
+op 		= MagUpOperation( 200, 0.1, pid, sensor )

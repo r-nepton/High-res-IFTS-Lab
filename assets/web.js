@@ -191,7 +191,7 @@
         return function() {
           return _this.update();
         };
-      })(this), 5000);
+      })(this), 15000);
     }
 
     TemperaturePlot.prototype.update = function() {
@@ -246,7 +246,7 @@
         return function() {
           return _this.update();
         };
-      })(this), 5000);
+      })(this), 15000);
     }
 
     TemperaturePlot2.prototype.update = function() {
@@ -301,7 +301,7 @@
         return function() {
           return _this.update();
         };
-      })(this), 5000);
+      })(this), 15000);
     }
 
     PressurePlot.prototype.update = function() {
@@ -359,7 +359,7 @@
         return function() {
           return _this.update();
         };
-      })(this), 5000);
+      })(this), 15000);
     }
 
     CurrentPlot.prototype.update = function() {
@@ -441,7 +441,7 @@
         return function() {
           return _this.update();
         };
-      })(this), 5000);
+      })(this), 15000);
     }
 
     DashboardElement.prototype.render = function() {
@@ -665,6 +665,124 @@
 
   })(DashboardElement);
 
+  this.MenuButton = (function() {
+    function MenuButton() {
+      if (this.text == null) {
+        this.text = "Generic Menu Button";
+      }
+      if (this.background_color == null) {
+        this.background_color = "#000000";
+      }
+      if (this.text_color == null) {
+        this.text_color = "#FFFFFF";
+      }
+      this.element = $("<div class='menubutton'></div>");
+      this.element.on('click', this.action);
+      this.element.on('tap', this.action);
+      this.element.appendTo($('.menu'));
+      this.render();
+    }
+
+    MenuButton.prototype.action = function() {
+      return true;
+    };
+
+    MenuButton.prototype.render = function() {
+      this.element.css('background-color', this.background_color);
+      this.element.css('color', this.text_color);
+      return this.element.html(this.text);
+    };
+
+    return MenuButton;
+
+  })();
+
+  this.OverviewMenuButton = (function(_super) {
+    __extends(OverviewMenuButton, _super);
+
+    function OverviewMenuButton() {
+      this.text = "overview";
+      OverviewMenuButton.__super__.constructor.call(this);
+    }
+
+    OverviewMenuButton.prototype.action = function() {
+      $('.graphs').hide();
+      $('.logs').hide();
+      $('#dashboard').show();
+      return $('.report').hide();
+    };
+
+    return OverviewMenuButton;
+
+  })(MenuButton);
+
+  this.GraphsMenuButton = (function(_super) {
+    __extends(GraphsMenuButton, _super);
+
+    function GraphsMenuButton() {
+      this.text = "graphs";
+      this.background_color = "#3366cc";
+      GraphsMenuButton.__super__.constructor.call(this);
+    }
+
+    GraphsMenuButton.prototype.action = function() {
+      var g, _i, _len, _ref;
+      $('.graphs').show();
+      _ref = window.graphs;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        g = _ref[_i];
+        g.t.plot();
+      }
+      $('#dashboard').hide();
+      $('.logs').hide();
+      return $('.report').hide();
+    };
+
+    return GraphsMenuButton;
+
+  })(MenuButton);
+
+  this.LogMenuButton = (function(_super) {
+    __extends(LogMenuButton, _super);
+
+    function LogMenuButton() {
+      this.text = "log";
+      this.background_color = "#AAB95D";
+      LogMenuButton.__super__.constructor.call(this);
+    }
+
+    LogMenuButton.prototype.action = function() {
+      $('.logs').show();
+      $('#dashboard').hide();
+      $('.graphs').hide();
+      $('.report').hide();
+      return window.logs_controller.focus();
+    };
+
+    return LogMenuButton;
+
+  })(MenuButton);
+
+  this.ReportMenuButton = (function(_super) {
+    __extends(ReportMenuButton, _super);
+
+    function ReportMenuButton() {
+      this.text = "report";
+      this.background_color = "#FA2A00";
+      ReportMenuButton.__super__.constructor.call(this);
+    }
+
+    ReportMenuButton.prototype.action = function() {
+      $('.logs').hide();
+      $('#dashboard').hide();
+      $('.graphs').hide();
+      return $('.report').show();
+    };
+
+    return ReportMenuButton;
+
+  })(MenuButton);
+
   window.log = function(text) {
     var t;
     t = marked.parse(text);
@@ -843,123 +961,44 @@
 
   })();
 
-  this.MenuButton = (function() {
-    function MenuButton() {
-      if (this.text == null) {
-        this.text = "Generic Menu Button";
-      }
-      if (this.background_color == null) {
-        this.background_color = "#000000";
-      }
-      if (this.text_color == null) {
-        this.text_color = "#FFFFFF";
-      }
-      this.element = $("<div class='menubutton'></div>");
-      this.element.on('click', this.action);
-      this.element.on('tap', this.action);
-      this.element.appendTo($('.menu'));
-      this.render();
-    }
+  window.config = [];
 
-    MenuButton.prototype.action = function() {
-      return true;
+  window.config.websocket_url = "ws://" + window.location.host + "/json";
+
+  window.config.server_version = "0.1";
+
+  $(function() {
+    log("#cryo-server");
+    window.socket = new WebSocket(window.config.websocket_url);
+    window.jevent('SocketOpened', function() {});
+    console.log('The socket was opened.');
+    socket.onopen = function() {
+      console.log("Socket connection opened successfully.");
+      window.pycon = new PyAPI(window.socket);
+      return setTimeout(window.connection_ready, 200);
     };
-
-    MenuButton.prototype.render = function() {
-      this.element.css('background-color', this.background_color);
-      this.element.css('color', this.text_color);
-      return this.element.html(this.text);
+    return socket.onclose = function() {
+      console.log("Socket connection was closed, unexpectedly.");
+      return console.log("I don't know why, but the socket was closed (!)");
     };
+  });
 
-    return MenuButton;
-
-  })();
-
-  this.OverviewMenuButton = (function(_super) {
-    __extends(OverviewMenuButton, _super);
-
-    function OverviewMenuButton() {
-      this.text = "overview";
-      OverviewMenuButton.__super__.constructor.call(this);
-    }
-
-    OverviewMenuButton.prototype.action = function() {
-      $('.graphs').hide();
-      $('.logs').hide();
-      $('#dashboard').show();
-      return $('.report').hide();
-    };
-
-    return OverviewMenuButton;
-
-  })(MenuButton);
-
-  this.GraphsMenuButton = (function(_super) {
-    __extends(GraphsMenuButton, _super);
-
-    function GraphsMenuButton() {
-      this.text = "graphs";
-      this.background_color = "#3366cc";
-      GraphsMenuButton.__super__.constructor.call(this);
-    }
-
-    GraphsMenuButton.prototype.action = function() {
-      var g, _i, _len, _ref;
-      $('.graphs').show();
-      _ref = window.graphs;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        g = _ref[_i];
-        g.t.plot();
-      }
-      $('#dashboard').hide();
-      $('.logs').hide();
-      return $('.report').hide();
-    };
-
-    return GraphsMenuButton;
-
-  })(MenuButton);
-
-  this.LogMenuButton = (function(_super) {
-    __extends(LogMenuButton, _super);
-
-    function LogMenuButton() {
-      this.text = "log";
-      this.background_color = "#AAB95D";
-      LogMenuButton.__super__.constructor.call(this);
-    }
-
-    LogMenuButton.prototype.action = function() {
-      $('.logs').show();
-      $('#dashboard').hide();
-      $('.graphs').hide();
-      $('.report').hide();
-      return window.logs_controller.focus();
-    };
-
-    return LogMenuButton;
-
-  })(MenuButton);
-
-  this.ReportMenuButton = (function(_super) {
-    __extends(ReportMenuButton, _super);
-
-    function ReportMenuButton() {
-      this.text = "report";
-      this.background_color = "#FA2A00";
-      ReportMenuButton.__super__.constructor.call(this);
-    }
-
-    ReportMenuButton.prototype.action = function() {
-      $('.logs').hide();
-      $('#dashboard').hide();
-      $('.graphs').hide();
-      return $('.report').show();
-    };
-
-    return ReportMenuButton;
-
-  })(MenuButton);
+  window.connection_ready = function() {
+    console.log("Window ready.");
+    $('.log').append($('<div class="menu"></div>'));
+    window.overview_button = new OverviewMenuButton();
+    window.graphs_button = new GraphsMenuButton();
+    window.log_button = new LogMenuButton();
+    window.dashboard = new Dashboard();
+    $('.log').append('<div class="graphs"></div>');
+    $('.graphs').hide();
+    window.graphs = [];
+    window.graphs.push(new TemperaturePlot2());
+    window.graphs.push(new TemperaturePlot());
+    window.graphs.push(new PressurePlot());
+    window.graphs.push(new CurrentPlot());
+    return window.logs_controller = new LogsController($('<div class="logs"></div>').hide());
+  };
 
   this.ReportController = (function() {
     function ReportController() {
@@ -1021,44 +1060,5 @@
     return ReportController;
 
   })();
-
-  window.config = [];
-
-  window.config.websocket_url = "ws://" + window.location.host + "/json";
-
-  window.config.server_version = "0.1";
-
-  $(function() {
-    log("#cryo-server");
-    window.socket = new WebSocket(window.config.websocket_url);
-    window.jevent('SocketOpened', function() {});
-    console.log('The socket was opened.');
-    socket.onopen = function() {
-      console.log("Socket connection opened successfully.");
-      window.pycon = new PyAPI(window.socket);
-      return setTimeout(window.connection_ready, 200);
-    };
-    return socket.onclose = function() {
-      console.log("Socket connection was closed, unexpectedly.");
-      return console.log("I don't know why, but the socket was closed (!)");
-    };
-  });
-
-  window.connection_ready = function() {
-    console.log("Window ready.");
-    $('.log').append($('<div class="menu"></div>'));
-    window.overview_button = new OverviewMenuButton();
-    window.graphs_button = new GraphsMenuButton();
-    window.log_button = new LogMenuButton();
-    window.dashboard = new Dashboard();
-    $('.log').append('<div class="graphs"></div>');
-    $('.graphs').hide();
-    window.graphs = [];
-    window.graphs.push(new TemperaturePlot2());
-    window.graphs.push(new TemperaturePlot());
-    window.graphs.push(new PressurePlot());
-    window.graphs.push(new CurrentPlot());
-    return window.logs_controller = new LogsController($('<div class="logs"></div>').hide());
-  };
 
 }).call(this);
