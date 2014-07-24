@@ -665,124 +665,6 @@
 
   })(DashboardElement);
 
-  this.MenuButton = (function() {
-    function MenuButton() {
-      if (this.text == null) {
-        this.text = "Generic Menu Button";
-      }
-      if (this.background_color == null) {
-        this.background_color = "#000000";
-      }
-      if (this.text_color == null) {
-        this.text_color = "#FFFFFF";
-      }
-      this.element = $("<div class='menubutton'></div>");
-      this.element.on('click', this.action);
-      this.element.on('tap', this.action);
-      this.element.appendTo($('.menu'));
-      this.render();
-    }
-
-    MenuButton.prototype.action = function() {
-      return true;
-    };
-
-    MenuButton.prototype.render = function() {
-      this.element.css('background-color', this.background_color);
-      this.element.css('color', this.text_color);
-      return this.element.html(this.text);
-    };
-
-    return MenuButton;
-
-  })();
-
-  this.OverviewMenuButton = (function(_super) {
-    __extends(OverviewMenuButton, _super);
-
-    function OverviewMenuButton() {
-      this.text = "overview";
-      OverviewMenuButton.__super__.constructor.call(this);
-    }
-
-    OverviewMenuButton.prototype.action = function() {
-      $('.graphs').hide();
-      $('.logs').hide();
-      $('#dashboard').show();
-      return $('.report').hide();
-    };
-
-    return OverviewMenuButton;
-
-  })(MenuButton);
-
-  this.GraphsMenuButton = (function(_super) {
-    __extends(GraphsMenuButton, _super);
-
-    function GraphsMenuButton() {
-      this.text = "graphs";
-      this.background_color = "#3366cc";
-      GraphsMenuButton.__super__.constructor.call(this);
-    }
-
-    GraphsMenuButton.prototype.action = function() {
-      var g, _i, _len, _ref;
-      $('.graphs').show();
-      _ref = window.graphs;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        g = _ref[_i];
-        g.t.plot();
-      }
-      $('#dashboard').hide();
-      $('.logs').hide();
-      return $('.report').hide();
-    };
-
-    return GraphsMenuButton;
-
-  })(MenuButton);
-
-  this.LogMenuButton = (function(_super) {
-    __extends(LogMenuButton, _super);
-
-    function LogMenuButton() {
-      this.text = "log";
-      this.background_color = "#AAB95D";
-      LogMenuButton.__super__.constructor.call(this);
-    }
-
-    LogMenuButton.prototype.action = function() {
-      $('.logs').show();
-      $('#dashboard').hide();
-      $('.graphs').hide();
-      $('.report').hide();
-      return window.logs_controller.focus();
-    };
-
-    return LogMenuButton;
-
-  })(MenuButton);
-
-  this.ReportMenuButton = (function(_super) {
-    __extends(ReportMenuButton, _super);
-
-    function ReportMenuButton() {
-      this.text = "report";
-      this.background_color = "#FA2A00";
-      ReportMenuButton.__super__.constructor.call(this);
-    }
-
-    ReportMenuButton.prototype.action = function() {
-      $('.logs').hide();
-      $('#dashboard').hide();
-      $('.graphs').hide();
-      return $('.report').show();
-    };
-
-    return ReportMenuButton;
-
-  })(MenuButton);
-
   window.log = function(text) {
     var t;
     t = marked.parse(text);
@@ -989,6 +871,7 @@
     window.overview_button = new OverviewMenuButton();
     window.graphs_button = new GraphsMenuButton();
     window.log_button = new LogMenuButton();
+    window.control_button = new ControlMenuButton();
     window.dashboard = new Dashboard();
     $('.log').append('<div class="graphs"></div>');
     $('.graphs').hide();
@@ -997,7 +880,8 @@
     window.graphs.push(new TemperaturePlot());
     window.graphs.push(new PressurePlot());
     window.graphs.push(new CurrentPlot());
-    return window.logs_controller = new LogsController($('<div class="logs"></div>').hide());
+    window.logs_controller = new LogsController($('<div class="logs"></div>').hide());
+    return window.control_controller = new ControlController($("<div class='control'></div>").hide());
   };
 
   this.ReportController = (function() {
@@ -1058,6 +942,159 @@
     };
 
     return ReportController;
+
+  })();
+
+  this.MenuButton = (function() {
+    function MenuButton() {
+      if (this.text == null) {
+        this.text = "Generic Menu Button";
+      }
+      if (this.background_color == null) {
+        this.background_color = "#000000";
+      }
+      if (this.text_color == null) {
+        this.text_color = "#FFFFFF";
+      }
+      this.element = $("<div class='menubutton'></div>");
+      this.element.on('click', this.action);
+      this.element.on('tap', this.action);
+      this.element.appendTo($('.menu'));
+      this.render();
+    }
+
+    MenuButton.prototype.action = function() {
+      return true;
+    };
+
+    MenuButton.prototype.render = function() {
+      this.element.css('background-color', this.background_color);
+      this.element.css('color', this.text_color);
+      return this.element.html(this.text);
+    };
+
+    return MenuButton;
+
+  })();
+
+  this.OverviewMenuButton = (function(_super) {
+    __extends(OverviewMenuButton, _super);
+
+    function OverviewMenuButton() {
+      this.text = "overview";
+      OverviewMenuButton.__super__.constructor.call(this);
+    }
+
+    OverviewMenuButton.prototype.action = function() {
+      $('.graphs').hide();
+      $('.logs').hide();
+      $('#dashboard').show();
+      $('.report').hide();
+      return $('.control').hide();
+    };
+
+    return OverviewMenuButton;
+
+  })(MenuButton);
+
+  this.GraphsMenuButton = (function(_super) {
+    __extends(GraphsMenuButton, _super);
+
+    function GraphsMenuButton() {
+      this.text = "graphs";
+      this.background_color = "#3366cc";
+      GraphsMenuButton.__super__.constructor.call(this);
+    }
+
+    GraphsMenuButton.prototype.action = function() {
+      var g, _i, _len, _ref;
+      $('.graphs').show();
+      _ref = window.graphs;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        g = _ref[_i];
+        g.t.plot();
+      }
+      $('#dashboard').hide();
+      $('.logs').hide();
+      $('.report').hide();
+      return $('.control').hide();
+    };
+
+    return GraphsMenuButton;
+
+  })(MenuButton);
+
+  this.LogMenuButton = (function(_super) {
+    __extends(LogMenuButton, _super);
+
+    function LogMenuButton() {
+      this.text = "log";
+      this.background_color = "#AAB95D";
+      LogMenuButton.__super__.constructor.call(this);
+    }
+
+    LogMenuButton.prototype.action = function() {
+      $('.logs').show();
+      $('#dashboard').hide();
+      $('.graphs').hide();
+      $('.report').hide();
+      $('.control').hide();
+      return window.logs_controller.focus();
+    };
+
+    return LogMenuButton;
+
+  })(MenuButton);
+
+  this.ReportMenuButton = (function(_super) {
+    __extends(ReportMenuButton, _super);
+
+    function ReportMenuButton() {
+      this.text = "report";
+      this.background_color = "#FA2A00";
+      ReportMenuButton.__super__.constructor.call(this);
+    }
+
+    ReportMenuButton.prototype.action = function() {
+      $('.logs').hide();
+      $('#dashboard').hide();
+      $('.graphs').hide();
+      $('.report').show();
+      return $('.control').hide();
+    };
+
+    return ReportMenuButton;
+
+  })(MenuButton);
+
+  this.ControlMenuButton = (function(_super) {
+    __extends(ControlMenuButton, _super);
+
+    function ControlMenuButton() {
+      this.text = "control";
+      this.background_color = "#FA2A00";
+      ControlMenuButton.__super__.constructor.call(this);
+    }
+
+    ControlMenuButton.prototype.action = function() {
+      $('.logs').hide();
+      $('#dashboard').hide();
+      $('.graphs').hide();
+      return $('.control').show();
+    };
+
+    return ControlMenuButton;
+
+  })(MenuButton);
+
+  this.ControlController = (function() {
+    function ControlController(dom_element) {
+      this.dom_element = dom_element;
+      $('.log').append(this.dom_element);
+      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>cycle</h1>\n	<div class='horizontal-field'>\n		<div class='field'><input type=text /><span class='units'>hours</span></div>\n		<span>hold time</span>\n	</div>\n\n	<div class='menubutton' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton' style=\"background-color: rgb(170, 185, 93); color: white;\">cycle</div>\n	\n\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>regulation</h1>\n	<div class='horizontal-field'>\n		<div class='field'><input type=text /><span class='units'>mK</span></div>\n		<span>regulation temperature</span>\n	</div>\n	<div class='menubutton' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton' style=\"background-color: rgb(51, 102, 204); color: white;\">regulate</div>\n	<div class=\"buttonspacer\"></div>\n</div>");
+    }
+
+    return ControlController;
 
   })();
 

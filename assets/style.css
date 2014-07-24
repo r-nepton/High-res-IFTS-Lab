@@ -11,6 +11,54 @@
 	margin-bottom: 10px;
 }
 
+.field input {
+	border: none;
+	border-bottom: dotted 2px;
+	width: 100px;
+	text-align: center;
+}
+
+.regionbox .menubutton {
+	float:right;
+	margin-right: 8px;
+}
+
+.buttonspacer {
+	height: 40px;
+}
+
+.field span.units {
+	margin-left: 10px;
+}
+
+.field {
+	float: right;
+	margin-right: 20px;
+}
+
+.horizontal-field {
+	margin-bottom: 20px;
+}
+
+.regionbox {
+	width: 512px;
+	border: 2px solid black;
+	margin-top:20px;
+	padding-left:10px;
+	margin-bottom: 30px;
+}
+
+.regiontitle {
+	margin-top: -20;
+	padding-right: 10px;
+	background-color: white;
+	position: relative;
+	z-index: 10;
+	padding-left:10px;
+	margin-left: -20px;
+	display: inline-block;
+}
+
 input.log_textbox {
 	width: 650px;
 	height: 36px;

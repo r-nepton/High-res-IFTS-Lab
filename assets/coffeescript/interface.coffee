@@ -30,6 +30,7 @@ class @OverviewMenuButton extends MenuButton
 		$('.logs').hide()
 		$('#dashboard').show()
 		$('.report').hide()
+		$('.control').hide()
 
 class @GraphsMenuButton extends MenuButton
 	constructor: ->
@@ -44,6 +45,7 @@ class @GraphsMenuButton extends MenuButton
 		$('#dashboard').hide()
 		$('.logs').hide()
 		$('.report').hide()
+		$('.control').hide()
 
 class @LogMenuButton extends MenuButton
 	constructor: ->
@@ -56,6 +58,7 @@ class @LogMenuButton extends MenuButton
 		$('#dashboard').hide()
 		$('.graphs').hide()
 		$('.report').hide()
+		$('.control').hide()
 
 		window.logs_controller.focus()
 
@@ -70,3 +73,16 @@ class @ReportMenuButton extends MenuButton
 		$('#dashboard').hide()
 		$('.graphs').hide()
 		$('.report').show()
+		$('.control').hide()
+
+class @ControlMenuButton extends MenuButton
+	constructor: ->
+		@text = "control"
+		@background_color = "#FA2A00"
+		super()
+
+	action: ->
+		$('.logs').hide()
+		$('#dashboard').hide()
+		$('.graphs').hide()
+		$('.control').show()

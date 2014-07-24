@@ -32,6 +32,7 @@ window.connection_ready = ->
 	window.overview_button = new OverviewMenuButton()
 	window.graphs_button = new GraphsMenuButton()
 	window.log_button = new LogMenuButton()
+	window.control_button = new ControlMenuButton()
 	#window.log_button = new ReportMenuButton()
 	# Create the dashboard elements.
 	window.dashboard = new Dashboard()
@@ -49,3 +50,6 @@ window.connection_ready = ->
 
 	# Create the report.
 	#window.report_controller = new ReportController()
+
+	# Create the control panel.
+	window.control_controller = new ControlController $("<div class='control'></div>").hide()
