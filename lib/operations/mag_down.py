@@ -2,11 +2,12 @@ from generic_operation import *
 from cryo_delegate import *
 
 class MagDownOperation(GenericOperation):
-	def __init__(self, mag_down_time, PID_interface, current_sensor): 
+	def __init__(self, mag_down_time, PID_interface, breakout_board, current_sensor): 
 		self.mag_down_time 	= mag_down_time
 		self.final_current 	= 0
 		self.PID_interface 	= PID_interface
 		self.current_sensor	= current_sensor
+		self.breakout_board = breakout_board
 
 		# Set the safety settings.
 		self.absolute_min_mag_down_time = 10 # seconds
@@ -42,6 +43,9 @@ class MagDownOperation(GenericOperation):
 			self.finished = True
 			print "The current is already below the specified current."
 
+		# Now, let's open the heat switch.
+		self.breakout_board.open_heat_switch()
+
 		voltage = self.PID_interface.get_manual_output()
 		self.expected_output_current = self.PID_interface.voltage_current_model( voltage )
 
@@ -53,8 +57,6 @@ class MagDownOperation(GenericOperation):
 		self.PID_interface.set_manual_mode()
 
 	def ended(self):
-		# Attempt to zero out the final current. 
-		#self.PID_interface.set_current(0)
 		pass
 
 	def tick(self, dt):
@@ -82,7 +84,6 @@ class MagDownOperation(GenericOperation):
 			# Check the validity. We either need the difference to be below
 			# 100 mV or within a factor of two of the model.
 			if abs( voltage - expected_voltage ) > 0.1 and abs(voltage - expected_voltage)/(voltage + expected_voltage) > 0.5:
-				self.finished = True
 				print "The PID output current-voltage model failed. Expected voltage %s, measured voltage %s." % (expected_voltage, voltage)			
 
 		# Figure out the ramping step. Upper limit: max ramp step.
@@ -92,8 +93,9 @@ class MagDownOperation(GenericOperation):
 
 		# Make sure that we're below the final current.
 		if current['current'] <= self.final_current or self.expected_output_current < self.final_current:
-			self.finished = True
-			print "The current is over the specified current."
+			self.finished 	= True
+			self.success 	= True
+			print "Current has reached target current. Finished demagnetization."
 
 		self.expected_output_current -= ramping_step
 		self.PID_interface.set_current( self.expected_output_current )

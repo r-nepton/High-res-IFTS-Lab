@@ -7,3 +7,4 @@ from current_sensor import *
 from compressor_sensor import *
 from pid_controller import *
 from breakout_board import *
+from ups_sensor import *

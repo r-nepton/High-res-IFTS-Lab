@@ -41,6 +41,71 @@ class PIDControllerInterface(object):
 			return False
 
 		return False
+
+	def copy_pid_output_to_manual_output(self):
+		if self.is_in_PID_mode() == False:
+			print "Unable to copy PID output to manual when already in manual mode."
+			return False
+		try:
+			self.serial_connection.write("disconnect\r")
+			self.serial_connection.write("CONN 3, 'disconnect'\r")
+			self.serial_connection.read(100)
+			# Set the controller to MANUAL mode (z = 0), refer to SIM960 manual p.38
+			self.serial_connection.write("OMON?\r")
+			result = float( self.serial_connection.read(100) )
+			self.serial_connection.write("MOUT %+2.3f\r" % result)
+
+		except Exception as e:
+			print e
+			return False
+
+		return False
+
+	# This function tries to decide whether the system is currently in PID
+	# mode, or manual output mode.
+	def is_in_PID_mode(self):
+		self.serial_connection.write("disconnect\r")
+		self.serial_connection.write("CONN 3, 'disconnect'\r")
+		self.serial_connection.read(100)
+		# Now verify the controller setting.
+		self.serial_connection.write("AMAN?\r")
+		result = self.serial_connection.read(100)		
+		# If Z = 1, the system is in PID/regulation mode. Else: manual.
+		if result == "1\r\n":
+			return True
+		else:
+			return False
+
+	# Set the internal setpoint value for the PID controller.
+	def set_setpoint(self, setpoint_in_kelvin):
+		try:
+			self.serial_connection.write("disconnect\r")
+			self.serial_connection.write("CONN 3, 'disconnect'\r")
+			self.serial_connection.read(100)
+			# Now set the internal setpoint.
+			self.serial_connection.write("SETP %+2.3f\r" % setpoint_in_kelvin)
+
+		except Exception as e:
+			print e
+			return False
+
+		return False
+
+	def get_setpoint(self):
+		try:
+			self.serial_connection.write("disconnect\r")
+			self.serial_connection.write("CONN 3, 'disconnect'\r")
+			self.serial_connection.read(100)
+			# We'll check the manual output.
+			self.serial_connection.write("SETP?\r")
+			result = float(self.serial_connection.read(100))
+			return result
+
+		except Exception as e:
+			print e
+			return False
+
+		return False
 		
 	# Put the PID controller into manual mode.
 	def set_manual_mode(self):
@@ -59,7 +124,6 @@ class PIDControllerInterface(object):
 				return True
 			else:
 				raise Exception("I can't change the mode of the PID controller, for some reason.")
-
 
 		except Exception as e:
 			print e

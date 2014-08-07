@@ -46,6 +46,10 @@
 	height: 40px;
 }
 
+.dashboard-element.warn .right{
+	color: rgb(250, 42, 0);
+}
+
 .field span.units {
 	margin-left: 10px;
 }

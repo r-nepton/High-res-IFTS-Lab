@@ -147,10 +147,12 @@ class @Dashboard
 		@element.appendTo('.log')
 		@dashboardelements = []
 		# Insert temperature dashboard element.
+		@dashboardelements.push new TemperatureFAADashboardElement()
 		@dashboardelements.push new Temperature3KDashboardElement()
 		@dashboardelements.push new Temperature50KDashboardElement()
 		@dashboardelements.push new PressureDashboardElement()
 		@dashboardelements.push new MagnetCurrentDashboardElement()
+		@dashboardelements.push new UPSDashboardElement()
 		@dashboardelements.push new WaterTemperatureDashboardElement()
 		@dashboardelements.push new OilTemperatureDashboardElement()
 
@@ -207,6 +209,26 @@ class @Temperature50KDashboardElement extends DashboardElement
 
 	update: ->
 		pycon.transaction { action: "temperature_2" }, (r) =>
+			# Now try to format the number appropriately. Support mK and K as units.
+			if r.data.error?
+				@state_ok = no
+			else
+				@state_ok = yes
+				if r.data.temperature < 1
+					@value = (r.data.temperature*1000).toPrecision(3) + " mK"
+				else
+					@value = (r.data.temperature).toPrecision(3) + " K"
+			@render()
+
+class @TemperatureFAADashboardElement extends DashboardElement
+	constructor: ->
+		super()
+		@symbol = "T<sub>FAA</sub>"
+		@element.addClass('h2o')
+		@value 	= "U"
+
+	update: ->
+		pycon.transaction { action: "sensor", arguments: { sensor: "FAA_temperature" } }, (r) =>
 			# Now try to format the number appropriately. Support mK and K as units.
 			if r.data.error?
 				@state_ok = no
@@ -291,5 +313,28 @@ class @MagnetCurrentDashboardElement extends DashboardElement
 					@value = "#{r.data.current.toFixed(2)} A"
 				else 
 					@value = "#{r.data.current.toFixed(1)} A"
+
+			@render()
+
+class @UPSDashboardElement extends DashboardElement
+	constructor: ->
+		super()
+		@symbol 	= "UPS"
+		@value 		= "?"
+		@element.addClass('h2o')
+
+	update: ->
+		pycon.transaction { action: "sensor", arguments: {'sensor':'ups'} }, (r) =>
+			# Now try to format the number appropriately. Support mK and K as units.
+			if r.data.error?
+				@state_ok = no
+			else
+				@state_ok = yes
+				@value = "#{(r.data.battery_capacity)}%"
+				if r.data.line_power == no
+					@element.addClass('warn')
+				else
+					@element.removeClass('warn')
+
 
 			@render()

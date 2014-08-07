@@ -2,17 +2,24 @@ from generic_operation import *
 from cryo_delegate import *
 
 class MagUpOperation(GenericOperation):
-	def __init__(self, mag_up_time, final_current, PID_interface, current_sensor): 
+	def __init__(self, mag_up_time, final_current, temperature_FAA_sensor, temperature_3K_stage, PID_interface, current_sensor, breakout_board): 
 		self.mag_up_time 	= mag_up_time
 		self.final_current 	= final_current
 		self.PID_interface 	= PID_interface
-		self.current_sensor	= current_sensor
+		self.current_sensor	= current_sensor.conduit
+		self.temperature_FAA_sensor = temperature_FAA_sensor.conduit
+		self.temperature_3K_sensor 	= temperature_3K_sensor.conduit
+		self.breakout_board	= self.breakout_board.conduit
 
 		# Set the safety settings.
 		self.absolute_max_current 		= 18.5 # amperes
 		self.absolute_min_mag_up_time 	= 12*60 # seconds
 		self.absolute_max_step_size 	= 0.010 # 10 mA.
 		self.ramping_rate 				= 0
+		self.max_FAA_temperature 		= 5 # kelvin
+		self.ultimate_max_FAA_temperature = 6 # kelvin
+
+		self.heat_switch_open			= True
 
 		super(MagUpOperation, self).__init__()
 
@@ -72,7 +79,8 @@ class MagUpOperation(GenericOperation):
 			print "The current cannot be read, indicating an error. Terminating MagUp operation."
 			return
 
-		# Every 5 steps, check the validity of the current->voltage model.
+		# Every 5 steps, check the validity of the current->voltage model, and also see if we need to close the heat
+		# switch.
 		if self.step_index % 5 == 4:
 			voltage = self.PID_interface.get_manual_output()
 			if voltage is False:
@@ -83,8 +91,21 @@ class MagUpOperation(GenericOperation):
 			# Check the validity. We either need the difference to be below
 			# 100 mV or within a factor of two of the model.
 			if abs( voltage - expected_voltage ) > 0.1 and abs(voltage - expected_voltage)/(voltage + expected_voltage) > 0.5:
-				self.finished = True
 				print "The PID output current-voltage model failed. Expected voltage %s, measured voltage %s." % (expected_voltage, voltage)			
+
+			# Check the heat switch. If the FAA temperature is near the base temperature, we can flip the switch.
+			temperature_3K = self.temperature_3K_sensor.get_data()
+			temperature_FAA = self.temperature_FAA_sensor.get_data()
+			if self.heat_switch_open == True and (temperature_FAA['temperature'] > temperature_3K or temperature_FAA['temperature'] > self.max_FAA_temperature):
+				# The temperature of the FAA is getting a bit too high.
+				# Now, close the heat switch.
+				self.breakout_board.close_heat_switch()
+
+			# Double check to make sure that the FAA is not burning out.
+			if temperature_FAA['temperature'] > self.ultimate_max_FAA_temperature:
+				self.finished = True
+				print "The FAA temperature exceeded the ultimate max threshold. Stopping mag-up."
+				return
 
 		# Figure out the ramping step. Upper limit: max ramp step.
 		ramping_step = min( self.ramping_rate * dt, self.absolute_max_step_size )
@@ -93,8 +114,9 @@ class MagUpOperation(GenericOperation):
 
 		# Make sure that we're below the final current.
 		if current['current'] >= self.final_current or self.expected_output_current > self.final_current:
-			self.finished = True
-			print "The current is over the specified current."
+			self.finished 	= True
+			self.success 	= True
+			print "The current is over the specified current. Magnetization completed."
 
 		self.expected_output_current += ramping_step
 		self.PID_interface.set_current( self.expected_output_current )

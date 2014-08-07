@@ -34,8 +34,12 @@ You should only run it as `sudo` if your user can't bind to port 80 directly, or
 
  - Improve documentation
  - Daemonize the software to run automatically when the computer starts
- - Detect when the temperature sensors are out of range
+ - Detect when the temperature sensors are out of range or inaccurate
  - Write software to measure, but not record, the data sources
  - Update the UI for controlling the cycle settings
  - Write software to automatically generate reports based on a time interval
  - Write software to automatically write robot logs
+ - Fully test, characterize, and document the booting process
+ - Write the routines to perform emergency demagnetization
+ - Write the routines to send emails to people as a warning (e.g. of emerg shutdown)
+ - Write the routines to perform fully automated operation

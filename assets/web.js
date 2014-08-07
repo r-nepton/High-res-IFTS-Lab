@@ -161,6 +161,465 @@
     }
   };
 
+  this.MenuButton = (function() {
+    function MenuButton() {
+      if (this.text == null) {
+        this.text = "Generic Menu Button";
+      }
+      if (this.background_color == null) {
+        this.background_color = "#000000";
+      }
+      if (this.text_color == null) {
+        this.text_color = "#FFFFFF";
+      }
+      this.element = $("<div class='menubutton'></div>");
+      this.element.on('click', this.action);
+      this.element.on('tap', this.action);
+      this.element.appendTo($('.menu'));
+      this.render();
+    }
+
+    MenuButton.prototype.action = function() {
+      return true;
+    };
+
+    MenuButton.prototype.render = function() {
+      this.element.css('background-color', this.background_color);
+      this.element.css('color', this.text_color);
+      return this.element.html(this.text);
+    };
+
+    return MenuButton;
+
+  })();
+
+  this.OverviewMenuButton = (function(_super) {
+    __extends(OverviewMenuButton, _super);
+
+    function OverviewMenuButton() {
+      this.text = "overview";
+      OverviewMenuButton.__super__.constructor.call(this);
+    }
+
+    OverviewMenuButton.prototype.action = function() {
+      $('.graphs').hide();
+      $('.logs').hide();
+      $('#dashboard').show();
+      $('.report').hide();
+      return $('.control').hide();
+    };
+
+    return OverviewMenuButton;
+
+  })(MenuButton);
+
+  this.GraphsMenuButton = (function(_super) {
+    __extends(GraphsMenuButton, _super);
+
+    function GraphsMenuButton() {
+      this.text = "graphs";
+      this.background_color = "#3366cc";
+      GraphsMenuButton.__super__.constructor.call(this);
+    }
+
+    GraphsMenuButton.prototype.action = function() {
+      var g, _i, _len, _ref;
+      $('.graphs').show();
+      _ref = window.graphs;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        g = _ref[_i];
+        g.t.plot();
+      }
+      $('#dashboard').hide();
+      $('.logs').hide();
+      $('.report').hide();
+      return $('.control').hide();
+    };
+
+    return GraphsMenuButton;
+
+  })(MenuButton);
+
+  this.LogMenuButton = (function(_super) {
+    __extends(LogMenuButton, _super);
+
+    function LogMenuButton() {
+      this.text = "log";
+      this.background_color = "#AAB95D";
+      LogMenuButton.__super__.constructor.call(this);
+    }
+
+    LogMenuButton.prototype.action = function() {
+      $('.logs').show();
+      $('#dashboard').hide();
+      $('.graphs').hide();
+      $('.report').hide();
+      $('.control').hide();
+      return window.logs_controller.focus();
+    };
+
+    return LogMenuButton;
+
+  })(MenuButton);
+
+  this.ReportMenuButton = (function(_super) {
+    __extends(ReportMenuButton, _super);
+
+    function ReportMenuButton() {
+      this.text = "report";
+      this.background_color = "#FA2A00";
+      ReportMenuButton.__super__.constructor.call(this);
+    }
+
+    ReportMenuButton.prototype.action = function() {
+      $('.logs').hide();
+      $('#dashboard').hide();
+      $('.graphs').hide();
+      $('.report').show();
+      return $('.control').hide();
+    };
+
+    return ReportMenuButton;
+
+  })(MenuButton);
+
+  this.ControlMenuButton = (function(_super) {
+    __extends(ControlMenuButton, _super);
+
+    function ControlMenuButton() {
+      this.text = "control";
+      this.background_color = "#FA2A00";
+      ControlMenuButton.__super__.constructor.call(this);
+    }
+
+    ControlMenuButton.prototype.action = function() {
+      $('.logs').hide();
+      $('#dashboard').hide();
+      $('.graphs').hide();
+      return $('.control').show();
+    };
+
+    return ControlMenuButton;
+
+  })(MenuButton);
+
+  this.UIToggleSlider = (function() {
+    function UIToggleSlider(dom_element, state_change_callback) {
+      this.dom_element = dom_element;
+      this.state_change_callback = state_change_callback;
+      this.dom_element.html("<div class='slider-state'></div><div class='spacer'>&nbsp;</div>");
+      this.state = false;
+      this.dom_element.click((function(_this) {
+        return function() {
+          return _this.state_change_callback(!_this.get_state());
+        };
+      })(this));
+      this.set_state(false);
+    }
+
+    UIToggleSlider.prototype.set_state = function(state) {
+      if (state === false) {
+        this.dom_element.children('.slider-state').css("float", 'left').css('background-color', 'gray').html("no");
+        return this.state = false;
+      } else {
+        this.dom_element.children('.slider-state').css("float", 'right').css('background-color', 'rgb(170, 185, 93)').html("yes");
+        return this.state = true;
+      }
+    };
+
+    UIToggleSlider.prototype.toggle_state = function() {
+      return this.set_state(!this.state);
+    };
+
+    UIToggleSlider.prototype.get_state = function() {
+      return this.state;
+    };
+
+    return UIToggleSlider;
+
+  })();
+
+  window.log = function(text) {
+    var t;
+    t = marked.parse(text);
+    return $('.log').append(t);
+  };
+
+  this.LogsController = (function() {
+    function LogsController(dom_element) {
+      this.dom_element = dom_element;
+      $('.log').append(this.dom_element);
+      this.textbox = $("<input type=text class=log_textbox />");
+      this.textbox.keydown((function(_this) {
+        return function(e) {
+          if (e.keyCode === 13) {
+            e.preventDefault();
+            return _this.submit();
+          }
+        };
+      })(this));
+      this.dom_element.append(this.textbox);
+      this.dom_element.append($("<p></p>"));
+      this.latest_log = new LogElement();
+      this.dom_element.append(this.latest_log.dom_element);
+      this.past_logs_list = $("<div class='past_logs_list'></div>").hide();
+      this.dom_element.append(this.past_logs_list);
+      this.update();
+      setInterval((function(_this) {
+        return function() {
+          return _this.update();
+        };
+      })(this), 30000);
+    }
+
+    LogsController.prototype.focus = function() {
+      return this.textbox.focus();
+    };
+
+    LogsController.prototype.submit = function() {
+      if ($.trim(this.textbox.val()).length > 0) {
+        return pycon.transaction({
+          action: "write_log",
+          "arguments": {
+            'log': this.textbox.val()
+          }
+        }, (function(_this) {
+          return function() {
+            _this.update();
+            return _this.textbox.val('');
+          };
+        })(this));
+      }
+    };
+
+    LogsController.prototype.update = function() {
+      return pycon.transaction({
+        action: "user_log",
+        "arguments": {
+          'number': 5
+        }
+      }, (function(_this) {
+        return function(r) {
+          var f, h, _i, _len, _ref;
+          console.log("Received update:", r);
+          if (r.history.length >= 1) {
+            _this.latest_log.message = r.history[0].data;
+            _this.latest_log.timestamp = r.history[0].time;
+            _this.latest_log.render();
+          } else {
+            _this.latest_log.message = "There are no logs yet!";
+            _this.latest_log.timestamp = 0;
+            _this.latest_log.render();
+          }
+          _this.past_logs_list.html("");
+          _this.past_logs_list.append($("<p>&nbsp;</p>"));
+          _ref = r.history.slice(1);
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            h = _ref[_i];
+            f = new LogElement();
+            f.message = h.data;
+            f.timestamp = h.time;
+            _this.past_logs_list.append(f.dom_element);
+            f.render();
+          }
+          if (r.history.length > 1) {
+            return _this.past_logs_list.show();
+          }
+        };
+      })(this));
+    };
+
+    return LogsController;
+
+  })();
+
+  this.LogElement = (function() {
+    LogElement.basic_element = function() {
+      return $("<div class='log_element'></div>");
+    };
+
+    function LogElement(dom_element) {
+      this.dom_element = dom_element;
+      if (this.dom_element == null) {
+        this.dom_element = LogElement.basic_element();
+      }
+      this.dom_message = $("<div class='log_element_message'></div>");
+      this.dom_timestamp = $("<div class='log_element_timestamp'></div>");
+      this.message = "";
+      this.timestamp = 0;
+      this.dom_element.append(this.dom_timestamp);
+      this.dom_element.append(this.dom_message);
+    }
+
+    LogElement.prototype.format_time = function() {
+      var dt, postfix, quantity, sdt, unit_postfix, units;
+      sdt = (new Date().getTime()) / 1000 - this.timestamp;
+      dt = Math.abs(sdt);
+      units = (function() {
+        switch (false) {
+          case !(dt < 60):
+            return {
+              unit: 'second',
+              amount: 1
+            };
+          case !(dt < 60 * 60):
+            return {
+              unit: 'minute',
+              amount: 60
+            };
+          case !(dt < 60 * 60 * 24):
+            return {
+              unit: 'hour',
+              amount: 60 * 60
+            };
+          case !(dt < 60 * 60 * 24 * 7):
+            return {
+              unit: 'day',
+              amount: 60 * 60 * 24
+            };
+          case !(dt < 60 * 60 * 24 * 7 * 4):
+            return {
+              unit: 'week',
+              amount: 60 * 60 * 24 * 7
+            };
+          case !(dt < 60 * 60 * 24 * 7 * 4 * 12):
+            return {
+              unit: 'month',
+              amount: 60 * 60 * 24 * 30
+            };
+          default:
+            return {
+              unit: 'year',
+              amount: 60 * 60 * 24 * 7 * 52
+            };
+        }
+      })();
+      if (sdt > 0) {
+        postfix = "ago";
+      } else {
+        postfix = "from now";
+      }
+      quantity = Math.ceil(dt / units.amount);
+      if (quantity > 1) {
+        unit_postfix = "s";
+      } else {
+        unit_postfix = "";
+      }
+      return "" + quantity + " " + units.unit + unit_postfix + " " + postfix;
+    };
+
+    LogElement.prototype.render = function() {
+      this.dom_message.html(this.message);
+      return this.dom_timestamp.html(this.format_time());
+    };
+
+    return LogElement;
+
+  })();
+
+  window.config = [];
+
+  window.config.websocket_url = "ws://" + window.location.host + "/json";
+
+  window.config.server_version = "0.1";
+
+  $(function() {
+    log("#cryo-server");
+    window.socket = new WebSocket(window.config.websocket_url);
+    window.jevent('SocketOpened', function() {});
+    console.log('The socket was opened.');
+    socket.onopen = function() {
+      console.log("Socket connection opened successfully.");
+      window.pycon = new PyAPI(window.socket);
+      return setTimeout(window.connection_ready, 200);
+    };
+    return socket.onclose = function() {
+      console.log("Socket connection was closed, unexpectedly.");
+      return console.log("I don't know why, but the socket was closed (!)");
+    };
+  });
+
+  window.connection_ready = function() {
+    console.log("Window ready.");
+    $('.log').append($('<div class="menu"></div>'));
+    window.overview_button = new OverviewMenuButton();
+    window.graphs_button = new GraphsMenuButton();
+    window.log_button = new LogMenuButton();
+    window.control_button = new ControlMenuButton();
+    window.dashboard = new Dashboard();
+    $('.log').append('<div class="graphs"></div>');
+    $('.graphs').hide();
+    window.graphs = [];
+    window.graphs.push(new TemperaturePlot2());
+    window.graphs.push(new TemperaturePlot());
+    window.graphs.push(new PressurePlot());
+    window.graphs.push(new CurrentPlot());
+    window.logs_controller = new LogsController($('<div class="logs"></div>').hide());
+    window.authentication_controller = new AuthenticationController($('<div class="authentication"></div>'));
+    return window.control_controller = new ControlController($("<div class='control'></div>").hide());
+  };
+
+  this.ReportController = (function() {
+    function ReportController() {
+      this.dom_element = $("<div class='report'></div>").hide();
+      $('.log').append(this.dom_element);
+      this.dom_element.append($("<div id='visualization'></div>"));
+      this.dom_element.append($("<div id='control'></div>"));
+      google.setOnLoadCallback((function(_this) {
+        return function() {
+          return _this.ready;
+        };
+      })(this));
+    }
+
+    ReportController.prototype.ready = function() {
+      debugger;
+      console.log("I'm going to draw the report.");
+      this.dashboard = new google.visualization.Dashboard(this.dom_element[0]);
+      this.control = new google.visualization.ControlWrapper({
+        controlType: 'ChartRangeFilter',
+        containerId: 'control',
+        options: {
+          filterColumnIndex: 0,
+          ui: {
+            chartType: 'LineChart',
+            chartOptions: {
+              width: '90%'
+            },
+            hAxis: {
+              'baselineColor': 'none'
+            }
+          },
+          chartView: {
+            columns: [0, 1]
+          },
+          minRangeSize: 86400
+        }
+      }, {
+        state: {
+          range: {
+            start: -10000,
+            end: 0
+          }
+        }
+      });
+      this.chart = new google.visualization.ChartWrapper({
+        chartType: 'ScatterChart',
+        dataTable: [["test", "test"], [700, 800]],
+        options: {
+          title: 'Countries'
+        },
+        containerId: 'visualization'
+      });
+      this.dashboard.bind(this.control, this.chart);
+      this.chart.draw();
+      return this.dashboard.draw(google.visualization.arrayToDataTable([["test", "test"], [700, 800], [600, 700], [500, 600]]));
+    };
+
+    return ReportController;
+
+  })();
+
   this.ScatterPlot = (function() {
     function ScatterPlot(title, element) {
       this.title = title;
@@ -462,10 +921,12 @@
       this.element = $('<div id="dashboard"></div>');
       this.element.appendTo('.log');
       this.dashboardelements = [];
+      this.dashboardelements.push(new TemperatureFAADashboardElement());
       this.dashboardelements.push(new Temperature3KDashboardElement());
       this.dashboardelements.push(new Temperature50KDashboardElement());
       this.dashboardelements.push(new PressureDashboardElement());
       this.dashboardelements.push(new MagnetCurrentDashboardElement());
+      this.dashboardelements.push(new UPSDashboardElement());
       this.dashboardelements.push(new WaterTemperatureDashboardElement());
       this.dashboardelements.push(new OilTemperatureDashboardElement());
       _ref = this.dashboardelements;
@@ -577,6 +1038,43 @@
     };
 
     return Temperature50KDashboardElement;
+
+  })(DashboardElement);
+
+  this.TemperatureFAADashboardElement = (function(_super) {
+    __extends(TemperatureFAADashboardElement, _super);
+
+    function TemperatureFAADashboardElement() {
+      TemperatureFAADashboardElement.__super__.constructor.call(this);
+      this.symbol = "T<sub>FAA</sub>";
+      this.element.addClass('h2o');
+      this.value = "U";
+    }
+
+    TemperatureFAADashboardElement.prototype.update = function() {
+      return pycon.transaction({
+        action: "sensor",
+        "arguments": {
+          sensor: "FAA_temperature"
+        }
+      }, (function(_this) {
+        return function(r) {
+          if (r.data.error != null) {
+            _this.state_ok = false;
+          } else {
+            _this.state_ok = true;
+            if (r.data.temperature < 1) {
+              _this.value = (r.data.temperature * 1000).toPrecision(3) + " mK";
+            } else {
+              _this.value = r.data.temperature.toPrecision(3) + " K";
+            }
+          }
+          return _this.render();
+        };
+      })(this));
+    };
+
+    return TemperatureFAADashboardElement;
 
   })(DashboardElement);
 
@@ -714,464 +1212,43 @@
 
   })(DashboardElement);
 
-  window.log = function(text) {
-    var t;
-    t = marked.parse(text);
-    return $('.log').append(t);
-  };
+  this.UPSDashboardElement = (function(_super) {
+    __extends(UPSDashboardElement, _super);
 
-  this.LogsController = (function() {
-    function LogsController(dom_element) {
-      this.dom_element = dom_element;
-      $('.log').append(this.dom_element);
-      this.textbox = $("<input type=text class=log_textbox />");
-      this.textbox.keydown((function(_this) {
-        return function(e) {
-          if (e.keyCode === 13) {
-            e.preventDefault();
-            return _this.submit();
-          }
-        };
-      })(this));
-      this.dom_element.append(this.textbox);
-      this.dom_element.append($("<p></p>"));
-      this.latest_log = new LogElement();
-      this.dom_element.append(this.latest_log.dom_element);
-      this.past_logs_list = $("<div class='past_logs_list'></div>").hide();
-      this.dom_element.append(this.past_logs_list);
-      this.update();
-      setInterval((function(_this) {
-        return function() {
-          return _this.update();
-        };
-      })(this), 30000);
+    function UPSDashboardElement() {
+      UPSDashboardElement.__super__.constructor.call(this);
+      this.symbol = "UPS";
+      this.value = "?";
+      this.element.addClass('h2o');
     }
 
-    LogsController.prototype.focus = function() {
-      return this.textbox.focus();
-    };
-
-    LogsController.prototype.submit = function() {
-      if ($.trim(this.textbox.val()).length > 0) {
-        return pycon.transaction({
-          action: "write_log",
-          "arguments": {
-            'log': this.textbox.val()
-          }
-        }, (function(_this) {
-          return function() {
-            _this.update();
-            return _this.textbox.val('');
-          };
-        })(this));
-      }
-    };
-
-    LogsController.prototype.update = function() {
+    UPSDashboardElement.prototype.update = function() {
       return pycon.transaction({
-        action: "user_log",
+        action: "sensor",
         "arguments": {
-          'number': 5
+          'sensor': 'ups'
         }
       }, (function(_this) {
         return function(r) {
-          var f, h, _i, _len, _ref;
-          console.log("Received update:", r);
-          if (r.history.length >= 1) {
-            _this.latest_log.message = r.history[0].data;
-            _this.latest_log.timestamp = r.history[0].time;
-            _this.latest_log.render();
+          if (r.data.error != null) {
+            _this.state_ok = false;
           } else {
-            _this.latest_log.message = "There are no logs yet!";
-            _this.latest_log.timestamp = 0;
-            _this.latest_log.render();
-          }
-          _this.past_logs_list.html("");
-          _this.past_logs_list.append($("<p>&nbsp;</p>"));
-          _ref = r.history.slice(1);
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            h = _ref[_i];
-            f = new LogElement();
-            f.message = h.data;
-            f.timestamp = h.time;
-            _this.past_logs_list.append(f.dom_element);
-            f.render();
-          }
-          if (r.history.length > 1) {
-            return _this.past_logs_list.show();
-          }
-        };
-      })(this));
-    };
-
-    return LogsController;
-
-  })();
-
-  this.LogElement = (function() {
-    LogElement.basic_element = function() {
-      return $("<div class='log_element'></div>");
-    };
-
-    function LogElement(dom_element) {
-      this.dom_element = dom_element;
-      if (this.dom_element == null) {
-        this.dom_element = LogElement.basic_element();
-      }
-      this.dom_message = $("<div class='log_element_message'></div>");
-      this.dom_timestamp = $("<div class='log_element_timestamp'></div>");
-      this.message = "";
-      this.timestamp = 0;
-      this.dom_element.append(this.dom_timestamp);
-      this.dom_element.append(this.dom_message);
-    }
-
-    LogElement.prototype.format_time = function() {
-      var dt, postfix, quantity, sdt, unit_postfix, units;
-      sdt = (new Date().getTime()) / 1000 - this.timestamp;
-      dt = Math.abs(sdt);
-      units = (function() {
-        switch (false) {
-          case !(dt < 60):
-            return {
-              unit: 'second',
-              amount: 1
-            };
-          case !(dt < 60 * 60):
-            return {
-              unit: 'minute',
-              amount: 60
-            };
-          case !(dt < 60 * 60 * 24):
-            return {
-              unit: 'hour',
-              amount: 60 * 60
-            };
-          case !(dt < 60 * 60 * 24 * 7):
-            return {
-              unit: 'day',
-              amount: 60 * 60 * 24
-            };
-          case !(dt < 60 * 60 * 24 * 7 * 4):
-            return {
-              unit: 'week',
-              amount: 60 * 60 * 24 * 7
-            };
-          case !(dt < 60 * 60 * 24 * 7 * 4 * 12):
-            return {
-              unit: 'month',
-              amount: 60 * 60 * 24 * 30
-            };
-          default:
-            return {
-              unit: 'year',
-              amount: 60 * 60 * 24 * 7 * 52
-            };
-        }
-      })();
-      if (sdt > 0) {
-        postfix = "ago";
-      } else {
-        postfix = "from now";
-      }
-      quantity = Math.ceil(dt / units.amount);
-      if (quantity > 1) {
-        unit_postfix = "s";
-      } else {
-        unit_postfix = "";
-      }
-      return "" + quantity + " " + units.unit + unit_postfix + " " + postfix;
-    };
-
-    LogElement.prototype.render = function() {
-      this.dom_message.html(this.message);
-      return this.dom_timestamp.html(this.format_time());
-    };
-
-    return LogElement;
-
-  })();
-
-  window.config = [];
-
-  window.config.websocket_url = "ws://" + window.location.host + "/json";
-
-  window.config.server_version = "0.1";
-
-  $(function() {
-    log("#cryo-server");
-    window.socket = new WebSocket(window.config.websocket_url);
-    window.jevent('SocketOpened', function() {});
-    console.log('The socket was opened.');
-    socket.onopen = function() {
-      console.log("Socket connection opened successfully.");
-      window.pycon = new PyAPI(window.socket);
-      return setTimeout(window.connection_ready, 200);
-    };
-    return socket.onclose = function() {
-      console.log("Socket connection was closed, unexpectedly.");
-      return console.log("I don't know why, but the socket was closed (!)");
-    };
-  });
-
-  window.connection_ready = function() {
-    console.log("Window ready.");
-    $('.log').append($('<div class="menu"></div>'));
-    window.overview_button = new OverviewMenuButton();
-    window.graphs_button = new GraphsMenuButton();
-    window.log_button = new LogMenuButton();
-    window.control_button = new ControlMenuButton();
-    window.dashboard = new Dashboard();
-    $('.log').append('<div class="graphs"></div>');
-    $('.graphs').hide();
-    window.graphs = [];
-    window.graphs.push(new TemperaturePlot2());
-    window.graphs.push(new TemperaturePlot());
-    window.graphs.push(new PressurePlot());
-    window.graphs.push(new CurrentPlot());
-    window.logs_controller = new LogsController($('<div class="logs"></div>').hide());
-    window.authentication_controller = new AuthenticationController($('<div class="authentication"></div>'));
-    return window.control_controller = new ControlController($("<div class='control'></div>").hide());
-  };
-
-  this.ReportController = (function() {
-    function ReportController() {
-      this.dom_element = $("<div class='report'></div>").hide();
-      $('.log').append(this.dom_element);
-      this.dom_element.append($("<div id='visualization'></div>"));
-      this.dom_element.append($("<div id='control'></div>"));
-      google.setOnLoadCallback((function(_this) {
-        return function() {
-          return _this.ready;
-        };
-      })(this));
-    }
-
-    ReportController.prototype.ready = function() {
-      debugger;
-      console.log("I'm going to draw the report.");
-      this.dashboard = new google.visualization.Dashboard(this.dom_element[0]);
-      this.control = new google.visualization.ControlWrapper({
-        controlType: 'ChartRangeFilter',
-        containerId: 'control',
-        options: {
-          filterColumnIndex: 0,
-          ui: {
-            chartType: 'LineChart',
-            chartOptions: {
-              width: '90%'
-            },
-            hAxis: {
-              'baselineColor': 'none'
+            _this.state_ok = true;
+            _this.value = "" + r.data.battery_capacity + "%";
+            if (r.data.line_power === false) {
+              _this.element.addClass('warn');
+            } else {
+              _this.element.removeClass('warn');
             }
-          },
-          chartView: {
-            columns: [0, 1]
-          },
-          minRangeSize: 86400
-        }
-      }, {
-        state: {
-          range: {
-            start: -10000,
-            end: 0
           }
-        }
-      });
-      this.chart = new google.visualization.ChartWrapper({
-        chartType: 'ScatterChart',
-        dataTable: [["test", "test"], [700, 800]],
-        options: {
-          title: 'Countries'
-        },
-        containerId: 'visualization'
-      });
-      this.dashboard.bind(this.control, this.chart);
-      this.chart.draw();
-      return this.dashboard.draw(google.visualization.arrayToDataTable([["test", "test"], [700, 800], [600, 700], [500, 600]]));
-    };
-
-    return ReportController;
-
-  })();
-
-  this.MenuButton = (function() {
-    function MenuButton() {
-      if (this.text == null) {
-        this.text = "Generic Menu Button";
-      }
-      if (this.background_color == null) {
-        this.background_color = "#000000";
-      }
-      if (this.text_color == null) {
-        this.text_color = "#FFFFFF";
-      }
-      this.element = $("<div class='menubutton'></div>");
-      this.element.on('click', this.action);
-      this.element.on('tap', this.action);
-      this.element.appendTo($('.menu'));
-      this.render();
-    }
-
-    MenuButton.prototype.action = function() {
-      return true;
-    };
-
-    MenuButton.prototype.render = function() {
-      this.element.css('background-color', this.background_color);
-      this.element.css('color', this.text_color);
-      return this.element.html(this.text);
-    };
-
-    return MenuButton;
-
-  })();
-
-  this.OverviewMenuButton = (function(_super) {
-    __extends(OverviewMenuButton, _super);
-
-    function OverviewMenuButton() {
-      this.text = "overview";
-      OverviewMenuButton.__super__.constructor.call(this);
-    }
-
-    OverviewMenuButton.prototype.action = function() {
-      $('.graphs').hide();
-      $('.logs').hide();
-      $('#dashboard').show();
-      $('.report').hide();
-      return $('.control').hide();
-    };
-
-    return OverviewMenuButton;
-
-  })(MenuButton);
-
-  this.GraphsMenuButton = (function(_super) {
-    __extends(GraphsMenuButton, _super);
-
-    function GraphsMenuButton() {
-      this.text = "graphs";
-      this.background_color = "#3366cc";
-      GraphsMenuButton.__super__.constructor.call(this);
-    }
-
-    GraphsMenuButton.prototype.action = function() {
-      var g, _i, _len, _ref;
-      $('.graphs').show();
-      _ref = window.graphs;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        g = _ref[_i];
-        g.t.plot();
-      }
-      $('#dashboard').hide();
-      $('.logs').hide();
-      $('.report').hide();
-      return $('.control').hide();
-    };
-
-    return GraphsMenuButton;
-
-  })(MenuButton);
-
-  this.LogMenuButton = (function(_super) {
-    __extends(LogMenuButton, _super);
-
-    function LogMenuButton() {
-      this.text = "log";
-      this.background_color = "#AAB95D";
-      LogMenuButton.__super__.constructor.call(this);
-    }
-
-    LogMenuButton.prototype.action = function() {
-      $('.logs').show();
-      $('#dashboard').hide();
-      $('.graphs').hide();
-      $('.report').hide();
-      $('.control').hide();
-      return window.logs_controller.focus();
-    };
-
-    return LogMenuButton;
-
-  })(MenuButton);
-
-  this.ReportMenuButton = (function(_super) {
-    __extends(ReportMenuButton, _super);
-
-    function ReportMenuButton() {
-      this.text = "report";
-      this.background_color = "#FA2A00";
-      ReportMenuButton.__super__.constructor.call(this);
-    }
-
-    ReportMenuButton.prototype.action = function() {
-      $('.logs').hide();
-      $('#dashboard').hide();
-      $('.graphs').hide();
-      $('.report').show();
-      return $('.control').hide();
-    };
-
-    return ReportMenuButton;
-
-  })(MenuButton);
-
-  this.ControlMenuButton = (function(_super) {
-    __extends(ControlMenuButton, _super);
-
-    function ControlMenuButton() {
-      this.text = "control";
-      this.background_color = "#FA2A00";
-      ControlMenuButton.__super__.constructor.call(this);
-    }
-
-    ControlMenuButton.prototype.action = function() {
-      $('.logs').hide();
-      $('#dashboard').hide();
-      $('.graphs').hide();
-      return $('.control').show();
-    };
-
-    return ControlMenuButton;
-
-  })(MenuButton);
-
-  this.UIToggleSlider = (function() {
-    function UIToggleSlider(dom_element, state_change_callback) {
-      this.dom_element = dom_element;
-      this.state_change_callback = state_change_callback;
-      this.dom_element.html("<div class='slider-state'></div><div class='spacer'>&nbsp;</div>");
-      this.state = false;
-      this.dom_element.click((function(_this) {
-        return function() {
-          return _this.state_change_callback(!_this.get_state());
+          return _this.render();
         };
       })(this));
-      this.set_state(false);
-    }
-
-    UIToggleSlider.prototype.set_state = function(state) {
-      if (state === false) {
-        this.dom_element.children('.slider-state').css("float", 'left').css('background-color', 'gray').html("no");
-        return this.state = false;
-      } else {
-        this.dom_element.children('.slider-state').css("float", 'right').css('background-color', 'rgb(170, 185, 93)').html("yes");
-        return this.state = true;
-      }
     };
 
-    UIToggleSlider.prototype.toggle_state = function() {
-      return this.set_state(!this.state);
-    };
+    return UPSDashboardElement;
 
-    UIToggleSlider.prototype.get_state = function() {
-      return this.state;
-    };
-
-    return UIToggleSlider;
-
-  })();
+  })(DashboardElement);
 
   this.ControlController = (function() {
     function ControlController(dom_element) {
@@ -1203,6 +1280,8 @@
           return _this.set_log_data(state);
         };
       })(this));
+      this.update_log_data_state();
+      setInterval(this.update_log_data_state, 30000);
     }
 
     ControlController.prototype.set_log_data = function(state) {
@@ -1215,10 +1294,18 @@
               password: password
             }
           }, function(r) {
-            if (r.success) {
-              return _this.log_data_slider.set_state(state);
-            }
+            return _this.update_log_data_state();
           });
+        };
+      })(this));
+    };
+
+    ControlController.prototype.update_log_data_state = function() {
+      return pycon.transaction({
+        action: 'get_data_logging_state'
+      }, (function(_this) {
+        return function(r) {
+          return _this.log_data_slider.set_state(r.state);
         };
       })(this));
     };

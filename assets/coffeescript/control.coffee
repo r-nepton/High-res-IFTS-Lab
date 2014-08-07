@@ -54,12 +54,18 @@ class @ControlController
 		@log_data_slider = new UIToggleSlider @dom_element.find('.slider'), (state) =>
 			@set_log_data(state)
 
+		@update_log_data_state()
+		setInterval( @update_log_data_state, 30000)
+
 	set_log_data: (state) ->
 		authentication_controller.begin (password) =>
 			pycon.transaction { action: 'set_data_logging_state', arguments: { state: state, password: password } }, (r) =>
-				if r.success
-					@log_data_slider.set_state( state )
+				@update_log_data_state()
 
+	# This function queries for the current log data state.
+	update_log_data_state: -> 
+		pycon.transaction { action: 'get_data_logging_state' }, (r) =>
+			@log_data_slider.set_state( r.state )
 
 	get_cycle_time: ->
 		$('.cycle-time').children('input').val()

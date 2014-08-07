@@ -64,7 +64,8 @@ class CryoManager(object):
 			'FAA_temperature': 			FAATemperatureSensor(),
 			'magnet_current':			MagnetCurrentSensor(),
 			'compressor':				CompressorSensor(),
-			'breakout':					BreakoutBoardSensor()
+			'breakout':					BreakoutBoardSensor(),
+			'ups':						UPSSensor()
 		} 
 		self.PID_controller = PIDControllerInterface()
 		self.user_log_writer   	= UserLogWriter()
@@ -74,6 +75,7 @@ class CryoManager(object):
 		if not os.path.isfile("etc/secret.passwords"):
 			print "Hey! You need to generate a password. You can do that by running etc/generate_passwords.py"
 			os._exit(0)
+
 		f = open("etc/secret.passwords")
 		password_database = json.loads( f.read() )
 		self.password = password_database['password']
@@ -130,6 +132,14 @@ class CryoManager(object):
 				return { 'result': 'success' }
 
 		return { 'result': 'failure' }
+
+	# This operation sets up the magnetization cycle to start.
+	def begin_magnetization(self, arguments):
+		self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
+
+	# This operation sets up the regulation cycle to start.
+	def begin_regulation(self, arguments):
+		self.operations.append( BeginRegulationOperation( regulation_temperature=0.099, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'] ,temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
 
 	# This function is called every one second, and is used to step the current
 	# process. A process is a class, which describes a long time-scale operation.
@@ -254,6 +264,9 @@ class CryoManager(object):
 				print "Illegal password sent for data logging state change."
 		else:
 			print "Data logging state change attempted with no password."
+
+	def get_data_logging_state(self, arguments):
+		return { 'state': self.log_data }
 
 	def shutdown_server(self, arguments):
 		if 'password' in arguments:

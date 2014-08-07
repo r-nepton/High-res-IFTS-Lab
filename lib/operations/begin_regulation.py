@@ -1,0 +1,96 @@
+from generic_operation import *
+from cryo_delegate import *
+
+class BeginRegulationOperation(GenericOperation):
+	def __init__(self, regulation_temperature, PID_interface, current_sensor, temperature_FAA_sensor, breakout_board): 
+		self.temperature_FAA_sensor = temperature_FAA_sensor.conduit
+		self.breakout_board			= breakout_board.conduit
+		self.PID_instance 			= PID_interface
+		self.current_sensor			= current_sensor.conduit
+		self.regulation_temperature = regulation_temperature
+
+		# Set all the safety settings.
+		self.max_start_current 		= 0.005 # 5 mA can be safely switched.
+		self.max_FAA_temperature 	= 5 # max allowable temperature to begin regulation
+		self.ramping_rate			= 0.002 # 2 mK per second ramping rate.
+		self.max_step				= 0.004 # 2 mK is the max step.
+
+		super(BeginRegulationOperation, self).__init__()
+
+	def started(self):
+		# Verify the PID connection.
+		if not self.PID_instance.verify_connection():
+			print "Unable to connect to the PID controller."
+			self.finished = True 
+			return
+
+		# Verify the current.
+		current = self.current_sensor.get_data()
+		if isinstance(current['current'],basestring):
+			# The current is not sensible.
+			self.finished = True
+			print "The current cannot be read, indicating an error. Terminating operation."
+			return
+
+		if current['current'] > self.max_start_current:
+			self.finished = True
+			print "The current was too high to begin regulation (%s)" % current['current']
+			return
+
+		if self.PID_instance.is_in_PID_mode():
+			self.finished = True
+			print "The PID controller is already in PID mode, which is confusing. Can't begin regulation if already in regulation. Quitting now."
+			return
+
+		# Okay, the current is zero. It is safe to switch to regulation mode.
+		self.breakout_board.switch_to_regulation_cycle()
+
+		# Now we'll measure the temperature of the FAA.
+		FAA_temperature = self.temperature_FAA_sensor.get_data()
+		if isinstance(FAA_temperature['temperature'],basestring):
+			# The temperature is not sensible.
+			self.finished = True
+			print "The FAA temperature could not be read, aborting transition to regulation."
+			return
+
+		# Check to make sure the FAA temperature is low enough.
+		if FAA_temperature['temperature'] > self.max_FAA_temperature and FAA_temperature['temperature'] > self.regulation_temperature:
+			# The temperature is too high.
+			self.finished = True
+			print "The FAA temperature is too high, aborting transition to regulation."
+			return
+
+		# Okay, the temperature is sensible. Now let's set the PID setpoint
+		# to match the FAA temperature.
+		self.PID_instance.set_setpoint( 0.035 ) #FAA_temperature['temperature'] )
+
+		# Okay, finally we can switch to PID mode.
+		self.PID_instance.set_regulation_mode()
+
+		# Now the next step is to slowly increment the setpoint over time. This is
+		# spread out over a long time.
+
+	def tick(self, dt):
+		# Double check to make sure we're not done.
+		if self.finished:
+			return
+
+		setpoint = self.PID_instance.get_setpoint()
+		# If the setpoint is negligibly close, let's just
+		# set it exactly and clean up.
+		if setpoint - self.regulation_temperature > 0.001:
+			self.PID_instance.set_setpoint( self.regulation_temperature )
+			self.finished 	= True
+			# Operation successful.
+			self.success	= True
+			return
+		
+		# Determine the appropriate step size to take.
+		step = self.ramping_rate * dt
+		# Ensure that the step size doesn't get too big.
+		if step > self.max_step:
+			step = self.max_step
+
+		# Take a step.
+		self.PID_instance.set_setpoint( setpoint + step )
+		print "Setting PID setpoint = %s" % (setpoint + step)
