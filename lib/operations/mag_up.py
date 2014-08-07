@@ -2,14 +2,15 @@ from generic_operation import *
 from cryo_delegate import *
 
 class MagUpOperation(GenericOperation):
-	def __init__(self, mag_up_time, final_current, temperature_FAA_sensor, temperature_3K_stage, PID_interface, current_sensor, breakout_board): 
-		self.mag_up_time 	= mag_up_time
-		self.final_current 	= final_current
-		self.PID_interface 	= PID_interface
-		self.current_sensor	= current_sensor.conduit
+	def __init__(self, mag_up_time, final_current, temperature_FAA_sensor, temperature_3K_sensor, PID_interface, current_sensor, breakout_board): 
+		
+		self.mag_up_time 			= mag_up_time
+		self.final_current 			= final_current
+		self.PID_interface 			= PID_interface
+		self.current_sensor			= current_sensor.conduit
 		self.temperature_FAA_sensor = temperature_FAA_sensor.conduit
 		self.temperature_3K_sensor 	= temperature_3K_sensor.conduit
-		self.breakout_board	= self.breakout_board.conduit
+		self.breakout_board			= breakout_board.conduit
 
 		# Set the safety settings.
 		self.absolute_max_current 		= 18.5 # amperes

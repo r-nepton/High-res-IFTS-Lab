@@ -134,12 +134,36 @@ class CryoManager(object):
 		return { 'result': 'failure' }
 
 	# This operation sets up the magnetization cycle to start.
-	def begin_magnetization(self, arguments):
-		self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
+	#def begin_magnetization(self, arguments):
+	#	self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
 
 	# This operation sets up the regulation cycle to start.
-	def begin_regulation(self, arguments):
-		self.operations.append( BeginRegulationOperation( regulation_temperature=0.099, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'] ,temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
+	#def begin_regulation(self, arguments):
+	#	self.operations.append( BeginRegulationOperation( regulation_temperature=0.099, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'] ,temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
+
+	# This function begins a full magnetization cycle. It's a dangerous
+	# operation to run, so it has a lot of self-checks built in.
+	def begin_magnetization_cycle(self, arguments):
+		time = 2700
+		current = 10
+		soak_time = 2700
+		regulation_temperature = 0.099
+
+		# Start by setting up manual mode, switching to mag cycle, etc.
+		self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
+		# Wait for 30 seconds before beginning the next stage to allow for
+		# fluctuations from the mag cycle switch throw.
+		self.operations.append( SleepOperation( sleep_time=30 ) )
+		# Now begin magnetization
+		self.operations.append( MagUpOperation( time, current, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], breakout_board=self.sensors_list['breakout'] ) )
+		# Now we must soak.
+		self.operations.append( SleepOperation( sleep_time=soak_time ))
+		# Now we need to demagnetize
+		self.operations.append( MagDownOperation( time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'] ) )
+		# Now we need to wait 5 minutes to let the inductor relax
+		self.operations.append( SleepOperation( sleep_time=300 ) )
+		# Finally, begin regulation.
+		self.operations.append( BeginRegulationOperation( regulation_temperature, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'] ) )
 
 	# This function is called every one second, and is used to step the current
 	# process. A process is a class, which describes a long time-scale operation.
@@ -148,8 +172,14 @@ class CryoManager(object):
 			if self.operations[0].finished:
 				# Instruct the operation that it is finished.
 				self.operations[0].ended()
-				# Remove the operation from the queue.
-				self.operations.pop(0)
+				# Decide whether the operation was succesful or not.
+				if self.operations[0].success == False:
+					print "An operation (%s) finished with errors. Clearing operation queue." % self.operations[0].__class__.__name__
+					self.operations = []
+				else:
+					# Remove the operation from the queue.
+					print "An operation (%s) finished successfully." % self.operations[0].__class__.__name__
+					self.operations.pop(0)
 			else:
 				# Run the operation.
 				self.operations[0].step()

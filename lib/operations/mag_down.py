@@ -6,8 +6,8 @@ class MagDownOperation(GenericOperation):
 		self.mag_down_time 	= mag_down_time
 		self.final_current 	= 0
 		self.PID_interface 	= PID_interface
-		self.current_sensor	= current_sensor
-		self.breakout_board = breakout_board
+		self.current_sensor	= current_sensor.conduit
+		self.breakout_board = breakout_board.conduit
 
 		# Set the safety settings.
 		self.absolute_min_mag_down_time = 10 # seconds
