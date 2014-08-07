@@ -86,3 +86,26 @@ class @ControlMenuButton extends MenuButton
 		$('#dashboard').hide()
 		$('.graphs').hide()
 		$('.control').show()
+
+class @UIToggleSlider
+	# The UI slider is a yes/no toggle slider/
+	constructor: (@dom_element, @state_change_callback) ->
+		@dom_element.html """<div class='slider-state'></div><div class='spacer'>&nbsp;</div>"""
+		@state = false
+		@dom_element.click =>
+			@state_change_callback !@get_state()
+		@set_state no
+
+	set_state: (state) ->
+		if state == no
+			@dom_element.children('.slider-state').css("float",'left').css('background-color','gray').html "no"
+			@state = no
+		else
+			@dom_element.children('.slider-state').css("float",'right').css('background-color','rgb(170, 185, 93)').html "yes"
+			@state = yes
+
+	toggle_state: ->
+		@set_state !@state
+
+	get_state: ->
+		@state

@@ -4,7 +4,6 @@ import sqlite3, json, os, sys, numpy
 # A GenericDataConduit represents a method
 # for getting data from a device.
 
-
 class GenericDataConduit:
 	def __init__(self):
 		self.name = "GenericDataConduit"

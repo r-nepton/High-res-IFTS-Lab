@@ -5,7 +5,7 @@ class SyncomMultiDropAdapter:
 		try:
 			self.serial_connection = serial.Serial('/dev/ttyUSB1', 9600, timeout=0.1)
 		except Exception: 
-			print "There was a problem connecting to the serial port constructor of: %s" % type(self)
+			print "There was a problem connecting to the serial port constructor of: %s" % self.__class__.__name__
 			self.serial_connection = serial_dummy.SerialDummy()
 
 	def write(self, data = [0x63, 0x0D, 0x8F, 0x00]):

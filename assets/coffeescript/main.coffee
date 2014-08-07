@@ -51,5 +51,8 @@ window.connection_ready = ->
 	# Create the report.
 	#window.report_controller = new ReportController()
 
+	# Create the authentication controller.
+	window.authentication_controller = new AuthenticationController( $('<div class="authentication"></div>') )
+
 	# Create the control panel.
 	window.control_controller = new ControlController $("<div class='control'></div>").hide()

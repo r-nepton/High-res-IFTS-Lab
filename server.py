@@ -32,10 +32,9 @@ RESPONSE 	= 1
 # will interface with measurement devices.
 class JHandler(tornado.websocket.WebSocketHandler):
 	def open(self):
-		print "Opening..."
+		pass
 
 	def on_message(self, message):
-		print "Message received: %s " % message 
 		data = json.loads( message )
 
 		# The default response: it should be overwritten, or else some
@@ -63,7 +62,7 @@ class JHandler(tornado.websocket.WebSocketHandler):
 		self.write_message( json.dumps ( {'data': response, 'transaction_id': data['transaction_id'] } ) )
 
 	def on_close(self):
-		print "Closing..."
+		pass
 
 # The JActionableRequestHandler class basically completes actions that the browser
 # asks of it. It should be spoken to through the "invoke" function, which basically
@@ -72,7 +71,7 @@ class JHandler(tornado.websocket.WebSocketHandler):
 # functions, and then the system will JSON your return value.
 class JActionableRequestHandler:
 	def invoke(self, action, arguments):
-		print "Attempted to invoke action %s" % action
+		print " - web action: %s" % action
 		if hasattr(self, action):
 			return getattr(self, action)(arguments)
 		else:

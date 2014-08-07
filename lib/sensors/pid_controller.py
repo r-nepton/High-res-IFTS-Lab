@@ -14,7 +14,7 @@ class PIDControllerInterface(object):
 		try:
 			self.serial_connection = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.1)
 		except Exception:
-			print "There was a problem connecting to the serial port constructor of: %s" % type(self)
+			print "There was a problem connecting to the serial port constructor of: %s" % self.__class__.__name__
 			self.serial_connection = serial_dummy.SerialDummy()
 
 	# Connect to the SIM960 and verify that the connection is valid. Return

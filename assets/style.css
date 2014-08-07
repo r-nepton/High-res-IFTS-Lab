@@ -11,6 +11,25 @@
 	margin-bottom: 10px;
 }
 
+.slider {
+	width: 60px;
+	background-color: gainsboro;
+	padding: 3px;
+}
+
+.slider .spacer {
+	display:inline-block;
+}
+
+.slider-state {
+	background-color: gray;
+	width: auto;
+	text-align: center;
+	display: inline-block;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
 .field input {
 	border: none;
 	border-bottom: dotted 2px;
@@ -53,10 +72,40 @@
 	padding-right: 10px;
 	background-color: white;
 	position: relative;
-	z-index: 10;
 	padding-left:10px;
 	margin-left: -20px;
 	display: inline-block;
+}
+
+.authentication-overlay {
+	position: absolute;
+	width: 100vw;
+	height: 100vh;
+	color: white;
+	background-color: black;
+	top: 0;
+	left: 0;
+	opacity: 0.9;
+}
+
+.authentication-dialog {
+	margin-left: auto;
+	margin-right: auto;
+	width: 512;
+	margin-top: 100px;
+	height: 512px;
+}
+
+.authentication-dialog h1 {
+	color: white;
+	border-bottom: none;
+}
+
+.authentication-dialog input {
+	font-size: 25pt;
+	text-align: center;
+	text-transform: uppercase;
+	letter-spacing: 5px;
 }
 
 input.log_textbox {

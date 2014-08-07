@@ -28,4 +28,14 @@ Do
  
  sudo python server.py
 
-You should only run it as `sudo` if your user can't bind to port 80 directly.
+You should only run it as `sudo` if your user can't bind to port 80 directly, or use the serial ports.
+
+## To do list
+
+ - Improve documentation
+ - Daemonize the software to run automatically when the computer starts
+ - Detect when the temperature sensors are out of range
+ - Write software to measure, but not record, the data sources
+ - Update the UI for controlling the cycle settings
+ - Write software to automatically generate reports based on a time interval
+ - Write software to automatically write robot logs

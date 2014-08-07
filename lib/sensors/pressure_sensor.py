@@ -7,7 +7,7 @@ class PressureSensorConduit(GenericDataConduit):
 		try:
 			self.serial_connection = serial.Serial(0, 9600, timeout=0.2)
 		except Exception:
-			print "There was a problem connecting to the serial port constructor of: %s" % type(self)
+			print "There was a problem connecting to the serial port constructor of: %s" % self.__class__.__name__
 			self.serial_connection = serial_dummy.SerialDummy()
 
 		self.name = "Generic Temperature Sensor #%d" % interface_number

@@ -27,6 +27,8 @@ class CryoManager(object):
 		self.stop_wake_thread = threading.Event()
 		self.wakethread = WakeThread(self.stop_wake_thread, self)
 		self.wakethread.start()
+		self.password = True
+		self.log_data = False # By default, the system starts up in a state where it doesn't log data.
 
 	# This function is used to call a function on itself based
 	# upon a string argument.
@@ -53,18 +55,6 @@ class CryoManager(object):
 		database_connection.execute("PRAGMA synchronous=OFF")
 		database_connection.execute("PRAGMA cache_size=-512000")
 
-		"""tempfile = StringIO()
-		for line in database_connection.iterdump():
-			tempfile.write('%s\n' % line)
-		database_connection.close()
-		tempfile.seek(0)
-
-		# Now we'll load the script into memory...
-		print "Database loaded. Now converting to memory database..."
-		database_connection = sqlite3.connect(':memory:')
-		database_connection.cursor().executescript( tempfile.read() )
-		database_connection.commit()"""
-
 		print "Database loaded."
 
 		self.sensors_list = {
@@ -73,10 +63,20 @@ class CryoManager(object):
 			'pressure':  				GenericPressureSensor(1),
 			'FAA_temperature': 			FAATemperatureSensor(),
 			'magnet_current':			MagnetCurrentSensor(),
-			'compressor':				CompressorSensor()
+			'compressor':				CompressorSensor(),
+			'breakout':					BreakoutBoardSensor()
 		} 
 		self.PID_controller = PIDControllerInterface()
 		self.user_log_writer   	= UserLogWriter()
+
+		# Open up the password file to figure out which
+		# password to trust. The passwords file is generated.
+		if not os.path.isfile("etc/secret.passwords"):
+			print "Hey! You need to generate a password. You can do that by running etc/generate_passwords.py"
+			os._exit(0)
+		f = open("etc/secret.passwords")
+		password_database = json.loads( f.read() )
+		self.password = password_database['password']
 
 	# This function saves the memory database back to disk.
 	def save_to_disk(self, arguments):
@@ -217,11 +217,53 @@ class CryoManager(object):
 	# and so on.
 	def wake(self, args=None):
 		print "Waking up for maintenance."
-		print "Polling sensors..."
-		for k,s in self.sensors_list.iteritems():
-			s.poll()
-		database_connection.commit()
+		# Only log data if we have data logging enabled.
+		if self.log_data == True:
+			print "Polling sensors..."
+			for k,s in self.sensors_list.iteritems():
+				s.poll()
+			database_connection.commit()
+
 		print "Going back to sleep."
+
+	def ups_power_lost(self, arguments):
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				print "UPS power lost!"		
+			else:
+				print "Illegal password sent for UPS shutdown."
+		else:
+			print "UPS shutdown attempted with no password."
+
+	# When the program starts up, by default it doesn't take 
+	# data. You have to enable data collection using the form
+	# on the webpage, which requires a password.
+	def set_data_logging_state(self, arguments):
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				if 'state' in arguments:
+					print "data logging set to: %s" % arguments['state']
+					if arguments['state'] == True:
+						self.log_data = True
+					else:
+						self.log_data = False
+					return { "success": True }
+				else:
+					print "Data logging state change attempted with no state."
+			else:
+				print "Illegal password sent for data logging state change."
+		else:
+			print "Data logging state change attempted with no password."
+
+	def shutdown_server(self, arguments):
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				print "Server shutting down!"
+				os._exit(0);
+			else:
+				print "Illegal password sent for shutdown_server command."
+		else:
+			print "Server shutdown attempted with no password."
 
 class CryoManagerThread(threading.Thread):
 	def __init__(self, parent):
