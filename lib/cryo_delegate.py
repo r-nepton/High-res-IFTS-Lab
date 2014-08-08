@@ -267,11 +267,10 @@ class CryoManager(object):
 	# and so on.
 	def wake(self, args=None):
 		# Only log data if we have data logging enabled.
-		if self.log_data == True:
-			self.print_log("Polling sensors.")
-			for k,s in self.sensors_list.iteritems():
-				s.poll()
-			database_connection.commit()
+		self.print_log("Polling sensors.")
+		for k,s in self.sensors_list.iteritems():
+			s.poll()
+		database_connection.commit()
 
 	def ups_power_lost(self, arguments):
 		if 'password' in arguments:
@@ -292,8 +291,12 @@ class CryoManager(object):
 					self.print_log( "data logging set to: %s" % arguments['state'] )
 					if arguments['state'] == True:
 						self.log_data = True
+						for s in self.sensors:
+							s.record_data = True
 					else:
 						self.log_data = False
+						for s in self.sensors:
+							s.record_data = False
 					return { "success": True }
 				else:
 					self.print_log( "Data logging state change attempted with no state." )

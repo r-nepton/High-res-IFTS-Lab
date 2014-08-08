@@ -70,6 +70,11 @@ class GenericCryoDataModel(object):
 			self.database_name 	= self.name
 		if hasattr(self, 'units') == False:
 			self.units = "count"
+		
+		# By default, don't record data.
+		self.record_data = False
+		# The latest data goes here.
+		self.latest_data = None
 
 		self.db = cryo_delegate.database_connection.cursor() # database connection.
 		self.initialize()
@@ -92,8 +97,11 @@ class GenericCryoDataModel(object):
 		return q
 
 	def poll(self):
-		# Insert a data entry.
-		self.insert_data( self.conduit.get_data() )
+		self.latest_data = self.conduit.get_data()
+		# If we are currently recording data, then insert the 
+		# data into the database.
+		if self.record_data:
+			self.insert_data( self.latest_data )
 
 	# Inser the data value (a python hash) into the database
 	# using the current time.
@@ -131,6 +139,10 @@ class GenericCryoDataModel(object):
 
 	# Get the last X number of entries into the database.
 	def tail(self, number=10):
+		# See if we can give back the latest data without going to the database.
+		if(number == 1 and self.latest_data != None):
+			return [ self.latest_data ]
+
 		q 	= "SELECT value,CAST(strftime('%%s',time) as INT) FROM %s ORDER BY time DESC LIMIT ?" % self.database_name
 		self.db.execute(q, [number])
 		return [ { 'time': f[1], 'data': json.loads(f[0]) }  for f in self.db.fetchall() ]
