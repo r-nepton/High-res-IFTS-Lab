@@ -1,6 +1,6 @@
 import threading
 import Queue
-import sqlite3, json, os, sys, numpy
+import sqlite3, json, os, sys, numpy, datetime
 from StringIO import StringIO
 from dataconduits import *
 
@@ -66,7 +66,8 @@ class CryoManager(object):
 			'compressor':				CompressorSensor(),
 			'breakout':					BreakoutBoardSensor(),
 			'ups':						UPSSensor()
-		} 
+		}
+
 		self.PID_controller = PIDControllerInterface()
 		self.user_log_writer   	= UserLogWriter()
 
@@ -79,6 +80,10 @@ class CryoManager(object):
 		f = open("etc/secret.passwords")
 		password_database = json.loads( f.read() )
 		self.password = password_database['password']
+
+		# The server has started sucessfully.
+		print " -- Cryostat server started -- "
+		self.print_log("Server startup completed.")
 
 	# This function saves the memory database back to disk.
 	def save_to_disk(self, arguments):
@@ -144,6 +149,7 @@ class CryoManager(object):
 	# This function begins a full magnetization cycle. It's a dangerous
 	# operation to run, so it has a lot of self-checks built in.
 	def begin_magnetization_cycle(self, arguments):
+		self.print_log( "Magnetization cycle started." )
 		time = 2700
 		current = 10
 		soak_time = 2700
@@ -174,11 +180,11 @@ class CryoManager(object):
 				self.operations[0].ended()
 				# Decide whether the operation was succesful or not.
 				if self.operations[0].success == False:
-					print "An operation (%s) finished with errors. Clearing operation queue." % self.operations[0].__class__.__name__
+					self.print_log("An operation (%s) finished with errors. Clearing operation queue." % self.operations[0].__class__.__name__)
 					self.operations = []
 				else:
 					# Remove the operation from the queue.
-					print "An operation (%s) finished successfully." % self.operations[0].__class__.__name__
+					self.print_log("An operation (%s) finished successfully." % self.operations[0].__class__.__name__)
 					self.operations.pop(0)
 			else:
 				# Run the operation.
@@ -201,6 +207,10 @@ class CryoManager(object):
 			return { "error":"unknown" }
 		else:
 			return data[0]
+
+	def print_log(self, message):	
+		now = datetime.datetime.now()
+		print " [%s] %s " % ( now.strftime("%I:%M%p %d %B %Y"), message )
 
 	def write_log(self, arguments):
 		if 'log' in arguments:
@@ -256,24 +266,21 @@ class CryoManager(object):
 	# CryoManagerThread object. It does regular housekeeping things, checks on temperatures
 	# and so on.
 	def wake(self, args=None):
-		print "Waking up for maintenance."
 		# Only log data if we have data logging enabled.
 		if self.log_data == True:
-			print "Polling sensors..."
+			self.print_log("Polling sensors.")
 			for k,s in self.sensors_list.iteritems():
 				s.poll()
 			database_connection.commit()
 
-		print "Going back to sleep."
-
 	def ups_power_lost(self, arguments):
 		if 'password' in arguments:
 			if arguments['password'] == self.password:
-				print "UPS power lost!"		
+				self.print_log( "UPS power lost!" )
 			else:
-				print "Illegal password sent for UPS shutdown."
+				self.print_log( "Illegal password sent for UPS shutdown." )
 		else:
-			print "UPS shutdown attempted with no password."
+			self.print_log( "UPS shutdown attempted with no password." )
 
 	# When the program starts up, by default it doesn't take 
 	# data. You have to enable data collection using the form
@@ -282,18 +289,18 @@ class CryoManager(object):
 		if 'password' in arguments:
 			if arguments['password'] == self.password:
 				if 'state' in arguments:
-					print "data logging set to: %s" % arguments['state']
+					self.print_log( "data logging set to: %s" % arguments['state'] )
 					if arguments['state'] == True:
 						self.log_data = True
 					else:
 						self.log_data = False
 					return { "success": True }
 				else:
-					print "Data logging state change attempted with no state."
+					self.print_log( "Data logging state change attempted with no state." )
 			else:
-				print "Illegal password sent for data logging state change."
+				self.print_log( "Illegal password sent for data logging state change." )
 		else:
-			print "Data logging state change attempted with no password."
+			self.print_log( "Data logging state change attempted with no password." )
 
 	def get_data_logging_state(self, arguments):
 		return { 'state': self.log_data }
@@ -301,12 +308,12 @@ class CryoManager(object):
 	def shutdown_server(self, arguments):
 		if 'password' in arguments:
 			if arguments['password'] == self.password:
-				print "Server shutting down!"
+				self.print_log( "Server shutting down!" )
 				os._exit(0);
 			else:
-				print "Illegal password sent for shutdown_server command."
+				self.print_log( "Illegal password sent for shutdown_server command." )
 		else:
-			print "Server shutdown attempted with no password."
+			self.print_log( "Server shutdown attempted with no password." )
 
 class CryoManagerThread(threading.Thread):
 	def __init__(self, parent):
@@ -331,7 +338,7 @@ class CryoManagerThread(threading.Thread):
 						data['responder'][k] = v
 				# Mark the task as done (free up the queue).
 			except Exception:
-				print "Error: invalid command."
+				print "Error: invalid command sent to delegate."
 				data['responder']['error'] = { "error": "invalid command" }
 				raise
 			self.mailbox.task_done()

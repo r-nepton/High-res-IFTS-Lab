@@ -20,7 +20,7 @@ class BeginRegulationOperation(GenericOperation):
 	def started(self):
 		# Verify the PID connection.
 		if not self.PID_instance.verify_connection():
-			print "Unable to connect to the PID controller."
+			self.print_log( "Unable to connect to the PID controller." )
 			self.finished = True 
 			return
 
@@ -29,17 +29,17 @@ class BeginRegulationOperation(GenericOperation):
 		if isinstance(current['current'],basestring):
 			# The current is not sensible.
 			self.finished = True
-			print "The current cannot be read, indicating an error. Terminating operation."
+			self.print_log( "The current cannot be read, indicating an error. Terminating operation." )
 			return
 
 		if current['current'] > self.max_start_current:
 			self.finished = True
-			print "The current was too high to begin regulation (%s)" % current['current']
+			self.print_log( "The current was too high to begin regulation (%s)" % current['current'] )
 			return
 
 		if self.PID_instance.is_in_PID_mode():
 			self.finished = True
-			print "The PID controller is already in PID mode, which is confusing. Can't begin regulation if already in regulation. Quitting now."
+			self.print_log( "The PID controller is already in PID mode, which is confusing. Can't begin regulation if already in regulation. Quitting now." )
 			return
 
 		# Okay, the current is zero. It is safe to switch to regulation mode.
@@ -50,14 +50,14 @@ class BeginRegulationOperation(GenericOperation):
 		if isinstance(FAA_temperature['temperature'],basestring):
 			# The temperature is not sensible.
 			self.finished = True
-			print "The FAA temperature could not be read, aborting transition to regulation."
+			self.print_log( "The FAA temperature could not be read, aborting transition to regulation." )
 			return
 
 		# Check to make sure the FAA temperature is low enough.
 		if FAA_temperature['temperature'] > self.max_FAA_temperature and FAA_temperature['temperature'] > self.regulation_temperature:
 			# The temperature is too high.
 			self.finished = True
-			print "The FAA temperature is too high, aborting transition to regulation."
+			self.print_log( "The FAA temperature is too high, aborting transition to regulation." )
 			return
 
 		# Okay, the temperature is sensible. Now let's set the PID setpoint
@@ -93,4 +93,4 @@ class BeginRegulationOperation(GenericOperation):
 
 		# Take a step.
 		self.PID_instance.set_setpoint( setpoint + step )
-		print "Setting PID setpoint = %s" % (setpoint + step)
+		self.print_log( "Setting PID setpoint = %s" % (setpoint + step) )

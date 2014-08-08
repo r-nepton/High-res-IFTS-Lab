@@ -25,21 +25,21 @@ class BeginMagnetizationOperation(GenericOperation):
 	def started(self):
 		# Verify the PID connection.
 		if not self.PID_instance.verify_connection():
-			print "Unable to connect to the PID controller."
+			self.print_log( "Unable to connect to the PID controller." )
 			self.finished = True 
 			return
 
 		# Verify the stage temperatures.
 		temperature_3K = self.temperature_3K_sensor.get_data()
 		if temperature_3K['temperature'] > self.max_3K_stage_temperature:
-			print "The 3 K stage temperature is too high! (%s K)" %  temperature_3K['temperature']
+			self.print_log( "The 3 K stage temperature is too high! (%s K)" %  temperature_3K['temperature'] )
 			self.finished = True
 			return
 
 		# Verify the FAA temperature.
 		temperature_FAA = self.temperature_FAA_sensor.get_data()
 		if temperature_FAA['temperature'] > self.max_FAA_temperature:
-			print "The FAA temperature is too high! (%s K)" %  temperature_FAA['temperature']
+			self.print_log( "The FAA temperature is too high! (%s K)" %  temperature_FAA['temperature'] )
 			self.finished = True
 			return
 

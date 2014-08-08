@@ -6,6 +6,10 @@ import inspect
 import json, subprocess, os, sys
 import threading, Queue
 
+# It is helpful to change directories to the current directory of the
+# script. That way, we can access relative file paths properly.
+os.chdir( os.path.dirname(os.path.realpath(__file__)) )
+
 # The following is a hack to make python
 # also count the files in "./lib" as if they
 # were in the same directory as this file.
@@ -71,7 +75,6 @@ class JHandler(tornado.websocket.WebSocketHandler):
 # functions, and then the system will JSON your return value.
 class JActionableRequestHandler:
 	def invoke(self, action, arguments):
-		print " - web action: %s" % action
 		if hasattr(self, action):
 			return getattr(self, action)(arguments)
 		else:
@@ -128,6 +131,8 @@ try:
 	application.listen(PORT)
 	# This: I have no idea what it does.
 	tornado.ioloop.IOLoop.instance().start()
+
+
 except KeyboardInterrupt:
 	print "Killing everything due to KeyboardInterrupt."
 	os._exit(0)

@@ -12,3 +12,8 @@ class SleepOperation(GenericOperation):
 		if time.time() - self.start_time > self.sleep_time:
 			self.finished 	= True
 			self.success 	= True
+
+	# Sleep operations don't need to write lots of boring updates to the
+	# log files.
+	def print_log(self, message):
+		pass

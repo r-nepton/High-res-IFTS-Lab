@@ -1,7 +1,7 @@
 # The GenericOperation class defines a generic operation. Each operation is a
 # long-timescale sequence of commands. One example of an operation might be mag-up. 
 
-import time
+import time, datetime
 
 class GenericOperation(object):
 	def __init__(self):
@@ -25,9 +25,13 @@ class GenericOperation(object):
 	def time(self):
 		return int(time.time()) - self.start_time
 
+	def print_log(self, message):
+		now = datetime.datetime.now()
+		print " [%s] <%s> %s " % ( now.strftime("%I:%M%p %d %B %Y"), self.__class__.__name__, message )
+
 	# The step function is called whenever a generic operation is stepped.
 	def step(self):
-		print "Attempted operation step."
+		self.print_log("Attempted operation step.")
 		# If the operation is completed, don't run.
 		if self.finished == True:
 			return
