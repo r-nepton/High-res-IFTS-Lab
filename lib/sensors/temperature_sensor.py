@@ -37,6 +37,11 @@ class DiodeTemperatureSensorConduit(GenericDataConduit):
 		# I guess everything worked correctly. Let's clean up now.
 		self.serial_connection.write("disconnect\r")
 
+		# The diode temperature sensor can only measure up to 300 K. Above
+		# that, it gives out crazy measurements (like 500 K)
+		if temperature > 300:
+			return { 'temperature':'unknown', 'error': 'Temperature (%s K) is above the limit for the device.' % temperature, 'units':'kelvin' }
+
 		# Send out the measured temperature.
 		return { 'temperature':temperature, 'units':'kelvin' }
 
@@ -81,6 +86,11 @@ class RuOxTemperatureSensorConduit(GenericDataConduit):
 
 		# I guess everything worked correctly. Let's clean up now.
 		self.serial_connection.write("disconnect\r")
+
+		# The RuOx temperature sensor can only measure up to 4.28 K. Above
+		# that, it gives out crazy measurements (like 500 K)
+		if temperature > 4:
+			return { 'temperature':'unknown', 'error': 'Temperature (%s K) is above the limit for the device.' % temperature, 'units':'kelvin' }
 
 		# Send out the measured temperature.
 		return { 'temperature':temperature, 'units':'kelvin' }

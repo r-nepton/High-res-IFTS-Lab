@@ -1,6 +1,6 @@
 import random
 import cryo_delegate
-import sqlite3, json, os, sys, numpy
+import sqlite3, json, os, sys, numpy, time
 # A GenericDataConduit represents a method
 # for getting data from a device.
 
@@ -141,7 +141,7 @@ class GenericCryoDataModel(object):
 	def tail(self, number=10):
 		# See if we can give back the latest data without going to the database.
 		if(number == 1 and self.latest_data != None):
-			return [ self.latest_data ]
+			return [ { 'time': time.time(), 'data': self.latest_data } ]
 
 		q 	= "SELECT value,CAST(strftime('%%s',time) as INT) FROM %s ORDER BY time DESC LIMIT ?" % self.database_name
 		self.db.execute(q, [number])

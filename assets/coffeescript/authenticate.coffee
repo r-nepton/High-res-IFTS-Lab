@@ -25,7 +25,7 @@ class AuthenticationController
 
 	submit: ->
 		@hide()
-		@callback( @get_password() )
+		@callback( @get_password().toUpperCase() )
 
 	show: ->
 		$('.password').val('')

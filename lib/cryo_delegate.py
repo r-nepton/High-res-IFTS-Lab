@@ -30,6 +30,10 @@ class CryoManager(object):
 		self.password = True
 		self.log_data = False # By default, the system starts up in a state where it doesn't log data.
 
+		# Cycle settings
+		self.magnetization_hold_time = 4*3600 # seconds
+		self.regulation_temperature  = 0.100 #  Kelvin
+
 	# This function is used to call a function on itself based
 	# upon a string argument.
 	def invoke(self, action, arguments):
@@ -117,60 +121,60 @@ class CryoManager(object):
 		# Return the responder object.
 		return responder
 
-	def ramp_up(self, arguments):
-		if 'current' in arguments and 'time' in arguments and 'authentication' in arguments:
-			if arguments['authentication'] == "charlie":
-				current = arguments['current']
-				time = arguments['time']
-		
-				self.operations.append( MagUpOperation( time, current, self.PID_controller, self.sensors_list['magnet_current'].conduit ) )
-				return { 'result': 'success' }
+	def cycle_settings(self, arguments):
+		# Authenticate first, in case we are doing a "set" operation.
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				# Now check if we are setting or getting.
+				if 'hold_time' in arguments:
+					try:
+						self.magnetization_hold_time = float(arguments['hold_time'])
+						return { 'result': 'success' }
+					except Exception:
+						return { 'error': 'invalid hold time specified.' }
 
-		return { 'result': 'failure' }
+				# Now check if we are setting or getting.
+				if 'regulation_temperature' in arguments:
+					try:
+						self.regulation_temperature = float(arguments['regulation_temperature'])
+						return { 'result': 'success' }
+					except Exception:
+						return { 'error': 'invalid regulation temperature specified.' }
 
-	def ramp_down(self, arguments):
-		if 'time' in arguments and 'authentication' in arguments:
-			if arguments['authentication'] == "charlie":
-				time = arguments['time']
-		
-				self.operations.append( MagDownOperation( time, self.PID_controller, self.sensors_list['magnet_current'].conduit ) )
-				return { 'result': 'success' }
-
-		return { 'result': 'failure' }
-
-	# This operation sets up the magnetization cycle to start.
-	#def begin_magnetization(self, arguments):
-	#	self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
-
-	# This operation sets up the regulation cycle to start.
-	#def begin_regulation(self, arguments):
-	#	self.operations.append( BeginRegulationOperation( regulation_temperature=0.099, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'] ,temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
+		# Well, if we didn't set anything,it must be just a get request.
+		return { 'hold_time': self.magnetization_hold_time, 'regulation_temperature': self.regulation_temperature }
 
 	# This function begins a full magnetization cycle. It's a dangerous
 	# operation to run, so it has a lot of self-checks built in.
 	def begin_magnetization_cycle(self, arguments):
-		self.print_log( "Magnetization cycle started." )
-		time = 2700
-		current = 10
-		soak_time = 2700
-		regulation_temperature = 0.099
+		# The user needs to authenticate first.
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				self.print_log( "Magnetization cycle started." )
+				time = 2700
+				current = 10
+				soak_time = 2700
+				regulation_temperature = 0.099
 
-		# Start by setting up manual mode, switching to mag cycle, etc.
-		self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
-		# Wait for 30 seconds before beginning the next stage to allow for
-		# fluctuations from the mag cycle switch throw.
-		self.operations.append( SleepOperation( sleep_time=30 ) )
-		# Now begin magnetization
-		self.operations.append( MagUpOperation( time, current, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], breakout_board=self.sensors_list['breakout'] ) )
-		# Now we must soak.
-		self.operations.append( SleepOperation( sleep_time=soak_time ))
-		# Now we need to demagnetize
-		self.operations.append( MagDownOperation( time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'] ) )
-		# Now we need to wait 5 minutes to let the inductor relax
-		self.operations.append( SleepOperation( sleep_time=300 ) )
-		# Finally, begin regulation.
-		self.operations.append( BeginRegulationOperation( regulation_temperature, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'] ) )
-
+				# Start by setting up manual mode, switching to mag cycle, etc.
+				self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
+				# Wait for 30 seconds before beginning the next stage to allow for
+				# fluctuations from the mag cycle switch throw.
+				self.operations.append( SleepOperation( sleep_time=30 ) )
+				# Now begin magnetization
+				self.operations.append( MagUpOperation( time, current, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], breakout_board=self.sensors_list['breakout'] ) )
+				# Now we must soak.
+				self.operations.append( SleepOperation( sleep_time=soak_time ))
+				# Now we need to demagnetize
+				self.operations.append( MagDownOperation( time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'] ) )
+				# Now we need to wait 5 minutes to let the inductor relax
+				self.operations.append( SleepOperation( sleep_time=300 ) )
+				# Finally, begin regulation.
+				self.operations.append( BeginRegulationOperation( regulation_temperature, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'] ) )
+			else:
+				self.print_log( "Attempted to start magnetization cycle with incorrect password." )
+		else:
+			self.print_log( "Attempted to start magnetization cycle with no password." )
 	# This function is called every one second, and is used to step the current
 	# process. A process is a class, which describes a long time-scale operation.
 	def step(self, arguments):
@@ -267,7 +271,6 @@ class CryoManager(object):
 	# and so on.
 	def wake(self, args=None):
 		# Only log data if we have data logging enabled.
-		self.print_log("Polling sensors.")
 		for k,s in self.sensors_list.iteritems():
 			s.poll()
 		database_connection.commit()

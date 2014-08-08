@@ -32,7 +32,10 @@ class BreakoutBoardInterface(GenericDataConduit):
 		self.send_command("T")
 		state = self.serial_connection.read(100)
 		# We'll just dump the results out.
-		return json.loads(state)
+		try: 
+			return json.loads(state)
+		except Exception:
+			return { 'error': 'unable to talk to the breakout board, for some reason.'}
 
 	# This function returns true or false depending on the state
 	# of the connection.

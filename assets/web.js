@@ -87,54 +87,6 @@
 
   })();
 
-  AuthenticationController = (function() {
-    function AuthenticationController(dom_element) {
-      this.dom_element = dom_element;
-      $('body').append(this.dom_element.hide());
-      this.dom_element.html("<div class='authentication-overlay'>\n	<div class='authentication-dialog'>\n		<h1>Enter the password.</h1>\n		<input type=text class='password' />\n	</div>\n</div>");
-      this.callback = function() {
-        return true;
-      };
-      $('.password').keypress((function(_this) {
-        return function(e) {
-          if (e.which === 13) {
-            return _this.submit();
-          }
-        };
-      })(this));
-    }
-
-    AuthenticationController.prototype.get_password = function() {
-      return $('.password').val();
-    };
-
-    AuthenticationController.prototype.submit = function() {
-      this.hide();
-      return this.callback(this.get_password());
-    };
-
-    AuthenticationController.prototype.show = function() {
-      $('.password').val('');
-      $('.authentication-overlay').css({
-        height: screen.height
-      });
-      this.dom_element.show();
-      return $('.password').focus();
-    };
-
-    AuthenticationController.prototype.hide = function() {
-      return this.dom_element.hide();
-    };
-
-    AuthenticationController.prototype.begin = function(callback) {
-      this.show();
-      return this.callback = callback;
-    };
-
-    return AuthenticationController;
-
-  })();
-
   window.jevents = [];
 
   window.jevent = function(eventName, eventAction) {
@@ -1250,19 +1202,62 @@
 
   })(DashboardElement);
 
+  AuthenticationController = (function() {
+    function AuthenticationController(dom_element) {
+      this.dom_element = dom_element;
+      $('body').append(this.dom_element.hide());
+      this.dom_element.html("<div class='authentication-overlay'>\n	<div class='authentication-dialog'>\n		<h1>Enter the password.</h1>\n		<input type=text class='password' />\n	</div>\n</div>");
+      this.callback = function() {
+        return true;
+      };
+      $('.password').keypress((function(_this) {
+        return function(e) {
+          if (e.which === 13) {
+            return _this.submit();
+          }
+        };
+      })(this));
+    }
+
+    AuthenticationController.prototype.get_password = function() {
+      return $('.password').val();
+    };
+
+    AuthenticationController.prototype.submit = function() {
+      this.hide();
+      return this.callback(this.get_password().toUpperCase());
+    };
+
+    AuthenticationController.prototype.show = function() {
+      $('.password').val('');
+      $('.authentication-overlay').css({
+        height: screen.height
+      });
+      this.dom_element.show();
+      return $('.password').focus();
+    };
+
+    AuthenticationController.prototype.hide = function() {
+      return this.dom_element.hide();
+    };
+
+    AuthenticationController.prototype.begin = function(callback) {
+      this.show();
+      return this.callback = callback;
+    };
+
+    return AuthenticationController;
+
+  })();
+
   this.ControlController = (function() {
     function ControlController(dom_element) {
       this.dom_element = dom_element;
       $('.log').append(this.dom_element);
-      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>settings</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><div class='slider'></div></div>\n		<span>log data?</span>\n	</div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>cycle</h1>\n	<div class='horizontal-field'>\n		<div class='field cycle-time'><input type=text /><span class='units'>hours</span></div>\n		<span>hold time</span>\n	</div>\n\n	<div class='menubutton cycle-save' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton cycle-begin' style=\" background-color: rgb(250, 42, 0); color: white;\">cycle</div>\n	\n\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>regulation</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><input type=text /><span class='units'>mK</span></div>\n		<span>regulation temperature</span>\n	</div>\n	<div class='menubutton regulate-save' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton regulate-begin' style=\"background-color: rgb(51, 102, 204); color: white;\">regulate</div>\n	<div class=\"buttonspacer\"></div>\n</div>");
+      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>settings</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><div class='slider'></div></div>\n		<span>log data?</span>\n	</div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>cycle</h1>\n	<div class='horizontal-field'>\n		<div class='field cycle-time'><input type=text /><span class='units'>hours</span></div>\n		<span>hold time</span>\n	</div>\n\n	<div class='menubutton cycle-save' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton cycle-begin' style=\" background-color: rgb(250, 42, 0); color: white;\">cycle</div>\n	\n\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>regulation</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><input type=text /><span class='units'>mK</span></div>\n		<span>regulation temperature</span>\n	</div>\n	<div class='menubutton regulate-save' style=\"background-color: black; color: white;\">save</div>\n	<div class=\"buttonspacer\"></div>\n</div>");
       $('.regulate-save').click((function(_this) {
         return function() {
           return _this.regulate_save();
-        };
-      })(this));
-      $('.regulate-begin').click((function(_this) {
-        return function() {
-          return _this.regulate_begin();
         };
       })(this));
       $('.cycle-save').click((function(_this) {
@@ -1281,7 +1276,13 @@
         };
       })(this));
       this.update_log_data_state();
-      setInterval(this.update_log_data_state, 30000);
+      this.update_cycle_parameters();
+      setInterval((function(_this) {
+        return function() {
+          _this.update_log_data_state();
+          return _this.update_cycle_parameters();
+        };
+      })(this), 30000);
     }
 
     ControlController.prototype.set_log_data = function(state) {
@@ -1310,6 +1311,17 @@
       })(this));
     };
 
+    ControlController.prototype.update_cycle_parameters = function() {
+      return pycon.transaction({
+        action: 'cycle_settings'
+      }, (function(_this) {
+        return function(r) {
+          _this.set_cycle_time(r.hold_time / 3600);
+          return _this.set_regulation_temperature(r.regulation_temperature * 1000);
+        };
+      })(this));
+    };
+
     ControlController.prototype.get_cycle_time = function() {
       return $('.cycle-time').children('input').val();
     };
@@ -1327,24 +1339,53 @@
     };
 
     ControlController.prototype.regulate_save = function() {
-      authentication_controller.begin((function(_this) {
+      return authentication_controller.begin((function(_this) {
         return function(password) {
-          return console.log("attempted w/ password: ", password);
+          var regulation_temperature;
+          regulation_temperature = _this.get_regulation_temperature() / 1000;
+          return pycon.transaction({
+            action: 'cycle_settings',
+            "arguments": {
+              password: password,
+              regulation_temperature: regulation_temperature
+            }
+          }, function(r) {
+            console.log(r);
+            return _this.update_cycle_parameters();
+          });
         };
       })(this));
-      return true;
-    };
-
-    ControlController.prototype.regulate_begin = function() {
-      return true;
     };
 
     ControlController.prototype.cycle_save = function() {
-      return true;
+      return authentication_controller.begin((function(_this) {
+        return function(password) {
+          var hold_time;
+          hold_time = _this.get_cycle_time() * 3600;
+          return pycon.transaction({
+            action: 'cycle_settings',
+            "arguments": {
+              password: password,
+              hold_time: hold_time
+            }
+          }, function(r) {
+            return _this.update_cycle_parameters();
+          });
+        };
+      })(this));
     };
 
     ControlController.prototype.cycle_begin = function() {
-      return true;
+      return authentication_controller.begin((function(_this) {
+        return function(password) {
+          return pycon.transaction({
+            action: "begin_magnetization_cycle",
+            "arguments": {
+              password: password
+            }
+          });
+        };
+      })(this));
     };
 
     ControlController.prototype.update = function() {
