@@ -25,7 +25,8 @@ class MagnetCurrentSensorConduit(GenericDataConduit):
 			self.serial_connection.write("VOLT? %d\r" % self.SIM970_port)
 		except Exception:
 			return { 'current':'unknown', 'error': 'Unable to connect to SIM972.', 'units': 'kelvin' }
-		
+			
+		response = ""
 		# Okay, we've configured the unit correctly. Now let's query for our data.
 		try: 
 			response = self.serial_connection.read(100);

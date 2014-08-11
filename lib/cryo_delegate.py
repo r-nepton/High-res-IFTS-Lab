@@ -358,7 +358,7 @@ class WakeThread(threading.Thread):
 
 	def run(self):
 		self.cryomanager.ask('thread_initialize',{})
-		index = 0
+		index = 1
 		while not self.stopped.wait(1):
 			index = index % 60
 			if index % 20 == 0: 
