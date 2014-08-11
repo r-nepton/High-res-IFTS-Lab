@@ -11,7 +11,10 @@ class UPSDataConduit(GenericDataConduit):
 		self.units	= "%"
 
 	def get_data(self):
-		result = shell_command.shell_command("pwrstat -status")
+		try:			
+			result = shell_command.shell_command("pwrstat -status")
+		except Exception:
+			result = ""
 
 		# Check to see if the pwrstat utility is operating normally.
 		if not re.search("The UPS information shows as following:", result):
