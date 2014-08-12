@@ -113,7 +113,7 @@
 }
 
 input.log_textbox {
-	width: 650px;
+	width: 550px;
 	height: 36px;
 	font-size: 15pt;
 	padding-left: 10px;
@@ -126,7 +126,7 @@ input.log_textbox {
 }
 
 .log_element {
-	width: 650px;
+	width: 550px;
 	margin-top: 10px;
 	border-bottom: 1px solid #EEEEEE;
 }

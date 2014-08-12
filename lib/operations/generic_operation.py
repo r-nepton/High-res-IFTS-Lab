@@ -21,6 +21,10 @@ class GenericOperation(object):
 		self.sleep_time = 0
 		self.sleep_start_time = 0
 
+		# Operation started message
+		self.has_started_message = False
+		self.started_message = "<%s>" % self.__class__.__name__
+
 	# This function returns the time elapsed since the start of the operation, in seconds.
 	def time(self):
 		return int(time.time()) - self.start_time

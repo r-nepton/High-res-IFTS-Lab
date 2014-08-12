@@ -39,3 +39,5 @@ You should only run it as `sudo` if your user can't bind to port 80 directly, or
  - Fully test, characterize, and document the booting process
  - Write the routines to perform emergency demagnetization
  - Write the routines to send emails to people as a warning (e.g. of emerg shutdown)
+ - Make the CERULEAN BIOS update so that it always turns on when there is power
+ - Seems like pwrstatd doesn't start up with the machine.

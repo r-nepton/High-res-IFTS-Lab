@@ -129,6 +129,7 @@ class CryoManager(object):
 				if 'hold_time' in arguments:
 					try:
 						self.magnetization_hold_time = float(arguments['hold_time'])
+						self.print_log("Updated hold time to %s seconds" % self.magnetization_hold_time) 
 						return { 'result': 'success' }
 					except Exception:
 						return { 'error': 'invalid hold time specified.' }
@@ -137,6 +138,7 @@ class CryoManager(object):
 				if 'regulation_temperature' in arguments:
 					try:
 						self.regulation_temperature = float(arguments['regulation_temperature'])
+						self.print_log("Updated regulation temperature to %s K" % self.regulation_temperature) 
 						return { 'result': 'success' }
 					except Exception:
 						return { 'error': 'invalid regulation temperature specified.' }
@@ -153,7 +155,7 @@ class CryoManager(object):
 				self.print_log( "Magnetization cycle started." )
 				time = 2700
 				current = 10
-				soak_time = 2700
+				hold_time = 2700
 				regulation_temperature = 0.099
 
 				# Start by setting up manual mode, switching to mag cycle, etc.
@@ -163,8 +165,8 @@ class CryoManager(object):
 				self.operations.append( SleepOperation( sleep_time=30 ) )
 				# Now begin magnetization
 				self.operations.append( MagUpOperation( time, current, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], breakout_board=self.sensors_list['breakout'] ) )
-				# Now we must soak.
-				self.operations.append( SleepOperation( sleep_time=soak_time ))
+				# Now we must soak (for the hold time).
+				self.operations.append( SleepOperation( sleep_time=hold_time ))
 				# Now we need to demagnetize
 				self.operations.append( MagDownOperation( time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'] ) )
 				# Now we need to wait 5 minutes to let the inductor relax
@@ -185,6 +187,7 @@ class CryoManager(object):
 				# Decide whether the operation was succesful or not.
 				if self.operations[0].success == False:
 					self.print_log("An operation (%s) finished with errors. Clearing operation queue." % self.operations[0].__class__.__name__)
+					self.user_log_writer.write_log("Halted from error during %s." % self.operations[0].__class__.__name__)
 					self.operations = []
 				else:
 					# Remove the operation from the queue.
@@ -192,6 +195,8 @@ class CryoManager(object):
 					self.operations.pop(0)
 			else:
 				# Run the operation.
+				if self.operations[0].step_index == 0 and self.operations[0].has_started_message:
+					self.user_log_writer.write_log( self.operations[0].started_message )
 				self.operations[0].step()
 
 	def pressure(self, arguments):
@@ -294,11 +299,11 @@ class CryoManager(object):
 					self.print_log( "data logging set to: %s" % arguments['state'] )
 					if arguments['state'] == True:
 						self.log_data = True
-						for s in self.sensors:
+						for k,s in self.sensors_list.iteritems():
 							s.record_data = True
 					else:
 						self.log_data = False
-						for s in self.sensors:
+						for k,s in self.sensors_list.iteritems():
 							s.record_data = False
 					return { "success": True }
 				else:

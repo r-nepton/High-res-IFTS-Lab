@@ -16,6 +16,9 @@ class MagDownOperation(GenericOperation):
 
 		super(MagDownOperation, self).__init__()
 
+		self.has_started_message = True
+		self.started_message = "Starting demagnetization."
+
 	# When the MagDownOperation begins, we'll do a bunch of checks to ensure that everything is in order.
 	def started(self):
 		# Check the mag_down_time, in case it's too short.
@@ -96,6 +99,6 @@ class MagDownOperation(GenericOperation):
 			self.finished 	= True
 			self.success 	= True
 			self.print_log("Current has reached target current. Finished demagnetization.")
-
-		self.expected_output_current -= ramping_step
-		self.PID_interface.set_current( self.expected_output_current )
+		else: 
+			self.expected_output_current -= ramping_step
+			self.PID_interface.set_current( self.expected_output_current )

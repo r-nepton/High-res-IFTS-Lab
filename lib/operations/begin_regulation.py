@@ -17,6 +17,9 @@ class BeginRegulationOperation(GenericOperation):
 
 		super(BeginRegulationOperation, self).__init__()
 
+		self.has_started_message = True
+		self.started_message = "Preparing for regulation cycle."
+
 	def started(self):
 		# Verify the PID connection.
 		if not self.PID_instance.verify_connection():

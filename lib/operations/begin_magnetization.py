@@ -12,14 +12,17 @@ class BeginMagnetizationOperation(GenericOperation):
 		self.breakout_board			= breakout_board.conduit
 		self.PID_instance 			= PID_interface
 
-				# Set all the safety settings.
+		# Set all the safety settings.
 		self.max_3K_stage_temperature = 4 # Upper limit of 3 K stage temperature
 		self.max_FAA_temperature 	  = 4 # Upper limit of the FAA temperature
 		self.heat_switch_open		  = True
-		self.max_step 				  = 0.005
-		self.step_rate				  = 0.002
+		self.max_step 				  = 0.005 # in Kelvin
+		self.step_rate				  = 0.002 # in Kelvin/second
 
 		super(BeginMagnetizationOperation, self).__init__()
+
+		self.has_started_message = True
+		self.started_message = "Preparing for magnetization cycle."
 
 	# Perform initial checks for the operation.
 	def started(self):

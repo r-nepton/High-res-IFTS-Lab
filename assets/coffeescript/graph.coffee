@@ -146,6 +146,9 @@ class @Dashboard
 		@element = $('<div id="dashboard"></div>')
 		@element.appendTo('.log')
 		@dashboardelements = []
+		# Insert latest log item
+		@latest_log = new LogElement()
+		@latest_log.dom_element.appendTo @element
 		# Insert temperature dashboard element.
 		@dashboardelements.push new TemperatureFAADashboardElement()
 		@dashboardelements.push new Temperature3KDashboardElement()
@@ -156,8 +159,21 @@ class @Dashboard
 		@dashboardelements.push new WaterTemperatureDashboardElement()
 		@dashboardelements.push new OilTemperatureDashboardElement()
 
+		setInterval( => 
+			@update_latest_log()
+		, 30000)
+
+		@update_latest_log()
+
 		for d in @dashboardelements
 			d.element.appendTo @element
+
+	update_latest_log: ->
+		pycon.transaction { action: "user_log" }, (r) =>
+			@latest_log.message = r.data
+			@latest_log.timestamp = r.time
+			@latest_log.render()
+		
 
 class @DashboardElement
 	constructor: ->

@@ -13,8 +13,8 @@ class MagUpOperation(GenericOperation):
 		self.breakout_board			= breakout_board.conduit
 
 		# Set the safety settings.
-		self.absolute_max_current 		= 18.5 # amperes
-		self.absolute_min_mag_up_time 	= 12*60 # seconds
+		self.absolute_max_current 		= 18.5 # amperes  (max current, from HPD's manual)
+		self.absolute_min_mag_up_time 	= 12*60 # seconds (because a magnetization that's too fast could be dangerous)
 		self.absolute_max_step_size 	= 0.010 # 10 mA.
 		self.ramping_rate 				= 0
 		self.max_FAA_temperature 		= 5 # kelvin
@@ -23,6 +23,9 @@ class MagUpOperation(GenericOperation):
 		self.heat_switch_open			= True
 
 		super(MagUpOperation, self).__init__()
+
+		self.has_started_message = True
+		self.started_message = "Starting magnetization."
 
 	# When the MagUpOperation begins, we'll do a bunch of checks to ensure that everything is in order.
 	def started(self):
@@ -67,7 +70,7 @@ class MagUpOperation(GenericOperation):
 		self.PID_interface.set_manual_mode()
 
 	def tick(self, dt):
-		# Don't run the operation if yield is called. There are already
+		# Don't run the operation if finished is true. There are already
 		# some other checks for this, but here's another.
 		if self.finished:
 			return
@@ -118,6 +121,6 @@ class MagUpOperation(GenericOperation):
 			self.finished 	= True
 			self.success 	= True
 			self.print_log( "The current is over the specified current. Magnetization completed." )
-
-		self.expected_output_current += ramping_step
-		self.PID_interface.set_current( self.expected_output_current )
+		else:
+			self.expected_output_current += ramping_step
+			self.PID_interface.set_current( self.expected_output_current )

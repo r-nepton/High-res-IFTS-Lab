@@ -31,6 +31,9 @@ class CompressorSensorConduit(GenericDataConduit):
 			result = self.syncom_connection.read()
 			# The result is in tenths of a degree celsius.
 			inlet_temperature = float(result) / 10
+			if inlet_temperature > 100:
+				print "Excessive compressor temperature: %s" % result
+				inlet_temperature = "?"
 
 			# Measure the outlet temperature.
 			self.syncom_connection.write( [0x63, 0x0D, 0x8F, 0x01] )
@@ -38,11 +41,19 @@ class CompressorSensorConduit(GenericDataConduit):
 			# The result is in tenths of a degree celsius.
 			outlet_temperature = float(result) / 10
 
+			if outlet_temperature > 100:
+				print "Excessive compressor temperature: %s" % result
+				outlet_temperature = "?"
+
 			# Measure the helium temperature.
 			self.syncom_connection.write( [0x63, 0x0D, 0x8F, 0x03] )
 			result = self.syncom_connection.read()
 			# The result is in tenths of a degree celsius.
 			oil_temperature = float(result) / 10
+
+			if oil_temperature > 100:
+				print "Excessive compressor temperature: %s" % result
+				oil_temperature = "?"
 
 		except Exception as exception:
 			# Something went wrong. This protocol is extremely bad, and is 

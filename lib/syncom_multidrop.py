@@ -74,10 +74,20 @@ class SyncomMultiDropAdapter:
 
 		value = 0
 		index = 0
-		#print [ hex(x) for x in result ]
+
+		# Sometimes we get a weird fifth byte
+		# in the syncom multidrop. But it's useless. So get rid of it.
+		if len(result) > 4:
+			result.pop()
+			print "detected excess bytes in syncom communication, pruning..."
+			print [ hex(x) for x in result ]
 
 		for b in reversed(result):
 			value += b * ( 2**(8*index) )
 			index += 1
+
+		if value > 67370:
+			print "Problem with syncom multidrop message. Received: "
+			print [ hex(x) for x in bytearray(data) ]
 
 		return value
