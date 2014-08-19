@@ -9,6 +9,7 @@ $ ->
 	# First step: connect to the specified WebSocket
 	# server.
 	# Start the log file.
+	window.retryinterval = null
 	log "#cryo-server"
 	window.socket = new WebSocket( window.config.websocket_url )
 	# Get ready for when the socket opens
@@ -21,9 +22,15 @@ $ ->
 		setTimeout window.connection_ready, 200
 
 	# Since the socket should never close, this is always unexpected.
-	socket.onclose = ->
-		console.log "Socket connection was closed, unexpectedly."
-		console.log "I don't know why, but the socket was closed (!)"
+	socket.onclose = =>
+		retryinterval = setInterval(=>
+			try 
+				console.log "Trying to connect again..."
+				window.socket = new WebSocket( window.config.websocket_url )
+				retryinterval = null
+			catch e
+				yes
+		,1000)
 
 window.connection_ready = ->
 	console.log "Window ready."

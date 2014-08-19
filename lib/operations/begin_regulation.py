@@ -10,8 +10,8 @@ class BeginRegulationOperation(GenericOperation):
 		self.regulation_temperature = regulation_temperature
 
 		# Set all the safety settings.
-		self.max_start_current 		= 0.005 # 5 mA can be safely switched.
-		self.max_FAA_temperature 	= 5 # max allowable temperature to begin regulation
+		self.max_start_current 		= 0.020 # 20 mA can be safely switched.
+		self.max_FAA_temperature 	= 2 # max allowable temperature to begin regulation
 		self.ramping_rate			= 0.002 # 2 mK per second ramping rate.
 		self.max_step				= 0.004 # 2 mK is the max step.
 
@@ -19,6 +19,13 @@ class BeginRegulationOperation(GenericOperation):
 
 		self.has_started_message = True
 		self.started_message = "Preparing for regulation cycle."
+
+	# In case an external thing wants to update the regulation temperature.
+	def update_regulation_temperature(self, regulation_temperature):
+		# But don't update the regulation setpoint if we are already
+		# started.
+		if self.step_index == 0:
+			self.regulation_temperature = regulation_temperature
 
 	def started(self):
 		# Verify the PID connection.
@@ -65,7 +72,7 @@ class BeginRegulationOperation(GenericOperation):
 
 		# Okay, the temperature is sensible. Now let's set the PID setpoint
 		# to match the FAA temperature.
-		self.PID_instance.set_setpoint( 0.035 ) #FAA_temperature['temperature'] )
+		self.PID_instance.set_setpoint(FAA_temperature['temperature'])
 
 		# Okay, finally we can switch to PID mode.
 		self.PID_instance.set_regulation_mode()
@@ -96,4 +103,3 @@ class BeginRegulationOperation(GenericOperation):
 
 		# Take a step.
 		self.PID_instance.set_setpoint( setpoint + step )
-		self.print_log( "Setting PID setpoint = %s" % (setpoint + step) )

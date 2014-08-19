@@ -16,8 +16,8 @@ class BeginMagnetizationOperation(GenericOperation):
 		self.max_3K_stage_temperature = 4 # Upper limit of 3 K stage temperature
 		self.max_FAA_temperature 	  = 4 # Upper limit of the FAA temperature
 		self.heat_switch_open		  = True
-		self.max_step 				  = 0.005 # in Kelvin
-		self.step_rate				  = 0.002 # in Kelvin/second
+		self.max_step 				  = 0.05 # in Kelvin
+		self.step_rate				  = 0.02 # in Kelvin/second
 
 		super(BeginMagnetizationOperation, self).__init__()
 
@@ -82,6 +82,14 @@ class BeginMagnetizationOperation(GenericOperation):
 
 		# Now we'll ramp down the manual PID output to zero.
 		current_output = self.PID_instance.get_manual_output()
+		print "the current manual output is %s" % current_output
+
+		# Double-check to make sure the manual output value is not negative (which is nonsensical)
+		if current_output < 0:
+			print "The manual output value is negative, which is nonsensical. Halting operation."
+			self.finished = True
+			return
+
 
 		# A good rampdown rate is 2 mV per second.
 		step = self.step_rate * dt

@@ -3,9 +3,9 @@ from cryo_delegate import *
 
 class SleepOperation(GenericOperation):
 	def __init__(self, sleep_time):
-		self.sleep_time = sleep_time
-
+		self.finished 	= False
 		super(SleepOperation, self).__init__()
+		self.sleep_time = sleep_time
 
 	def tick(self, dt):
 		# Wait for the sleep time to elapse.
@@ -17,3 +17,10 @@ class SleepOperation(GenericOperation):
 	# log files.
 	def print_log(self, message):
 		pass
+
+class MagnetizationHoldOperation(SleepOperation):
+	def __init__(self, sleep_time):
+		super(MagnetizationHoldOperation, self).__init__(sleep_time)
+
+		self.has_started_message = True
+		self.started_message = "Magnetization soak (%0.2f hours) started." % (sleep_time / 3600)
