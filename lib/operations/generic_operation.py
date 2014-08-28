@@ -31,11 +31,13 @@ class GenericOperation(object):
 
 	def print_log(self, message):
 		now = datetime.datetime.now()
-		print " [%s] <%s> %s " % ( now.strftime("%I:%M%p %d %B %Y"), self.__class__.__name__, message )
+		print " [%s] <%s> (s#%s) %s " % ( now.strftime("%I:%M%p %d %B %Y"), self.__class__.__name__, self.step_index, message )
 
 	# The step function is called whenever a generic operation is stepped.
 	def step(self):
-		self.print_log("Attempted operation step.")
+		if self.step_index % 20 == 0:
+			self.print_log("Operation on step %s." % self.step_index)
+
 		# If the operation is completed, don't run.
 		if self.finished == True:
 			return
@@ -62,15 +64,17 @@ class GenericOperation(object):
 		if self.finished == True:
 			return
 
+		this_tick_time = time.time()
+
 		# Need to check if the system is still sleeping.
 		if self.sleeping == True:
 			pass
 		else:
 			# Okay, now perform the next step of the operation.
-			self.tick( time.time() - self.last_tick_time )
+			self.tick( this_tick_time - self.last_tick_time )
 
 		# Now record the tick time.
-		self.last_tick_time = time.time()
+		self.last_tick_time = this_tick_time
 		self.step_index += 1
 
 	def sleep(self, time):

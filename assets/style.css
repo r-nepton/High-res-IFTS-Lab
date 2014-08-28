@@ -17,6 +17,10 @@
 	padding: 3px;
 }
 
+.emergency-stop {
+	width: 200px !important;
+}
+
 .slider .spacer {
 	display:inline-block;
 }

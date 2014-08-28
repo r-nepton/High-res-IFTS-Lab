@@ -14,7 +14,7 @@ class MagUpOperation(GenericOperation):
 
 		# Set the safety settings.
 		self.absolute_max_current 		= 18.5 # amperes  (max current, from HPD's manual)
-		self.absolute_min_mag_up_time 	= 12*60 # seconds (because a magnetization that's too fast could be dangerous)
+		self.absolute_min_mag_up_time 	= 3*60 # seconds (because a magnetization that's too fast could be dangerous)
 		self.absolute_max_step_size 	= 0.010 # 10 mA.
 		self.ramping_rate 				= 0
 		self.max_FAA_temperature 		= 5 # kelvin
@@ -60,6 +60,7 @@ class MagUpOperation(GenericOperation):
 			self.print_log( "The current is already over the specified current." )
 
 		voltage = self.PID_interface.get_manual_output()
+
 		self.expected_output_current = self.PID_interface.voltage_current_model( voltage )
 
 		# Okay, we're pretty much ready to start the operation. The first step
@@ -100,10 +101,11 @@ class MagUpOperation(GenericOperation):
 			# Check the heat switch. If the FAA temperature is near the base temperature, we can flip the switch.
 			temperature_3K = self.temperature_3K_sensor.get_data()
 			temperature_FAA = self.temperature_FAA_sensor.get_data()
-			if self.heat_switch_open == True and (temperature_FAA['temperature'] > temperature_3K or temperature_FAA['temperature'] > self.max_FAA_temperature):
+			if self.heat_switch_open == True and (temperature_FAA['temperature'] > temperature_3K['temperature'] or temperature_FAA['temperature'] > self.max_FAA_temperature):
 				# The temperature of the FAA is getting a bit too high.
 				# Now, close the heat switch.
 				self.breakout_board.close_heat_switch()
+				self.heat_switch_open = False
 
 			# Double check to make sure that the FAA is not burning out.
 			if temperature_FAA['temperature'] > self.ultimate_max_FAA_temperature:

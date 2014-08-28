@@ -11,6 +11,8 @@ class @ControlController
 					<div class='field regulation-temperature'><div class='slider'></div></div>
 					<span>log data?</span>
 				</div>
+				<div class='menubutton emergency-stop' style="background-color: black; color: white;">emergency stop</div>
+				<div class="buttonspacer"></div>
 			</div>
 
 			<div class='regionbox'>
@@ -47,6 +49,9 @@ class @ControlController
 		$('.cycle-begin').click =>
 			@cycle_begin()
 
+		$('.emergency-stop').click =>
+			@emergency_stop()
+
 		@log_data_slider = new UIToggleSlider @dom_element.find('.slider'), (state) =>
 			@set_log_data(state)
 
@@ -57,6 +62,10 @@ class @ControlController
 		 	@update_log_data_state()
 		 	@update_cycle_parameters()
 		 , 30000
+
+	emergency_stop: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'emergency_stop', arguments: { password: password } }
 
 	set_log_data: (state) ->
 		authentication_controller.begin (password) =>

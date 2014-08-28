@@ -7,7 +7,7 @@ class PIDControllerInterface(object):
 		self.units 	= "Amperes"
 
 		# The maximum allowable manual output step:
-		self.max_manual_output_step = 0.003
+		self.max_manual_output_step = 0.10
 		# The expected circuit resistance is 25 ohm.
 		self.anticipated_circuit_resistance = 0.15
 
@@ -158,7 +158,6 @@ class PIDControllerInterface(object):
 	# model, you can get the current back.
 	def set_manual_output_voltage(self, voltage):
 		try:
-			print "Set voltage -> %s" % voltage
 			self.serial_connection.write("disconnect\r")
 			self.serial_connection.write("CONN 3, 'disconnect'\r")
 			self.serial_connection.read(100)
@@ -172,6 +171,20 @@ class PIDControllerInterface(object):
 				self.serial_connection.write("MOUT %+2.3f\r" % voltage)
 				return True
 
+		except Exception as e:
+			print e
+			return False
+
+		return False
+
+	def set_dangerous_manual_output_voltage(self, voltage):
+		try:
+			self.serial_connection.write("disconnect\r")
+			self.serial_connection.write("CONN 3, 'disconnect'\r")
+			self.serial_connection.read(100)
+			# Ready to set the voltage. The format is, e.g.: "MOUT +3.123"
+			self.serial_connection.write("MOUT %+2.3f\r" % voltage)
+			return True
 		except Exception as e:
 			print e
 			return False
@@ -212,7 +225,6 @@ class PIDControllerInterface(object):
 	def set_current(self, current):
 		# We can't actually set the current directly, so we must rely on a
 		# current output model.
-		print "Set current -> %s" % current
 		voltage = self.current_voltage_model( current )
 
 		return self.set_manual_output_voltage( voltage )

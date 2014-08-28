@@ -79,8 +79,6 @@ class SyncomMultiDropAdapter:
 		# in the syncom multidrop. But it's useless. So get rid of it.
 		if len(result) > 4:
 			result.pop()
-			print "detected excess bytes in syncom communication, pruning..."
-			print [ hex(x) for x in result ]
 
 		for b in reversed(result):
 			value += b * ( 2**(8*index) )

@@ -6,3 +6,5 @@ from mag_down import *
 from begin_magnetization import *
 from begin_regulation import *
 from sleep_operation import *
+from change_regulation import *
+from emergency_shutdown import *

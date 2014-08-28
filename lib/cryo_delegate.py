@@ -32,7 +32,7 @@ class CryoManager(object):
 
 		# Cycle settings
 		self.magnetization_hold_time = 4*3600 # seconds
-		self.regulation_temperature  = 0.100 #  Kelvin
+		self.regulation_temperature  = 1.00 #  Kelvin
 
 	# This function is used to call a function on itself based
 	# upon a string argument.
@@ -121,6 +121,16 @@ class CryoManager(object):
 		# Return the responder object.
 		return responder
 
+	# This function is called in order to immediately stop all operations.
+	def emergency_stop(self, arguments):
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				self.print_log("Emergency stop issued.")
+				self.user_log_writer.write_log("Emergency stop issued.")
+				self.operations = []
+			else:
+				self.print_log("Incorrect password issued for emergency stop.")
+
 	def cycle_settings(self, arguments):
 		# Authenticate first, in case we are doing a "set" operation.
 		if 'password' in arguments:
@@ -139,6 +149,29 @@ class CryoManager(object):
 					try:
 						self.regulation_temperature = float(arguments['regulation_temperature'])
 						self.print_log("Updated regulation temperature to %s K" % self.regulation_temperature) 
+						# If the computer is actually in the process of regulating,
+						# then let's try to actually change the regulation setpoint.
+						if self.PID_controller.is_in_PID_mode():
+							if len(self.operations) == 0:
+								self.print_log("Starting operation to change regulation setpoint.")
+								print "operations = %s" % self.operations
+								try:
+									self.operations.append( ChangeRegulationOperation( self.regulation_temperature, self.PID_controller) )
+								except Exception as e:
+									print e
+						else:
+							if len(self.operations) > 0:
+								# Inform the BeginRegulation operation about the change, if necessary.
+								# But just send this message to the future operations, not the one in 
+								# progress right now.
+								self.print_log("Updating setpoint for future regulation operation.")
+								for o in self.operations[1:]:
+									if isinstance(o, BeginRegulationOperation):
+										o.update_regulation_temperature( self.regulation_temperature )
+							else:
+								self.print_log("A change to the operation is not necessary.")
+
+
 						return { 'result': 'success' }
 					except Exception:
 						return { 'error': 'invalid regulation temperature specified.' }
@@ -153,25 +186,27 @@ class CryoManager(object):
 		if 'password' in arguments:
 			if arguments['password'] == self.password:
 				self.print_log( "Magnetization cycle started." )
-				time = 2700
+				ramp_up_time = 900
+				ramp_down_time = 900
 				current = 10
-				hold_time = 2700
-				regulation_temperature = 0.099
+				hold_time = self.magnetization_hold_time
+				regulation_temperature = self.regulation_temperature
 
 				# Start by setting up manual mode, switching to mag cycle, etc.
 				self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
 				# Wait for 30 seconds before beginning the next stage to allow for
 				# fluctuations from the mag cycle switch throw.
-				self.operations.append( SleepOperation( sleep_time=30 ) )
+				self.operations.append( SleepOperation( 30 ) )
 				# Now begin magnetization
-				self.operations.append( MagUpOperation( time, current, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], breakout_board=self.sensors_list['breakout'] ) )
+				self.operations.append( MagUpOperation( ramp_up_time, current, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], breakout_board=self.sensors_list['breakout'] ) )
 				# Now we must soak (for the hold time).
-				self.operations.append( SleepOperation( sleep_time=hold_time ))
+				self.operations.append( MagnetizationHoldOperation( hold_time ))
 				# Now we need to demagnetize
-				self.operations.append( MagDownOperation( time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'] ) )
+				self.operations.append( MagDownOperation( ramp_down_time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'] ) )
 				# Now we need to wait 5 minutes to let the inductor relax
-				self.operations.append( SleepOperation( sleep_time=300 ) )
+				self.operations.append( SleepOperation( 600 ) )
 				# Finally, begin regulation.
+
 				self.operations.append( BeginRegulationOperation( regulation_temperature, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'] ) )
 			else:
 				self.print_log( "Attempted to start magnetization cycle with incorrect password." )
@@ -284,6 +319,8 @@ class CryoManager(object):
 		if 'password' in arguments:
 			if arguments['password'] == self.password:
 				self.print_log( "UPS power lost!" )
+				self.operations = []
+				self.operations.append( EmergencyShutdown(self.PID_controller) )
 			else:
 				self.print_log( "Illegal password sent for UPS shutdown." )
 		else:
