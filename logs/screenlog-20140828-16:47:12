@@ -1,0 +1,6 @@
+Attempting to load database into memory...
+Database loaded.
+There was a problem connecting to the serial port constructor of: <type 'instance'>
+ -- Cryostat server started -- 
+ [04:47PM 28 August 2014] Server startup completed. 
+ [04:50PM 28 August 2014] data logging set to: True 

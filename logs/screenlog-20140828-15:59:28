@@ -1,0 +1,7 @@
+Attempting to load database into memory...
+Database loaded.
+ -- Cryostat server started -- 
+ [03:59PM 28 August 2014] Server startup completed. 
+WARNING:tornado.access:404 GET /favicon.ico (192.168.0.44) 0.80ms
+ [04:02PM 28 August 2014] data logging set to: True 
+d

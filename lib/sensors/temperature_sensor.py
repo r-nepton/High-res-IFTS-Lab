@@ -9,7 +9,7 @@ class DiodeTemperatureSensorConduit(GenericDataConduit):
 		self.units = "Kelvin"
 
 		try:
-			self.serial_connection = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.5)
+			self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.5)
 		except Exception:
 			print "There was a problem connecting to the serial port constructor of: %s" % self.__class__.__name__
 			self.serial_connection = serial_dummy.SerialDummy()
@@ -51,7 +51,7 @@ class RuOxTemperatureSensorConduit(GenericDataConduit):
 		self.units = "Kelvin"
 
 		try:
-			self.serial_connection = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.5)
+			self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.5)
 		except Exception:
 			print "There was a problem connecting to the serial port constructor of: %s" % self.__class__.__name__
 			self.serial_connection = serial_dummy.SerialDummy()

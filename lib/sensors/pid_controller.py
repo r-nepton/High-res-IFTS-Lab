@@ -12,7 +12,7 @@ class PIDControllerInterface(object):
 		self.anticipated_circuit_resistance = 0.15
 
 		try:
-			self.serial_connection = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.1)
+			self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.1)
 		except Exception:
 			print "There was a problem connecting to the serial port constructor of: %s" % self.__class__.__name__
 			self.serial_connection = serial_dummy.SerialDummy()

@@ -3,7 +3,7 @@ import serial, serial_dummy
 class SyncomMultiDropAdapter:
 	def __init__(self):
 		try:
-			self.serial_connection = serial.Serial('/dev/ttyUSB1', 9600, timeout=0.1)
+			self.serial_connection = serial.Serial('/dev/HE_COMPRESSOR', 9600, timeout=0.1)
 		except Exception: 
 			print "There was a problem connecting to the serial port constructor of: %s" % self.__class__.__name__
 			self.serial_connection = serial_dummy.SerialDummy()
