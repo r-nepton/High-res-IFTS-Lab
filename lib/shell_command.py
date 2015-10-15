@@ -9,6 +9,7 @@ def shell_command(command, timeout=3):
 		def encapsulation():
 			self['process'] = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 			self['response'] = ''.join( self['process'].stdout.readlines() )
+			self['process'].stdout.close()
 
 		thread = threading.Thread(target=encapsulation)
 		thread.start()

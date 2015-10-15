@@ -32,7 +32,7 @@ class CryoManager(object):
 
 		# Cycle settings
 		self.magnetization_hold_time = 4*3600 # seconds
-		self.regulation_temperature  = 1.00 #  Kelvin
+		self.regulation_temperature  = 0.10 #  Kelvin
 
 	# This function is used to call a function on itself based
 	# upon a string argument.
@@ -69,7 +69,7 @@ class CryoManager(object):
 			'magnet_current':			MagnetCurrentSensor(),
 			'compressor':				CompressorSensor(),
 			'breakout':					BreakoutBoardSensor(),
-			'ups':						UPSSensor()
+			'ups':						UPSSensor() # <-- you can uncomment this when you plug in the UPS
 		}
 
 		self.PID_controller = PIDControllerInterface()
@@ -186,9 +186,9 @@ class CryoManager(object):
 		if 'password' in arguments:
 			if arguments['password'] == self.password:
 				self.print_log( "Magnetization cycle started." )
-				ramp_up_time = 900
-				ramp_down_time = 900
-				current = 10
+				ramp_up_time = 1200 # seconds
+				ramp_down_time = 6000 # seconds
+				current = 10 # amperes (max 18.5)
 				hold_time = self.magnetization_hold_time
 				regulation_temperature = self.regulation_temperature
 
@@ -271,7 +271,7 @@ class CryoManager(object):
 			return data[0]
 
 	def sensor(self, arguments):
-		if 'sensor' in arguments:
+		if 'sensor' in arguments and arguments[u'sensor'] in self.sensors_list:
 			s = self.sensors_list[arguments[u'sensor']]
 		else: 
 			return { "error": "sensor unspecified" }

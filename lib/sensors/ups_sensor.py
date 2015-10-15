@@ -12,7 +12,7 @@ class UPSDataConduit(GenericDataConduit):
 
 	def get_data(self):
 		try:			
-			result = shell_command.shell_command("pwrstat -status")
+			result = shell_command.shell_command("timeout 2 pwrstat -status") # This might need a timeout... (see lib/shell_command.py?)
 		except Exception:
 			result = ""
 

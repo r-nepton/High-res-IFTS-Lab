@@ -135,6 +135,170 @@
 
   })();
 
+  this.ControlController = (function() {
+    function ControlController(dom_element) {
+      this.dom_element = dom_element;
+      $('.log').append(this.dom_element);
+      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>settings</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><div class='slider'></div></div>\n		<span>log data?</span>\n	</div>\n	<div class='menubutton emergency-stop' style=\"background-color: black; color: white;\">emergency stop</div>\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>cycle</h1>\n	<div class='horizontal-field'>\n		<div class='field cycle-time'><input type=text /><span class='units'>hours</span></div>\n		<span>hold time</span>\n	</div>\n\n	<div class='menubutton cycle-save' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton cycle-begin' style=\" background-color: rgb(250, 42, 0); color: white;\">cycle</div>\n	\n\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>regulation</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><input type=text /><span class='units'>mK</span></div>\n		<span>regulation temperature</span>\n	</div>\n	<div class='menubutton regulate-save' style=\"background-color: black; color: white;\">save</div>\n	<div class=\"buttonspacer\"></div>\n</div>");
+      $('.regulate-save').click((function(_this) {
+        return function() {
+          return _this.regulate_save();
+        };
+      })(this));
+      $('.cycle-save').click((function(_this) {
+        return function() {
+          return _this.cycle_save();
+        };
+      })(this));
+      $('.cycle-begin').click((function(_this) {
+        return function() {
+          return _this.cycle_begin();
+        };
+      })(this));
+      $('.emergency-stop').click((function(_this) {
+        return function() {
+          return _this.emergency_stop();
+        };
+      })(this));
+      this.log_data_slider = new UIToggleSlider(this.dom_element.find('.slider'), (function(_this) {
+        return function(state) {
+          return _this.set_log_data(state);
+        };
+      })(this));
+      this.update_log_data_state();
+      this.update_cycle_parameters();
+      setInterval((function(_this) {
+        return function() {
+          _this.update_log_data_state();
+          return _this.update_cycle_parameters();
+        };
+      })(this), 30000);
+    }
+
+    ControlController.prototype.emergency_stop = function(state) {
+      return authentication_controller.begin((function(_this) {
+        return function(password) {
+          return pycon.transaction({
+            action: 'emergency_stop',
+            "arguments": {
+              password: password
+            }
+          });
+        };
+      })(this));
+    };
+
+    ControlController.prototype.set_log_data = function(state) {
+      return authentication_controller.begin((function(_this) {
+        return function(password) {
+          return pycon.transaction({
+            action: 'set_data_logging_state',
+            "arguments": {
+              state: state,
+              password: password
+            }
+          }, function(r) {
+            return _this.update_log_data_state();
+          });
+        };
+      })(this));
+    };
+
+    ControlController.prototype.update_log_data_state = function() {
+      return pycon.transaction({
+        action: 'get_data_logging_state'
+      }, (function(_this) {
+        return function(r) {
+          return _this.log_data_slider.set_state(r.state);
+        };
+      })(this));
+    };
+
+    ControlController.prototype.update_cycle_parameters = function() {
+      return pycon.transaction({
+        action: 'cycle_settings'
+      }, (function(_this) {
+        return function(r) {
+          _this.set_cycle_time(r.hold_time / 3600);
+          return _this.set_regulation_temperature(r.regulation_temperature * 1000);
+        };
+      })(this));
+    };
+
+    ControlController.prototype.get_cycle_time = function() {
+      return $('.cycle-time').children('input').val();
+    };
+
+    ControlController.prototype.set_cycle_time = function(value) {
+      return $('.cycle-time').children('input').val(value);
+    };
+
+    ControlController.prototype.get_regulation_temperature = function() {
+      return $('.regulation-temperature').children('input').val();
+    };
+
+    ControlController.prototype.set_regulation_temperature = function(value) {
+      return $('.regulation-temperature').children('input').val(value);
+    };
+
+    ControlController.prototype.regulate_save = function() {
+      return authentication_controller.begin((function(_this) {
+        return function(password) {
+          var regulation_temperature;
+          regulation_temperature = _this.get_regulation_temperature() / 1000;
+          return pycon.transaction({
+            action: 'cycle_settings',
+            "arguments": {
+              password: password,
+              regulation_temperature: regulation_temperature
+            }
+          }, function(r) {
+            console.log(r);
+            return _this.update_cycle_parameters();
+          });
+        };
+      })(this));
+    };
+
+    ControlController.prototype.cycle_save = function() {
+      return authentication_controller.begin((function(_this) {
+        return function(password) {
+          var hold_time;
+          hold_time = _this.get_cycle_time() * 3600;
+          return pycon.transaction({
+            action: 'cycle_settings',
+            "arguments": {
+              password: password,
+              hold_time: hold_time
+            }
+          }, function(r) {
+            return _this.update_cycle_parameters();
+          });
+        };
+      })(this));
+    };
+
+    ControlController.prototype.cycle_begin = function() {
+      return authentication_controller.begin((function(_this) {
+        return function(password) {
+          return pycon.transaction({
+            action: "begin_magnetization_cycle",
+            "arguments": {
+              password: password
+            }
+          });
+        };
+      })(this));
+    };
+
+    ControlController.prototype.update = function() {
+      return true;
+    };
+
+    return ControlController;
+
+  })();
+
   window.jevents = [];
 
   window.jevent = function(eventName, eventAction) {
@@ -1167,6 +1331,61 @@
 
   })();
 
+  window.config = [];
+
+  window.config.websocket_url = "ws://" + window.location.host + "/json";
+
+  window.config.server_version = "0.1";
+
+  $(function() {
+    window.retryinterval = null;
+    log("#cryo-server");
+    window.socket = new WebSocket(window.config.websocket_url);
+    window.jevent('SocketOpened', function() {});
+    console.log('The socket was opened.');
+    socket.onopen = function() {
+      console.log("Socket connection opened successfully.");
+      window.pycon = new PyAPI(window.socket);
+      return setTimeout(window.connection_ready, 200);
+    };
+    return socket.onclose = (function(_this) {
+      return function() {
+        var retryinterval;
+        return retryinterval = setInterval(function() {
+          var e;
+          try {
+            console.log("Trying to connect again...");
+            window.socket = new WebSocket(window.config.websocket_url);
+            return retryinterval = null;
+          } catch (_error) {
+            e = _error;
+            return true;
+          }
+        }, 1000000000);
+      };
+    })(this);
+  });
+
+  window.connection_ready = function() {
+    console.log("Window ready.");
+    $('.log').append($('<div class="menu"></div>'));
+    window.overview_button = new OverviewMenuButton();
+    window.graphs_button = new GraphsMenuButton();
+    window.log_button = new LogMenuButton();
+    window.control_button = new ControlMenuButton();
+    window.dashboard = new Dashboard();
+    $('.log').append('<div class="graphs"></div>');
+    $('.graphs').hide();
+    window.graphs = [];
+    window.graphs.push(new TemperaturePlot2());
+    window.graphs.push(new TemperaturePlot());
+    window.graphs.push(new PressurePlot());
+    window.graphs.push(new CurrentPlot());
+    window.logs_controller = new LogsController($('<div class="logs"></div>').hide());
+    window.authentication_controller = new AuthenticationController($('<div class="authentication"></div>'));
+    return window.control_controller = new ControlController($("<div class='control'></div>").hide());
+  };
+
   this.ReportController = (function() {
     function ReportController() {
       this.dom_element = $("<div class='report'></div>").hide();
@@ -1227,224 +1446,5 @@
     return ReportController;
 
   })();
-
-  this.ControlController = (function() {
-    function ControlController(dom_element) {
-      this.dom_element = dom_element;
-      $('.log').append(this.dom_element);
-      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>settings</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><div class='slider'></div></div>\n		<span>log data?</span>\n	</div>\n	<div class='menubutton emergency-stop' style=\"background-color: black; color: white;\">emergency stop</div>\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>cycle</h1>\n	<div class='horizontal-field'>\n		<div class='field cycle-time'><input type=text /><span class='units'>hours</span></div>\n		<span>hold time</span>\n	</div>\n\n	<div class='menubutton cycle-save' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton cycle-begin' style=\" background-color: rgb(250, 42, 0); color: white;\">cycle</div>\n	\n\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>regulation</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><input type=text /><span class='units'>mK</span></div>\n		<span>regulation temperature</span>\n	</div>\n	<div class='menubutton regulate-save' style=\"background-color: black; color: white;\">save</div>\n	<div class=\"buttonspacer\"></div>\n</div>");
-      $('.regulate-save').click((function(_this) {
-        return function() {
-          return _this.regulate_save();
-        };
-      })(this));
-      $('.cycle-save').click((function(_this) {
-        return function() {
-          return _this.cycle_save();
-        };
-      })(this));
-      $('.cycle-begin').click((function(_this) {
-        return function() {
-          return _this.cycle_begin();
-        };
-      })(this));
-      $('.emergency-stop').click((function(_this) {
-        return function() {
-          return _this.emergency_stop();
-        };
-      })(this));
-      this.log_data_slider = new UIToggleSlider(this.dom_element.find('.slider'), (function(_this) {
-        return function(state) {
-          return _this.set_log_data(state);
-        };
-      })(this));
-      this.update_log_data_state();
-      this.update_cycle_parameters();
-      setInterval((function(_this) {
-        return function() {
-          _this.update_log_data_state();
-          return _this.update_cycle_parameters();
-        };
-      })(this), 30000);
-    }
-
-    ControlController.prototype.emergency_stop = function(state) {
-      return authentication_controller.begin((function(_this) {
-        return function(password) {
-          return pycon.transaction({
-            action: 'emergency_stop',
-            "arguments": {
-              password: password
-            }
-          });
-        };
-      })(this));
-    };
-
-    ControlController.prototype.set_log_data = function(state) {
-      return authentication_controller.begin((function(_this) {
-        return function(password) {
-          return pycon.transaction({
-            action: 'set_data_logging_state',
-            "arguments": {
-              state: state,
-              password: password
-            }
-          }, function(r) {
-            return _this.update_log_data_state();
-          });
-        };
-      })(this));
-    };
-
-    ControlController.prototype.update_log_data_state = function() {
-      return pycon.transaction({
-        action: 'get_data_logging_state'
-      }, (function(_this) {
-        return function(r) {
-          return _this.log_data_slider.set_state(r.state);
-        };
-      })(this));
-    };
-
-    ControlController.prototype.update_cycle_parameters = function() {
-      return pycon.transaction({
-        action: 'cycle_settings'
-      }, (function(_this) {
-        return function(r) {
-          _this.set_cycle_time(r.hold_time / 3600);
-          return _this.set_regulation_temperature(r.regulation_temperature * 1000);
-        };
-      })(this));
-    };
-
-    ControlController.prototype.get_cycle_time = function() {
-      return $('.cycle-time').children('input').val();
-    };
-
-    ControlController.prototype.set_cycle_time = function(value) {
-      return $('.cycle-time').children('input').val(value);
-    };
-
-    ControlController.prototype.get_regulation_temperature = function() {
-      return $('.regulation-temperature').children('input').val();
-    };
-
-    ControlController.prototype.set_regulation_temperature = function(value) {
-      return $('.regulation-temperature').children('input').val(value);
-    };
-
-    ControlController.prototype.regulate_save = function() {
-      return authentication_controller.begin((function(_this) {
-        return function(password) {
-          var regulation_temperature;
-          regulation_temperature = _this.get_regulation_temperature() / 1000;
-          return pycon.transaction({
-            action: 'cycle_settings',
-            "arguments": {
-              password: password,
-              regulation_temperature: regulation_temperature
-            }
-          }, function(r) {
-            console.log(r);
-            return _this.update_cycle_parameters();
-          });
-        };
-      })(this));
-    };
-
-    ControlController.prototype.cycle_save = function() {
-      return authentication_controller.begin((function(_this) {
-        return function(password) {
-          var hold_time;
-          hold_time = _this.get_cycle_time() * 3600;
-          return pycon.transaction({
-            action: 'cycle_settings',
-            "arguments": {
-              password: password,
-              hold_time: hold_time
-            }
-          }, function(r) {
-            return _this.update_cycle_parameters();
-          });
-        };
-      })(this));
-    };
-
-    ControlController.prototype.cycle_begin = function() {
-      return authentication_controller.begin((function(_this) {
-        return function(password) {
-          return pycon.transaction({
-            action: "begin_magnetization_cycle",
-            "arguments": {
-              password: password
-            }
-          });
-        };
-      })(this));
-    };
-
-    ControlController.prototype.update = function() {
-      return true;
-    };
-
-    return ControlController;
-
-  })();
-
-  window.config = [];
-
-  window.config.websocket_url = "ws://" + window.location.host + "/json";
-
-  window.config.server_version = "0.1";
-
-  $(function() {
-    window.retryinterval = null;
-    log("#cryo-server");
-    window.socket = new WebSocket(window.config.websocket_url);
-    window.jevent('SocketOpened', function() {});
-    console.log('The socket was opened.');
-    socket.onopen = function() {
-      console.log("Socket connection opened successfully.");
-      window.pycon = new PyAPI(window.socket);
-      return setTimeout(window.connection_ready, 200);
-    };
-    return socket.onclose = (function(_this) {
-      return function() {
-        var retryinterval;
-        return retryinterval = setInterval(function() {
-          var e;
-          try {
-            console.log("Trying to connect again...");
-            window.socket = new WebSocket(window.config.websocket_url);
-            return retryinterval = null;
-          } catch (_error) {
-            e = _error;
-            return true;
-          }
-        }, 1000);
-      };
-    })(this);
-  });
-
-  window.connection_ready = function() {
-    console.log("Window ready.");
-    $('.log').append($('<div class="menu"></div>'));
-    window.overview_button = new OverviewMenuButton();
-    window.graphs_button = new GraphsMenuButton();
-    window.log_button = new LogMenuButton();
-    window.control_button = new ControlMenuButton();
-    window.dashboard = new Dashboard();
-    $('.log').append('<div class="graphs"></div>');
-    $('.graphs').hide();
-    window.graphs = [];
-    window.graphs.push(new TemperaturePlot2());
-    window.graphs.push(new TemperaturePlot());
-    window.graphs.push(new PressurePlot());
-    window.graphs.push(new CurrentPlot());
-    window.logs_controller = new LogsController($('<div class="logs"></div>').hide());
-    window.authentication_controller = new AuthenticationController($('<div class="authentication"></div>'));
-    return window.control_controller = new ControlController($("<div class='control'></div>").hide());
-  };
 
 }).call(this);

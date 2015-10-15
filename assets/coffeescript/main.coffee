@@ -30,7 +30,7 @@ $ ->
 				retryinterval = null
 			catch e
 				yes
-		,1000)
+		,120)
 
 window.connection_ready = ->
 	console.log "Window ready."
