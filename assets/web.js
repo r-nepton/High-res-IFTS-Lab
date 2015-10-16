@@ -91,7 +91,7 @@
     function AuthenticationController(dom_element) {
       this.dom_element = dom_element;
       $('body').append(this.dom_element.hide());
-      this.dom_element.html("<div class='authentication-overlay'>\n	<div class='authentication-dialog'>\n		<h1>Enter the password.</h1>\n		<input type=text class='password' />\n	</div>\n</div>");
+      this.dom_element.html("<div class='authentication-overlay'>\n	<div class='authentication-dialog'>\n		<h1>Enter the password.</h1>\n		<input type=password class='password' />\n	</div>\n</div>");
       this.callback = function() {
         return true;
       };
@@ -1361,7 +1361,7 @@
             e = _error;
             return true;
           }
-        }, 1000000000);
+        }, 120);
       };
     })(this);
   });

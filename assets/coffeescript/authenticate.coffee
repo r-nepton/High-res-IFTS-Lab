@@ -8,7 +8,7 @@ class AuthenticationController
 			<div class='authentication-overlay'>
 				<div class='authentication-dialog'>
 					<h1>Enter the password.</h1>
-					<input type=text class='password' />
+					<input type=password class='password' />
 				</div>
 			</div>
 		"""
