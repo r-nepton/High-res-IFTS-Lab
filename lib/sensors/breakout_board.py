@@ -42,7 +42,7 @@ class BreakoutBoardInterface(GenericDataConduit):
 	def verify_connection(self):
 		self.serial_connection.flushInput();
 		self.send_command("I")
-		response = self.serial.connection.read(100)
+		response = self.serial_connection.read(100)
 		if response[0:19] == "BOB control software":
 			return True 
 		else:
