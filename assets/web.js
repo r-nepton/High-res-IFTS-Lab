@@ -508,7 +508,7 @@
       this.element = $('<div id="pressure_plot" style="width: 650px; height: 250px;"></div>');
       this.element.appendTo('.graphs');
       this.t = new ScatterPlot("Pressure", this.element);
-      this.t.options.vAxis.format = "";
+      this.t.options.vAxis.format = '0.00E+0';
       this.update();
       setInterval((function(_this) {
         return function() {
@@ -539,7 +539,7 @@
             _results = [];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               d = _ref[_i];
-              _results.push(Math.log(d.data.pressure) / Math.log(10));
+              _results.push(d.data.pressure);
             }
             return _results;
           })();

@@ -93,7 +93,7 @@ class @PressurePlot
 		@element = $('<div id="pressure_plot" style="width: 650px; height: 250px;"></div>')
 		@element.appendTo('.graphs')
 		@t = new ScatterPlot("Pressure", @element)
-		@t.options.vAxis.format = ""
+		@t.options.vAxis.format = '0.00E+0'
 		@update() 
 		# Set a timer to constantly update the plot.
 		setInterval( => 
@@ -110,7 +110,7 @@ class @PressurePlot
 			if r.history[0].data.error?
 				@element.hide()
 				return
-			@t.y = ( Math.log(d.data.pressure)/Math.log(10) for d in r.history )
+			@t.y = ( d.data.pressure for d in r.history )
 			
 			@t.x = ( Math.min(0,(d.time - Date.now()/1000)/60) for d in r.history )
 			@t.plot()
