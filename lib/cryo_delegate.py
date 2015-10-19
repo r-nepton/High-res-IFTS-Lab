@@ -131,6 +131,26 @@ class CryoManager(object):
 			else:
 				self.print_log("Incorrect password issued for emergency stop.")
 
+	# This function is called to open the heatswitch.
+	def open_heatswitch(self, arguments):
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				self.print_log("Heat switch opened.")
+				self.user_log_writer.write_log("Heat switch opened.")
+				self.sensors_list["breakout"].conduit.open_heat_switch()
+			else:
+				self.print_log("Incorrect password issued for opening heat switch.")
+
+	# This function is called to close the heatswitch.
+	def close_heatswitch(self, arguments):
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				self.print_log("Heat switch closed.")
+				self.user_log_writer.write_log("Heat switch closed.")
+				self.sensors_list["breakout"].conduit.close_heat_switch()
+			else:
+				self.print_log("Incorrect password issued for closing heat switch.")
+
 	def cycle_settings(self, arguments):
 		# Authenticate first, in case we are doing a "set" operation.
 		if 'password' in arguments:

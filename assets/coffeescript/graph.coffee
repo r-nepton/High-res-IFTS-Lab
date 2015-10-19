@@ -84,7 +84,8 @@ class @TemperaturePlot2
 		pycon.transaction { action: "sensor", arguments: {'sensor':'pulse_tube_second_stage', 'number':50} }, (r) =>
 			@t.xtitle = "Time [minutes from now]"
 			@t.ytitle = "Temperature [Kelvin]"	
-			@t.y = ( d.data.temperature for d in r.history )
+			#Multiplying the temperature by 1 prevents the plot from failing if the datapoint is a string "unknown" 
+			@t.y = ( d.data.temperature*1 for d in r.history )
 			@t.x = ( Math.min(0,(d.time - Date.now()/1000)/60) for d in r.history )
 			@t.plot()
 

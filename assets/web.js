@@ -139,7 +139,7 @@
     function ControlController(dom_element) {
       this.dom_element = dom_element;
       $('.log').append(this.dom_element);
-      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>settings</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><div class='slider'></div></div>\n		<span>log data?</span>\n	</div>\n	<div class='menubutton emergency-stop' style=\"background-color: black; color: white;\">emergency stop</div>\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>cycle</h1>\n	<div class='horizontal-field'>\n		<div class='field cycle-time'><input type=text /><span class='units'>hours</span></div>\n		<span>hold time</span>\n	</div>\n\n	<div class='menubutton cycle-save' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton cycle-begin' style=\" background-color: rgb(250, 42, 0); color: white;\">cycle</div>\n	\n\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>regulation</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><input type=text /><span class='units'>mK</span></div>\n		<span>regulation temperature</span>\n	</div>\n	<div class='menubutton regulate-save' style=\"background-color: black; color: white;\">save</div>\n	<div class=\"buttonspacer\"></div>\n</div>");
+      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>settings</h1>\n	<div class='horizontal-field'>\n		<div class='slider log-data'><div class='slider'></div></div>\n		<span>log data?</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='menubutton close-heatswitch' style=\"background-color: black; color: white;\">close</div>\n		<div class='menubutton open-heatswitch' style=\" background-color: rgb(250, 42, 0); color: white;\">open</div>\n		<span>heat switch</span>\n	</div>\n\n	<div class='menubutton emergency-stop' style=\"background-color: black; color: white;\">emergency stop</div>\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>cycle</h1>\n	<div class='horizontal-field'>\n		<div class='field cycle-time'><input type=text /><span class='units'>hours</span></div>\n		<span>hold time</span>\n	</div>\n\n	<div class='menubutton cycle-save' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton cycle-begin' style=\" background-color: rgb(250, 42, 0); color: white;\">cycle</div>\n	\n\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>regulation</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><input type=text /><span class='units'>mK</span></div>\n		<span>regulation temperature</span>\n	</div>\n	<div class='menubutton regulate-save' style=\"background-color: black; color: white;\">save</div>\n	<div class=\"buttonspacer\"></div>\n</div>");
       $('.regulate-save').click((function(_this) {
         return function() {
           return _this.regulate_save();
@@ -158,6 +158,16 @@
       $('.emergency-stop').click((function(_this) {
         return function() {
           return _this.emergency_stop();
+        };
+      })(this));
+      $('.open-heatswitch').click((function(_this) {
+        return function() {
+          return _this.open_heatswitch();
+        };
+      })(this));
+      $('.close-heatswitch').click((function(_this) {
+        return function() {
+          return _this.close_heatswitch();
         };
       })(this));
       this.log_data_slider = new UIToggleSlider(this.dom_element.find('.slider'), (function(_this) {
@@ -199,6 +209,32 @@
             }
           }, function(r) {
             return _this.update_log_data_state();
+          });
+        };
+      })(this));
+    };
+
+    ControlController.prototype.open_heatswitch = function(state) {
+      return authentication_controller.begin((function(_this) {
+        return function(password) {
+          return pycon.transaction({
+            action: 'open_heatswitch',
+            "arguments": {
+              password: password
+            }
+          });
+        };
+      })(this));
+    };
+
+    ControlController.prototype.close_heatswitch = function(state) {
+      return authentication_controller.begin((function(_this) {
+        return function(password) {
+          return pycon.transaction({
+            action: 'close_heatswitch',
+            "arguments": {
+              password: password
+            }
           });
         };
       })(this));
@@ -480,7 +516,7 @@
             _results = [];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               d = _ref[_i];
-              _results.push(d.data.temperature);
+              _results.push(d.data.temperature * 1);
             }
             return _results;
           })();

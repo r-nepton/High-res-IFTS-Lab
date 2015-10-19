@@ -8,9 +8,16 @@ class @ControlController
 			<div class='regionbox'>
 				<h1 class='regiontitle'>settings</h1>
 				<div class='horizontal-field'>
-					<div class='field regulation-temperature'><div class='slider'></div></div>
+					<div class='slider log-data'><div class='slider'></div></div>
 					<span>log data?</span>
 				</div>
+
+				<div class='horizontal-field'>
+					<div class='menubutton close-heatswitch' style="background-color: black; color: white;">close</div>
+					<div class='menubutton open-heatswitch' style=" background-color: rgb(250, 42, 0); color: white;">open</div>
+					<span>heat switch</span>
+				</div>
+
 				<div class='menubutton emergency-stop' style="background-color: black; color: white;">emergency stop</div>
 				<div class="buttonspacer"></div>
 			</div>
@@ -52,6 +59,13 @@ class @ControlController
 		$('.emergency-stop').click =>
 			@emergency_stop()
 
+		$('.open-heatswitch').click =>
+			@open_heatswitch()
+
+		$('.close-heatswitch').click =>
+			@close_heatswitch()
+
+
 		@log_data_slider = new UIToggleSlider @dom_element.find('.slider'), (state) =>
 			@set_log_data(state)
 
@@ -71,6 +85,14 @@ class @ControlController
 		authentication_controller.begin (password) =>
 			pycon.transaction { action: 'set_data_logging_state', arguments: { state: state, password: password } }, (r) =>
 				@update_log_data_state()
+
+	open_heatswitch: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'open_heatswitch', arguments: { password: password } }
+
+	close_heatswitch: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'close_heatswitch', arguments: { password: password } }
 
 	# This function queries for the current log data state.
 	update_log_data_state: -> 
