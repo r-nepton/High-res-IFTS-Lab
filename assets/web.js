@@ -1266,60 +1266,54 @@
     }
 
     LogElement.prototype.format_time = function() {
-      var dt, postfix, quantity, sdt, unit_postfix, units;
+      var date_ob, datestamp, dt, log_time, postfix, quantity, sdt, time_string_options, unit_postfix, units;
       sdt = (new Date().getTime()) / 1000 - this.timestamp;
       dt = Math.abs(sdt);
-      units = (function() {
-        switch (false) {
-          case !(dt < 60):
-            return {
-              unit: 'second',
-              amount: 1
-            };
-          case !(dt < 60 * 60):
-            return {
-              unit: 'minute',
-              amount: 60
-            };
-          case !(dt < 60 * 60 * 24):
-            return {
-              unit: 'hour',
-              amount: 60 * 60
-            };
-          case !(dt < 60 * 60 * 24 * 7):
-            return {
-              unit: 'day',
-              amount: 60 * 60 * 24
-            };
-          case !(dt < 60 * 60 * 24 * 7 * 4):
-            return {
-              unit: 'week',
-              amount: 60 * 60 * 24 * 7
-            };
-          case !(dt < 60 * 60 * 24 * 7 * 4 * 12):
-            return {
-              unit: 'month',
-              amount: 60 * 60 * 24 * 30
-            };
-          default:
-            return {
-              unit: 'year',
-              amount: 60 * 60 * 24 * 7 * 52
-            };
+      if (dt >= 60 * 60) {
+        date_ob = new Date(this.timestamp * 1000);
+        time_string_options = {
+          timezone: "UTC",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          hour12: false,
+          minute: "2-digit",
+          second: "2-digit"
+        };
+        datestamp = date_ob.toLocaleString('en-US', time_string_options);
+        log_time = "" + datestamp;
+      } else {
+        units = (function() {
+          switch (false) {
+            case !(dt < 60):
+              return {
+                unit: 'second',
+                amount: 1
+              };
+            case !(dt < 60 * 60):
+              return {
+                unit: 'minute',
+                amount: 60
+              };
+          }
+        })();
+        if (sdt > 0) {
+          postfix = "ago";
+        } else {
+          postfix = "from now";
         }
-      })();
-      if (sdt > 0) {
-        postfix = "ago";
-      } else {
-        postfix = "from now";
+        quantity = Math.ceil(dt / units.amount);
+        if (quantity > 1) {
+          unit_postfix = "s";
+        } else {
+          unit_postfix = "";
+        }
+        log_time = "" + quantity + " " + units.unit + unit_postfix + " " + postfix;
       }
-      quantity = Math.ceil(dt / units.amount);
-      if (quantity > 1) {
-        unit_postfix = "s";
-      } else {
-        unit_postfix = "";
+      if (this.timestamp === 0) {
+        log_time = "";
       }
-      return "" + quantity + " " + units.unit + unit_postfix + " " + postfix;
+      return log_time;
     };
 
     LogElement.prototype.render = function() {

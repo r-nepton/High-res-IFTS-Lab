@@ -85,28 +85,43 @@ class @LogElement
 		
 		sdt = (new Date().getTime())/1000 - @timestamp
 		dt = Math.abs(sdt)
-		units = switch
-			when dt < 60 				then { unit: 'second', 	amount: 1}
-			when dt < 60*60 			then { unit: 'minute', 	amount: 60}
-			when dt < 60*60*24 			then { unit: 'hour', 	amount: 60*60}
-			when dt < 60*60*24*7		then { unit: 'day', 	amount: 60*60*24}
-			when dt < 60*60*24*7*4		then { unit: 'week', 	amount: 60*60*24*7}
-			when dt < 60*60*24*7*4*12	then { unit: 'month', 	amount: 60*60*24*30}
-			else 							 { unit: 'year', 	amount: 60*60*24*7*52}
 
-		if sdt > 0
-			postfix = "ago"
+		#If the log was created more then an hour ago, we just want a plain timestamp
+		if dt >= 60*60
+
+			date_ob = new Date(@timestamp*1000)
+			time_string_options = {
+				timezone: "UTC", month: "short", day: "numeric", 
+				hour: "2-digit", hour12: false, minute: "2-digit", second: "2-digit"}
+			datestamp = date_ob.toLocaleString('en-US',time_string_options)
+
+			log_time = "#{datestamp}"
+
 		else
-			postfix = "from now"
 
-		quantity = Math.ceil(dt / units.amount)
+			units = switch
+				when dt < 60 				then { unit: 'second', 	amount: 1}
+				when dt < 60*60 			then { unit: 'minute', 	amount: 60}
 
-		if quantity > 1
-			unit_postfix = "s"
-		else
-			unit_postfix = ""
+			if sdt > 0
+				postfix = "ago"
+			else
+				postfix = "from now"
 
-		return "#{quantity} #{units.unit}#{unit_postfix} #{postfix}"
+			quantity = Math.ceil(dt / units.amount)
+
+			if quantity > 1
+				unit_postfix = "s"
+			else
+				unit_postfix = ""
+
+			log_time = "#{quantity} #{units.unit}#{unit_postfix} #{postfix}"
+
+		#The 0th log doesn't need a timestamp
+		if @timestamp == 0
+			log_time = ""
+
+		return log_time
 
 	render: ->
 		@dom_message.html @message
