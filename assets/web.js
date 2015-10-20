@@ -698,6 +698,64 @@
 
   })();
 
+  this.BackEmfPlot = (function() {
+    function BackEmfPlot() {
+      this.element = $('<div id="current_plot" style="width: 650px; height: 250px;"></div>');
+      this.element.appendTo('.graphs');
+      this.t = new ScatterPlot("Magnet Back EMF", this.element);
+      this.update();
+      setInterval((function(_this) {
+        return function() {
+          return _this.update();
+        };
+      })(this), 15000);
+    }
+
+    BackEmfPlot.prototype.update = function() {
+      return pycon.transaction({
+        action: "magnet_back_emf",
+        "arguments": {
+          'number': 50
+        }
+      }, (function(_this) {
+        return function(r) {
+          var d;
+          _this.t.xtitle = "Time [minutes from now]";
+          _this.t.ytitle = "EMF [mV]";
+          console.log("Received current update: ", r);
+          if (r.history[0].data.error != null) {
+            _this.element.hide();
+            return;
+          }
+          _this.t.y = (function() {
+            var _i, _len, _ref, _results;
+            _ref = r.history;
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              d = _ref[_i];
+              _results.push(d.data.voltage * 1000);
+            }
+            return _results;
+          })();
+          _this.t.x = (function() {
+            var _i, _len, _ref, _results;
+            _ref = r.history;
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              d = _ref[_i];
+              _results.push(Math.min(0, (d.time - Date.now() / 1000) / 60));
+            }
+            return _results;
+          })();
+          return _this.t.plot();
+        };
+      })(this));
+    };
+
+    return BackEmfPlot;
+
+  })();
+
   this.Dashboard = (function() {
     function Dashboard() {
       var d, _i, _len, _ref;
@@ -711,6 +769,7 @@
       this.dashboardelements.push(new Temperature50KDashboardElement());
       this.dashboardelements.push(new PressureDashboardElement());
       this.dashboardelements.push(new MagnetCurrentDashboardElement());
+      this.dashboardelements.push(new MagnetBackEmfDashboardElement());
       this.dashboardelements.push(new UPSDashboardElement());
       this.dashboardelements.push(new WaterTemperatureDashboardElement());
       this.dashboardelements.push(new OilTemperatureDashboardElement());
@@ -1012,6 +1071,45 @@
     };
 
     return MagnetCurrentDashboardElement;
+
+  })(DashboardElement);
+
+  this.MagnetBackEmfDashboardElement = (function(_super) {
+    __extends(MagnetBackEmfDashboardElement, _super);
+
+    function MagnetBackEmfDashboardElement() {
+      MagnetBackEmfDashboardElement.__super__.constructor.call(this);
+      this.symbol = "EMF";
+      this.value = "U";
+      this.element.addClass('h2o');
+    }
+
+    MagnetBackEmfDashboardElement.prototype.update = function() {
+      return pycon.transaction({
+        action: "sensor",
+        "arguments": {
+          'sensor': 'magnet_back_emf'
+        }
+      }, (function(_this) {
+        return function(r) {
+          if (r.data.error != null) {
+            _this.state_ok = false;
+          } else {
+            _this.state_ok = true;
+            if (r.data.voltage < 0.1) {
+              _this.value = "" + ((r.data.voltage * 1000).toFixed(2)) + " mV";
+            } else if (r.data.voltage < 1) {
+              _this.value = "" + (r.data.voltage.toFixed(2)) + " V";
+            } else {
+              _this.value = "" + (r.data.voltage.toFixed(1)) + " V";
+            }
+          }
+          return _this.render();
+        };
+      })(this));
+    };
+
+    return MagnetBackEmfDashboardElement;
 
   })(DashboardElement);
 
@@ -1453,6 +1551,7 @@
     window.graphs.push(new TemperaturePlot());
     window.graphs.push(new PressurePlot());
     window.graphs.push(new CurrentPlot());
+    window.graphs.push(new BackEmfPlot());
     window.logs_controller = new LogsController($('<div class="logs"></div>').hide());
     window.authentication_controller = new AuthenticationController($('<div class="authentication"></div>'));
     return window.control_controller = new ControlController($("<div class='control'></div>").hide());

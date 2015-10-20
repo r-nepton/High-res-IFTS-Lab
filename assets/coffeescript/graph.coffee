@@ -142,6 +142,32 @@ class @CurrentPlot
 			@t.x = ( Math.min(0,(d.time - Date.now()/1000)/60) for d in r.history )
 			@t.plot()
 
+class @BackEmfPlot
+	constructor: ->
+		@element = $('<div id="current_plot" style="width: 650px; height: 250px;"></div>')
+		@element.appendTo('.graphs')
+		@t = new ScatterPlot("Magnet Back EMF", @element)
+		@update() 
+		# Set a timer to constantly update the plot.
+		setInterval( => 
+			@update()
+		, 15000)
+
+	update: ->
+		# Request historical data from the server.
+		pycon.transaction { action: "magnet_back_emf", arguments: {'number':50} }, (r) =>
+			@t.xtitle = "Time [minutes from now]"
+			@t.ytitle = "EMF [mV]"	
+			console.log "Received current update: ", r
+			# Check results for errors.
+			if r.history[0].data.error?
+				@element.hide()
+				return
+			@t.y = ( (d.data.voltage)*1000 for d in r.history )
+			
+			@t.x = ( Math.min(0,(d.time - Date.now()/1000)/60) for d in r.history )
+			@t.plot()
+
 class @Dashboard
 	constructor: ->
 		@element = $('<div id="dashboard"></div>')
@@ -156,6 +182,7 @@ class @Dashboard
 		@dashboardelements.push new Temperature50KDashboardElement()
 		@dashboardelements.push new PressureDashboardElement()
 		@dashboardelements.push new MagnetCurrentDashboardElement()
+		@dashboardelements.push new MagnetBackEmfDashboardElement()
 		@dashboardelements.push new UPSDashboardElement()
 		@dashboardelements.push new WaterTemperatureDashboardElement()
 		@dashboardelements.push new OilTemperatureDashboardElement()
@@ -332,6 +359,30 @@ class @MagnetCurrentDashboardElement extends DashboardElement
 					@value = "#{r.data.current.toFixed(1)} A"
 
 			@render()
+
+class @MagnetBackEmfDashboardElement extends DashboardElement
+	constructor: ->
+		super()
+		@symbol		= "EMF"
+		@value		= "U"
+		@element.addClass('h2o')
+
+	update: ->
+		pycon.transaction { action: "sensor", arguments: {'sensor':'magnet_back_emf'} }, (r) =>
+			# Now try to format the number appropriately.
+			if r.data.error?
+				@state_ok = no
+			else
+				@state_ok = yes
+				if r.data.voltage < 0.1
+					@value = "#{(r.data.voltage*1000).toFixed(2)} mV"
+				else if r.data.voltage < 1
+					@value = "#{r.data.voltage.toFixed(2)} V"
+				else
+					@value = "#{r.data.voltage.toFixed(1)} V"
+
+			@render()
+		
 
 class @UPSDashboardElement extends DashboardElement
 	constructor: ->

@@ -67,12 +67,13 @@ class CryoManager(object):
 		self.sensors_list = {
 			'pulse_tube_first_stage': 	PulseTubeFirstStageTemperatureSensor(),
 			'pulse_tube_second_stage': 	PulseTubeSecondStageTemperatureSensor(),
-			'pressure':  				GenericPressureSensor(1),
-			'FAA_temperature': 			FAATemperatureSensor(),
-			'magnet_current':			MagnetCurrentSensor(),
-			'compressor':				CompressorSensor(),
-			'breakout':					BreakoutBoardSensor(),
-			'ups':						UPSSensor() # <-- you can uncomment this when you plug in the UPS
+			'pressure':  			GenericPressureSensor(1),
+			'FAA_temperature': 		FAATemperatureSensor(),
+			'magnet_current':		MagnetCurrentSensor(),
+			'magnet_back_emf':		MagnetBackEmfSensor(),
+			'compressor':			CompressorSensor(),
+			'breakout':			BreakoutBoardSensor(),
+			'ups':				UPSSensor() # <-- you can uncomment this when you plug in the UPS
 		}
 
 		self.PID_controller = PIDControllerInterface()
@@ -280,6 +281,15 @@ class CryoManager(object):
 		data = self.sensors_list['magnet_current'].tail(1)
 		if len(data) == 0:
 			return { "error":"unknown" }
+		else:
+			return data[0]
+
+	def magnet_back_emf(self, arguments):
+		if 'number' in arguments:
+			return {'history': self.sensors_list['magnet_back_emf'].tail(arguments[u'number']) }
+		data = self.sensors_list['magnet_back_emf'].tail(1)
+		if len(data) == 0:
+			return { "error":"unkown" }
 		else:
 			return data[0]
 

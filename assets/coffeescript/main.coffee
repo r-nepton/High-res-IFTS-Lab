@@ -51,6 +51,7 @@ window.connection_ready = ->
 	window.graphs.push new TemperaturePlot()
 	window.graphs.push new PressurePlot()
 	window.graphs.push new CurrentPlot()
+	window.graphs.push new BackEmfPlot()
 
 	# Create the logs.
 	window.logs_controller = new LogsController( $('<div class="logs"></div>').hide() )
