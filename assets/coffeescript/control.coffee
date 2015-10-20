@@ -8,13 +8,13 @@ class @ControlController
 			<div class='regionbox'>
 				<h1 class='regiontitle'>settings</h1>
 				<div class='horizontal-field'>
-					<div class='slider log-data'><div class='slider'></div></div>
+					<div class='field log-data'><div class='slider'></div></div>
 					<span>log data?</span>
 				</div>
 
 				<div class='horizontal-field'>
-					<div class='menubutton close-heatswitch' style="background-color: black; color: white;">close</div>
-					<div class='menubutton open-heatswitch' style=" background-color: rgb(250, 42, 0); color: white;">open</div>
+					<div class='menubutton close-heatswitch' style="background-color: rgb(250, 42, 0); color: white;">close</div>
+					<div class='menubutton open-heatswitch' style=" background-color: rgb(170,185,93); color: white;">open</div>
 					<span>heat switch</span>
 				</div>
 
@@ -24,9 +24,25 @@ class @ControlController
 
 			<div class='regionbox'>
 				<h1 class='regiontitle'>cycle</h1>
+
 				<div class='horizontal-field'>
-					<div class='field cycle-time'><input type=text /><span class='units'>hours</span></div>
+					<div class='field rampup-time'><input type=text /><span class='units'>minutes</span></div>
+					<span>ramp-up time</span>
+				</div>
+
+				<div class='horizontal-field'>
+					<div class='field cycle-current'><input type=text /><span class='units'>amps</span></div>
+					<span>hold current</span>
+				</div>
+
+				<div class='horizontal-field'>
+					<div class='field cycle-time'><input type=text /><span class='units'>hours  </span></div>
 					<span>hold time</span>
+				</div>
+
+				<div class='horizontal-field'>
+					<div class='field rampdown-time'><input type=text /><span class='units'>minutes</span></div>
+					<span>ramp-down time</span>
 				</div>
 
 				<div class='menubutton cycle-save' style="background-color: black; color: white;">save</div>
@@ -101,17 +117,38 @@ class @ControlController
 
 	update_cycle_parameters: ->
 		pycon.transaction { action: 'cycle_settings' }, (r) =>
-			@set_cycle_time r.hold_time/3600
-			@set_regulation_temperature r.regulation_temperature*1000
+			@set_cycle_time r.hold_time/3600 #Display time in hours
+			@set_cycle_current r.hold_current
+			@set_ramp_up_time r.ramp_up_time/60 #Display time in minutes
+			@set_ramp_down_time r.ramp_down_time/60 #Display time in minutes
+			@set_regulation_temperature r.regulation_temperature*1000 #Display temperature in mK
 
 	get_cycle_time: ->
 		$('.cycle-time').children('input').val()
 
-	set_cycle_time: (value) ->
-		$('.cycle-time').children('input').val value
+	get_cycle_current: ->
+		$('.cycle-current').children('input').val()
+
+	get_ramp_up_time: ->
+		$('.rampup-time').children('input').val()
+
+	get_ramp_down_time: ->
+		$('.rampdown-time').children('input').val()
 
 	get_regulation_temperature: ->
 		$('.regulation-temperature').children('input').val()
+
+	set_cycle_time: (value) ->
+		$('.cycle-time').children('input').val value
+
+	set_cycle_current: (value) ->
+		$('.cycle-current').children('input').val value
+
+	set_ramp_up_time: (value) ->
+		$('.rampup-time').children('input').val value
+
+	set_ramp_down_time: (value) ->
+		$('.rampdown-time').children('input').val value
 
 	set_regulation_temperature: (value) ->
 		$('.regulation-temperature').children('input').val value
@@ -125,8 +162,11 @@ class @ControlController
 
 	cycle_save: ->
 		authentication_controller.begin (password) =>
+			ramp_up_time = @get_ramp_up_time()*60 # need to provide it in seconds
+			hold_current = @get_cycle_current()
 			hold_time = @get_cycle_time()*3600 # need to provide it in seconds.
-			pycon.transaction { action: 'cycle_settings', arguments: { password: password, hold_time: hold_time } }, (r) =>
+			ramp_down_time = @get_ramp_down_time()*60 # need to provide it in seconds
+			pycon.transaction { action: 'cycle_settings', arguments: { password: password, ramp_up_time: ramp_up_time, hold_time: hold_time, hold_current: hold_current, ramp_down_time: ramp_down_time } }, (r) =>
 				@update_cycle_parameters()
 	cycle_begin: ->
 		authentication_controller.begin (password) =>

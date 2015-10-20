@@ -15,7 +15,6 @@ class BeginMagnetizationOperation(GenericOperation):
 		# Set all the safety settings.
 		self.max_3K_stage_temperature = 4 # Upper limit of 3 K stage temperature
 		self.max_FAA_temperature 	  = 4 # Upper limit of the FAA temperature
-		self.heat_switch_open		  = True
 		self.max_step 				  = 0.05 # in Kelvin
 		self.step_rate				  = 0.02 # in Kelvin/second
 
@@ -49,7 +48,7 @@ class BeginMagnetizationOperation(GenericOperation):
 		# Okay, well I think that the temperatures and all that are good. Now,
 		# we'll open the heat switch.
 		self.breakout_board.open_heat_switch()
-		self.heat_switch_open = True
+		self.breakout_board.heat_switch_open = True
 
 		# If the system was in PID mode, we'll need to switch into 
 		# manual mode right now. In order to prevent jumps during
@@ -73,12 +72,12 @@ class BeginMagnetizationOperation(GenericOperation):
 		temperature_3K = self.temperature_3K_sensor.get_data()
 		temperature_FAA = self.temperature_FAA_sensor.get_data()
 		
-		if self.heat_switch_open == True:
+		if self.breakout_board.heat_switch_open == True:
 			# If the stage temperature and 3 K stage temperature have equalized, 
 			# we'll close the heat switch.
 			if temperature_3K['temperature'] > temperature_FAA['temperature']:
 				self.breakout_board.close_heat_switch()
-				self.heat_switch_open = False
+				self.breakout_board.heat_switch_open = False
 
 		# Now we'll ramp down the manual PID output to zero.
 		current_output = self.PID_instance.get_manual_output()

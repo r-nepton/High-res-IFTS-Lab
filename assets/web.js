@@ -139,7 +139,7 @@
     function ControlController(dom_element) {
       this.dom_element = dom_element;
       $('.log').append(this.dom_element);
-      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>settings</h1>\n	<div class='horizontal-field'>\n		<div class='slider log-data'><div class='slider'></div></div>\n		<span>log data?</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='menubutton close-heatswitch' style=\"background-color: black; color: white;\">close</div>\n		<div class='menubutton open-heatswitch' style=\" background-color: rgb(250, 42, 0); color: white;\">open</div>\n		<span>heat switch</span>\n	</div>\n\n	<div class='menubutton emergency-stop' style=\"background-color: black; color: white;\">emergency stop</div>\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>cycle</h1>\n	<div class='horizontal-field'>\n		<div class='field cycle-time'><input type=text /><span class='units'>hours</span></div>\n		<span>hold time</span>\n	</div>\n\n	<div class='menubutton cycle-save' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton cycle-begin' style=\" background-color: rgb(250, 42, 0); color: white;\">cycle</div>\n	\n\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>regulation</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><input type=text /><span class='units'>mK</span></div>\n		<span>regulation temperature</span>\n	</div>\n	<div class='menubutton regulate-save' style=\"background-color: black; color: white;\">save</div>\n	<div class=\"buttonspacer\"></div>\n</div>");
+      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>settings</h1>\n	<div class='horizontal-field'>\n		<div class='field log-data'><div class='slider'></div></div>\n		<span>log data?</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='menubutton close-heatswitch' style=\"background-color: rgb(250, 42, 0); color: white;\">close</div>\n		<div class='menubutton open-heatswitch' style=\" background-color: rgb(170,185,93); color: white;\">open</div>\n		<span>heat switch</span>\n	</div>\n\n	<div class='menubutton emergency-stop' style=\"background-color: black; color: white;\">emergency stop</div>\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>cycle</h1>\n\n	<div class='horizontal-field'>\n		<div class='field rampup-time'><input type=text /><span class='units'>minutes</span></div>\n		<span>ramp-up time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field cycle-current'><input type=text /><span class='units'>amps</span></div>\n		<span>hold current</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field cycle-time'><input type=text /><span class='units'>hours  </span></div>\n		<span>hold time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field rampdown-time'><input type=text /><span class='units'>minutes</span></div>\n		<span>ramp-down time</span>\n	</div>\n\n	<div class='menubutton cycle-save' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton cycle-begin' style=\" background-color: rgb(250, 42, 0); color: white;\">cycle</div>\n	\n\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>regulation</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><input type=text /><span class='units'>mK</span></div>\n		<span>regulation temperature</span>\n	</div>\n	<div class='menubutton regulate-save' style=\"background-color: black; color: white;\">save</div>\n	<div class=\"buttonspacer\"></div>\n</div>");
       $('.regulate-save').click((function(_this) {
         return function() {
           return _this.regulate_save();
@@ -256,6 +256,9 @@
       }, (function(_this) {
         return function(r) {
           _this.set_cycle_time(r.hold_time / 3600);
+          _this.set_cycle_current(r.hold_current);
+          _this.set_ramp_up_time(r.ramp_up_time / 60);
+          _this.set_ramp_down_time(r.ramp_down_time / 60);
           return _this.set_regulation_temperature(r.regulation_temperature * 1000);
         };
       })(this));
@@ -265,12 +268,36 @@
       return $('.cycle-time').children('input').val();
     };
 
-    ControlController.prototype.set_cycle_time = function(value) {
-      return $('.cycle-time').children('input').val(value);
+    ControlController.prototype.get_cycle_current = function() {
+      return $('.cycle-current').children('input').val();
+    };
+
+    ControlController.prototype.get_ramp_up_time = function() {
+      return $('.rampup-time').children('input').val();
+    };
+
+    ControlController.prototype.get_ramp_down_time = function() {
+      return $('.rampdown-time').children('input').val();
     };
 
     ControlController.prototype.get_regulation_temperature = function() {
       return $('.regulation-temperature').children('input').val();
+    };
+
+    ControlController.prototype.set_cycle_time = function(value) {
+      return $('.cycle-time').children('input').val(value);
+    };
+
+    ControlController.prototype.set_cycle_current = function(value) {
+      return $('.cycle-current').children('input').val(value);
+    };
+
+    ControlController.prototype.set_ramp_up_time = function(value) {
+      return $('.rampup-time').children('input').val(value);
+    };
+
+    ControlController.prototype.set_ramp_down_time = function(value) {
+      return $('.rampdown-time').children('input').val(value);
     };
 
     ControlController.prototype.set_regulation_temperature = function(value) {
@@ -299,13 +326,19 @@
     ControlController.prototype.cycle_save = function() {
       return authentication_controller.begin((function(_this) {
         return function(password) {
-          var hold_time;
+          var hold_current, hold_time, ramp_down_time, ramp_up_time;
+          ramp_up_time = _this.get_ramp_up_time() * 60;
+          hold_current = _this.get_cycle_current();
           hold_time = _this.get_cycle_time() * 3600;
+          ramp_down_time = _this.get_ramp_down_time() * 60;
           return pycon.transaction({
             action: 'cycle_settings',
             "arguments": {
               password: password,
-              hold_time: hold_time
+              ramp_up_time: ramp_up_time,
+              hold_time: hold_time,
+              hold_current: hold_current,
+              ramp_down_time: ramp_down_time
             }
           }, function(r) {
             return _this.update_cycle_parameters();

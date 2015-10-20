@@ -8,6 +8,8 @@ class BreakoutBoardInterface(GenericDataConduit):
 	def __init__(self):
 		self.name = "Breakout Board"
 		self.units = "N/A"
+                
+		self.heat_switch_open	= True
 
 		try:
 			self.serial_connection = serial.Serial('/dev/ttyACM0', 9600, timeout=0.1)

@@ -31,7 +31,10 @@ class CryoManager(object):
 		self.log_data = False # By default, the system starts up in a state where it doesn't log data.
 
 		# Cycle settings
+		self.magnetization_hold_current = 18 # Amps
 		self.magnetization_hold_time = 4*3600 # seconds
+		self.ramp_up_time = 3600 # seconds
+		self.ramp_down_time = 3600 # seconds
 		self.regulation_temperature  = 0.10 #  Kelvin
 
 	# This function is used to call a function on itself based
@@ -138,6 +141,7 @@ class CryoManager(object):
 				self.print_log("Heat switch opened.")
 				self.user_log_writer.write_log("Heat switch opened.")
 				self.sensors_list["breakout"].conduit.open_heat_switch()
+				self.sensors_list["breakout"].conduit.heat_switch_open = True
 			else:
 				self.print_log("Incorrect password issued for opening heat switch.")
 
@@ -148,6 +152,7 @@ class CryoManager(object):
 				self.print_log("Heat switch closed.")
 				self.user_log_writer.write_log("Heat switch closed.")
 				self.sensors_list["breakout"].conduit.close_heat_switch()
+				self.sensors_list["breakout"].conduit.heat_switch_open = False
 			else:
 				self.print_log("Incorrect password issued for closing heat switch.")
 
@@ -158,11 +163,17 @@ class CryoManager(object):
 				# Now check if we are setting or getting.
 				if 'hold_time' in arguments:
 					try:
+						self.ramp_up_time = float(arguments['ramp_up_time'])
+						self.print_log("Updated ramp-up time to %s seconds" % self.ramp_up_time)
+						self.magnetization_hold_current = float(arguments['hold_current'])
+						self.print_log("Updated hold current to %s amps" % self.magnetization_hold_current)
 						self.magnetization_hold_time = float(arguments['hold_time'])
-						self.print_log("Updated hold time to %s seconds" % self.magnetization_hold_time) 
+						self.print_log("Updated hold time to %s seconds" % self.magnetization_hold_time)
+						self.ramp_down_time = float(arguments['ramp_down_time'])
+						self.print_log("Updated ramp-down time to %s seconds" % self.ramp_down_time)
 						return { 'result': 'success' }
 					except Exception:
-						return { 'error': 'invalid hold time specified.' }
+						return { 'error': 'invalid parameters specified.' }
 
 				# Now check if we are setting or getting.
 				if 'regulation_temperature' in arguments:
@@ -197,7 +208,7 @@ class CryoManager(object):
 						return { 'error': 'invalid regulation temperature specified.' }
 
 		# Well, if we didn't set anything,it must be just a get request.
-		return { 'hold_time': self.magnetization_hold_time, 'regulation_temperature': self.regulation_temperature }
+		return { 'hold_time': self.magnetization_hold_time, 'hold_current': self.magnetization_hold_current, 'ramp_up_time': self.ramp_up_time, 'ramp_down_time': self.ramp_down_time, 'regulation_temperature': self.regulation_temperature }
 
 	# This function begins a full magnetization cycle. It's a dangerous
 	# operation to run, so it has a lot of self-checks built in.
@@ -206,11 +217,11 @@ class CryoManager(object):
 		if 'password' in arguments:
 			if arguments['password'] == self.password:
 				self.print_log( "Magnetization cycle started." )
-				ramp_up_time = 1200 # seconds
-				ramp_down_time = 6000 # seconds
-				current = 10 # amperes (max 18.5)
-				hold_time = self.magnetization_hold_time
-				regulation_temperature = self.regulation_temperature
+				ramp_up_time = self.ramp_up_time # seconds
+				ramp_down_time = self.ramp_down_time # seconds
+				current = self.magnetization_hold_current # amperes (max 18.5)
+				hold_time = self.magnetization_hold_time #seconds
+				regulation_temperature = self.regulation_temperature #seconds
 
 				# Start by setting up manual mode, switching to mag cycle, etc.
 				self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
