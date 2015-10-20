@@ -162,10 +162,23 @@ class @ControlController
 
 	cycle_save: ->
 		authentication_controller.begin (password) =>
+			#Until back emf can be monitored, restrict ramp up time to more then 20 minutes
 			ramp_up_time = @get_ramp_up_time()*60 # need to provide it in seconds
+			if ramp_up_time < 20*60
+				ramp_up_time = 20*60			
+
+			#Magnet current must be kept below 18amps
 			hold_current = @get_cycle_current()
+			if hold_current > 18
+				hold_current = 18
+
 			hold_time = @get_cycle_time()*3600 # need to provide it in seconds.
+
+			#Until back emf can be monitored, restrict ramp down time to more then 20 minutes
 			ramp_down_time = @get_ramp_down_time()*60 # need to provide it in seconds
+			if ramp_down_time < 20*60
+				ramp_down_time = 20*60
+
 			pycon.transaction { action: 'cycle_settings', arguments: { password: password, ramp_up_time: ramp_up_time, hold_time: hold_time, hold_current: hold_current, ramp_down_time: ramp_down_time } }, (r) =>
 				@update_cycle_parameters()
 	cycle_begin: ->

@@ -328,9 +328,18 @@
         return function(password) {
           var hold_current, hold_time, ramp_down_time, ramp_up_time;
           ramp_up_time = _this.get_ramp_up_time() * 60;
+          if (ramp_up_time < 20 * 60) {
+            ramp_up_time = 20 * 60;
+          }
           hold_current = _this.get_cycle_current();
+          if (hold_current > 18) {
+            hold_current = 18;
+          }
           hold_time = _this.get_cycle_time() * 3600;
           ramp_down_time = _this.get_ramp_down_time() * 60;
+          if (ramp_down_time < 20 * 60) {
+            ramp_down_time = 20 * 60;
+          }
           return pycon.transaction({
             action: 'cycle_settings',
             "arguments": {
