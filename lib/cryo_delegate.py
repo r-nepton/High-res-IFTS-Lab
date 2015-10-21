@@ -225,21 +225,20 @@ class CryoManager(object):
 				regulation_temperature = self.regulation_temperature #seconds
 
 				# Start by setting up manual mode, switching to mag cycle, etc.
-				self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout']) )
+				self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
 				# Wait for 30 seconds before beginning the next stage to allow for
 				# fluctuations from the mag cycle switch throw.
 				self.operations.append( SleepOperation( 30 ) )
 				# Now begin magnetization
-				self.operations.append( MagUpOperation( ramp_up_time, current, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], breakout_board=self.sensors_list['breakout'] ) )
+				self.operations.append( MagUpOperation( ramp_up_time, current, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
 				# Now we must soak (for the hold time).
 				self.operations.append( MagnetizationHoldOperation( hold_time ))
 				# Now we need to demagnetize
-				self.operations.append( MagDownOperation( ramp_down_time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'] ) )
+				self.operations.append( MagDownOperation( ramp_down_time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
 				# Now we need to wait 5 minutes to let the inductor relax
 				self.operations.append( SleepOperation( 600 ) )
 				# Finally, begin regulation.
-
-				self.operations.append( BeginRegulationOperation( regulation_temperature, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'] ) )
+				self.operations.append( BeginRegulationOperation( regulation_temperature, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
 			else:
 				self.print_log( "Attempted to start magnetization cycle with incorrect password." )
 		else:

@@ -2,12 +2,13 @@ from generic_operation import *
 from cryo_delegate import *
 
 class BeginRegulationOperation(GenericOperation):
-	def __init__(self, regulation_temperature, PID_interface, current_sensor, temperature_FAA_sensor, breakout_board): 
+	def __init__(self, regulation_temperature, PID_interface, current_sensor, temperature_FAA_sensor, breakout_board, back_emf_sensor): 
 		self.temperature_FAA_sensor = temperature_FAA_sensor.conduit
 		self.breakout_board			= breakout_board.conduit
 		self.PID_instance 			= PID_interface
 		self.current_sensor			= current_sensor.conduit
 		self.regulation_temperature = regulation_temperature
+		self.back_emf_sensor			= back_emf_sensor.conduit
 
 		# Set all the safety settings.
 		self.max_start_current 		= 0.020 # 20 mA can be safely switched.
@@ -85,6 +86,9 @@ class BeginRegulationOperation(GenericOperation):
 		if self.finished:
 			return
 
+		# Measure back emf, this shouldn't be an issue in regulation mode
+		back_emf = self.back_emf_sensor.get_data()
+
 		setpoint = self.PID_instance.get_setpoint()
 		# If the setpoint is negligibly close, let's just
 		# set it exactly and clean up.
@@ -101,5 +105,9 @@ class BeginRegulationOperation(GenericOperation):
 		if step > self.max_step:
 			step = self.max_step
 
-		# Take a step.
-		self.PID_instance.set_setpoint( setpoint + step )
+		# Check that the back emf is within (+-)90mV
+		if abs(back_emf) > 0.09:
+			self.PID_instance.set_setpoint( setpoint)
+		else:
+			# Take a step.
+			self.PID_instance.set_setpoint( setpoint + step )

@@ -2,16 +2,17 @@ from generic_operation import *
 from cryo_delegate import *
 
 class MagDownOperation(GenericOperation):
-	def __init__(self, mag_down_time, PID_interface, breakout_board, current_sensor): 
+	def __init__(self, mag_down_time, PID_interface, breakout_board, current_sensor, back_emf_sensor): 
 		self.mag_down_time 	= mag_down_time
 		self.final_current 	= 0
 		self.PID_interface 	= PID_interface
 		self.current_sensor	= current_sensor.conduit
 		self.breakout_board = breakout_board.conduit
+		self.back_emf_sensor	= back_emf_sensor.conduit
 
 		# Set the safety settings.
-		self.absolute_min_mag_down_time = 10 # seconds
-		self.absolute_max_step_size 	= 0.010 # 10 mA.
+		self.absolute_min_mag_down_time = 3*60 # seconds
+		self.absolute_max_step_size 	= 0.200 # 200 mA.
 		self.ramping_rate 				= 0
 
 		super(MagDownOperation, self).__init__()
@@ -76,6 +77,9 @@ class MagDownOperation(GenericOperation):
 			self.print_log("The current cannot be read, indicating an error. Terminating MagDown operation.")
 			return
 
+		# Measure the back emf
+		back_emf = self.back_emf_sensor.get_data()
+
 		# Every 5 steps, check the validity of the current->voltage model.
 		if self.step_index % 5 == 4:
 			voltage = self.PID_interface.get_manual_output()
@@ -100,5 +104,10 @@ class MagDownOperation(GenericOperation):
 			self.success 	= True
 			self.print_log("Current has reached target current. Finished demagnetization.")
 		else: 
-			self.expected_output_current -= ramping_step
-			self.PID_interface.set_current( self.expected_output_current )
+		# Make sure the back EMF is above -90mV
+			if back_emf < -0.09:
+				self.PID_interface.set_current( self.expected_output_current)
+				print "Magnet back EMF is too large, waiting for decrease"
+			else:
+				self.expected_output_current -= ramping_step
+				self.PID_interface.set_current( self.expected_output_current )

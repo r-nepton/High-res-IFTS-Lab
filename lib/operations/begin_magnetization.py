@@ -6,17 +6,18 @@ from cryo_delegate import *
 # prepares it to perform a magnetization cycle. When it completes successfully,
 # the next step is to perform a ramp-up to full field.
 class BeginMagnetizationOperation(GenericOperation):
-	def __init__(self, PID_interface, temperature_3K_sensor, temperature_FAA_sensor, breakout_board): 
+	def __init__(self, PID_interface, temperature_3K_sensor, temperature_FAA_sensor, breakout_board, back_emf_sensor): 
 		self.temperature_3K_sensor 	= temperature_3K_sensor.conduit
 		self.temperature_FAA_sensor = temperature_FAA_sensor.conduit
 		self.breakout_board			= breakout_board.conduit
 		self.PID_instance 			= PID_interface
+		self.back_emf_sensor			= back_emf_sensor.conduit
 
 		# Set all the safety settings.
 		self.max_3K_stage_temperature = 4 # Upper limit of 3 K stage temperature
 		self.max_FAA_temperature 	  = 4 # Upper limit of the FAA temperature
-		self.max_step 				  = 0.05 # in Kelvin
-		self.step_rate				  = 0.02 # in Kelvin/second
+		self.max_step 				  = 0.02 # in Volts
+		self.step_rate				  = 0.005 # in Volts/second
 
 		super(BeginMagnetizationOperation, self).__init__()
 
@@ -71,7 +72,8 @@ class BeginMagnetizationOperation(GenericOperation):
 		# Check to see if the FAA temperature is above the stage temperature.
 		temperature_3K = self.temperature_3K_sensor.get_data()
 		temperature_FAA = self.temperature_FAA_sensor.get_data()
-		
+		back_emf = self.back_emf_sensor.get_data()		
+
 		if self.breakout_board.heat_switch_open == True:
 			# If the stage temperature and 3 K stage temperature have equalized, 
 			# we'll close the heat switch.
@@ -90,12 +92,17 @@ class BeginMagnetizationOperation(GenericOperation):
 			return
 
 
-		# A good rampdown rate is 2 mV per second.
+		# A good rampdown rate is 5 mV per second.
 		step = self.step_rate * dt
 		if step > self.max_step: 
 			step = self.max_step
-
-		if current_output - step < 0:
+		
+		# If the back emf is about 90mV, hold current output
+		if	back_emf > 0.09:
+			self.PID_instance.set_manual_output_voltage( current_output )
+			print "Magnet back EMF is too high, waiting for decrease"
+		# If within range of 0
+		elif current_output - step < 0:
 			# Wrap everything up:
 			self.PID_instance.set_manual_output_voltage( 0 )
 			# Engage the magnetization cycle switch.
