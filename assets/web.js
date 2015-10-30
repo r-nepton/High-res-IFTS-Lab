@@ -581,6 +581,116 @@
 
   })();
 
+  this.TemperaturePlot3 = (function() {
+    function TemperaturePlot3() {
+      var element;
+      element = $('<div id="temperature_plot" style="width: 650px; height: 250px;"></div>');
+      element.appendTo('.graphs');
+      this.t = new ScatterPlot("0.4K Stage Temperature", element);
+      this.update();
+      setInterval((function(_this) {
+        return function() {
+          return _this.update();
+        };
+      })(this), 15000);
+    }
+
+    TemperaturePlot3.prototype.update = function() {
+      return pycon.transaction({
+        action: "sensor",
+        "arguments": {
+          'sensor': 'FAA_stage_temperature',
+          'number': 50
+        }
+      }, (function(_this) {
+        return function(r) {
+          var d;
+          _this.t.xtitle = "Time [minutes from now]";
+          _this.t.ytitle = "Temperature [mK]";
+          _this.t.y = (function() {
+            var _i, _len, _ref, _results;
+            _ref = r.history;
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              d = _ref[_i];
+              _results.push(d.data.temperature * 1000);
+            }
+            return _results;
+          })();
+          _this.t.x = (function() {
+            var _i, _len, _ref, _results;
+            _ref = r.history;
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              d = _ref[_i];
+              _results.push(Math.min(0, (d.time - Date.now() / 1000) / 60));
+            }
+            return _results;
+          })();
+          return _this.t.plot();
+        };
+      })(this));
+    };
+
+    return TemperaturePlot3;
+
+  })();
+
+  this.TemperaturePlot4 = (function() {
+    function TemperaturePlot4() {
+      var element;
+      element = $('<div id="temperature_plot" style="width: 650px; height: 250px;"></div>');
+      element.appendTo('.graphs');
+      this.t = new ScatterPlot("1K Stage Temperature", element);
+      this.update();
+      setInterval((function(_this) {
+        return function() {
+          return _this.update();
+        };
+      })(this), 15000);
+    }
+
+    TemperaturePlot4.prototype.update = function() {
+      return pycon.transaction({
+        action: "sensor",
+        "arguments": {
+          'sensor': 'GGG_stage_temperature',
+          'number': 50
+        }
+      }, (function(_this) {
+        return function(r) {
+          var d;
+          _this.t.xtitle = "Time [minutes from now]";
+          _this.t.ytitle = "Temperature [mK]";
+          _this.t.y = (function() {
+            var _i, _len, _ref, _results;
+            _ref = r.history;
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              d = _ref[_i];
+              _results.push(d.data.temperature * 1000);
+            }
+            return _results;
+          })();
+          _this.t.x = (function() {
+            var _i, _len, _ref, _results;
+            _ref = r.history;
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              d = _ref[_i];
+              _results.push(Math.min(0, (d.time - Date.now() / 1000) / 60));
+            }
+            return _results;
+          })();
+          return _this.t.plot();
+        };
+      })(this));
+    };
+
+    return TemperaturePlot4;
+
+  })();
+
   this.PressurePlot = (function() {
     function PressurePlot() {
       this.element = $('<div id="pressure_plot" style="width: 650px; height: 250px;"></div>');
@@ -765,6 +875,8 @@
       this.latest_log = new LogElement();
       this.latest_log.dom_element.appendTo(this.element);
       this.dashboardelements.push(new TemperatureFAADashboardElement());
+      this.dashboardelements.push(new TemperatureFAAStageDashboardElement());
+      this.dashboardelements.push(new TemperatureGGGStageDashboardElement());
       this.dashboardelements.push(new Temperature3KDashboardElement());
       this.dashboardelements.push(new Temperature50KDashboardElement());
       this.dashboardelements.push(new PressureDashboardElement());
@@ -937,6 +1049,80 @@
     };
 
     return TemperatureFAADashboardElement;
+
+  })(DashboardElement);
+
+  this.TemperatureFAAStageDashboardElement = (function(_super) {
+    __extends(TemperatureFAAStageDashboardElement, _super);
+
+    function TemperatureFAAStageDashboardElement() {
+      TemperatureFAAStageDashboardElement.__super__.constructor.call(this);
+      this.symbol = "T<sub>0.4K</sub>";
+      this.element.addClass('h2o');
+      this.value = "U";
+    }
+
+    TemperatureFAAStageDashboardElement.prototype.update = function() {
+      return pycon.transaction({
+        action: "sensor",
+        "arguments": {
+          sensor: "FAA_stage_temperature"
+        }
+      }, (function(_this) {
+        return function(r) {
+          if (r.data.error != null) {
+            _this.state_ok = false;
+          } else {
+            _this.state_ok = true;
+            if (r.data.temperature < 1) {
+              _this.value = (r.data.temperature * 1000).toPrecision(3) + " mK";
+            } else {
+              _this.value = r.data.temperature.toPrecision(3) + " K";
+            }
+          }
+          return _this.render();
+        };
+      })(this));
+    };
+
+    return TemperatureFAAStageDashboardElement;
+
+  })(DashboardElement);
+
+  this.TemperatureGGGStageDashboardElement = (function(_super) {
+    __extends(TemperatureGGGStageDashboardElement, _super);
+
+    function TemperatureGGGStageDashboardElement() {
+      TemperatureGGGStageDashboardElement.__super__.constructor.call(this);
+      this.symbol = "T<sub>1K</sub>";
+      this.element.addClass('h2o');
+      this.value = "U";
+    }
+
+    TemperatureGGGStageDashboardElement.prototype.update = function() {
+      return pycon.transaction({
+        action: "sensor",
+        "arguments": {
+          sensor: "GGG_stage_temperature"
+        }
+      }, (function(_this) {
+        return function(r) {
+          if (r.data.error != null) {
+            _this.state_ok = false;
+          } else {
+            _this.state_ok = true;
+            if (r.data.temperature < 1) {
+              _this.value = (r.data.temperature * 1000).toPrecision(3) + " mK";
+            } else {
+              _this.value = r.data.temperature.toPrecision(3) + " K";
+            }
+          }
+          return _this.render();
+        };
+      })(this));
+    };
+
+    return TemperatureGGGStageDashboardElement;
 
   })(DashboardElement);
 
@@ -1549,6 +1735,8 @@
     window.graphs = [];
     window.graphs.push(new TemperaturePlot2());
     window.graphs.push(new TemperaturePlot());
+    window.graphs.push(new TemperaturePlot3());
+    window.graphs.push(new TemperaturePlot4());
     window.graphs.push(new PressurePlot());
     window.graphs.push(new CurrentPlot());
     window.graphs.push(new BackEmfPlot());

@@ -49,6 +49,8 @@ window.connection_ready = ->
 	window.graphs = []
 	window.graphs.push new TemperaturePlot2()
 	window.graphs.push new TemperaturePlot()
+	window.graphs.push new TemperaturePlot3()
+	window.graphs.push new TemperaturePlot4()
 	window.graphs.push new PressurePlot()
 	window.graphs.push new CurrentPlot()
 	window.graphs.push new BackEmfPlot()
