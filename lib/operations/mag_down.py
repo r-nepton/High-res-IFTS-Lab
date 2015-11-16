@@ -104,8 +104,8 @@ class MagDownOperation(GenericOperation):
 			self.success 	= True
 			self.print_log("Current has reached target current. Finished demagnetization.")
 		else: 
-		# Make sure the back EMF is above -90mV
-			if back_emf < -0.09:
+		# Make sure the back EMF is above -100mV
+			if back_emf['voltage'] < -0.1:
 				self.PID_interface.set_current( self.expected_output_current)
 				print "Magnet back EMF is too large, waiting for decrease"
 			else:

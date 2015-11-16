@@ -105,8 +105,8 @@ class BeginRegulationOperation(GenericOperation):
 		if step > self.max_step:
 			step = self.max_step
 
-		# Check that the back emf is within (+-)90mV
-		if abs(back_emf) > 0.09:
+		# Check that the back emf is within (+-)100mV
+		if abs(back_emf['voltage']) > 0.1:
 			self.PID_instance.set_setpoint( setpoint)
 		else:
 			# Take a step.

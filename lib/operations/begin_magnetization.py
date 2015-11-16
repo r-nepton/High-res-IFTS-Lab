@@ -97,8 +97,8 @@ class BeginMagnetizationOperation(GenericOperation):
 		if step > self.max_step: 
 			step = self.max_step
 		
-		# If the back emf is about 90mV, hold current output
-		if	back_emf > 0.09:
+		# If the back emf is about 100mV, hold current output
+		if	back_emf['voltage'] > 0.1:
 			self.PID_instance.set_manual_output_voltage( current_output )
 			print "Magnet back EMF is too high, waiting for decrease"
 		# If within range of 0
