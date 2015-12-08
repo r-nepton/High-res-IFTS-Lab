@@ -1,5 +1,6 @@
-import sqlite3, os, sys, getopt, datetime
+import sqlite3, os, sys, getopt, datetime, re
 import numpy as np
+
 #read_db.py receives a database filename and stores
 #the contents in a dictionary.
 
@@ -86,15 +87,39 @@ def read_data(input_db, no_processing=False):
 	for _ii, _label in enumerate(cryo_raw.keys()):
                 if _label == 'log':
                         continue
+		cryo_data[_label] = {}
                 _inds = np.array(cryo_raw[_label])[:,0]
                 _times = np.array(cryo_raw[_label])[:,1]
                 _info = np.array(cryo_raw[_label])[:,2]
-                cryo_data[_label] = _info
-                if _ii == 0:
-                        cryo_data['times'] = _times
-                else:
-                        if not all(cryo_data['times'] == _times):
-                                print 'The timestamps in your database are not the same?!'
+
+		cryo_data[_label] = {'time':[datetime.datetime.strptime(i,'%Y-%m-%d %H:%M:%S') for i in _times]}
+		# make the info more resonable
+		_info_keys = re.split(',|:',(re.split('{|}',_info[0])[1:-1][0]))[::2]
+		# make keys for the dictionary for this field
+                for _in_k in _info_keys:
+			cryo_data[_label][str(_in_k.split('"')[1])] = []
+		# fill in the dictionary keys for this field
+		for _samp in _info:
+			for _item in re.split(',',(re.split('{|}',_samp)[1:-1][0])):
+				_in_lab = str(_item.split(':')[0].split('"')[1])
+				_in_val = _item.split(':')[1]
+				if _in_val == u' true':
+					cryo_data[_label][_in_lab].append(True)
+				elif _in_val == u' false':
+					cryo_data[_label][_in_lab].append(False)
+				else:
+					try:# this will convert the unicode to a number, if _in_val is a float
+						cryo_data[_label][_in_lab].append(float(_in_val))
+					except ValueError: # if _in_val is not a float, assume we should save a string
+						cryo_data[_label][_in_lab].append(str(_in_val.split('"')[1]).strip())
+			#if cryo_data[_label][_in_lab] ----make an exception for 'units'
+			
+
+#                 if _ii == 0:
+#                         cryo_data['times'] = _times
+#                 else:
+#                         if not all(cryo_data['times'] == _times):
+#                                 print 'The timestamps in your database are not the same?!'
         return cryo_data
 if __name__ == "__main__":
 
