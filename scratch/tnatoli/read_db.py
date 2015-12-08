@@ -99,10 +99,21 @@ def read_data(input_db, no_processing=False):
                 for _in_k in _info_keys:
 			cryo_data[_label][str(_in_k.split('"')[1])] = []
 		# fill in the dictionary keys for this field
-		for _samp in _info:
+		for _samp_cnt,_samp in enumerate(_info):
 			for _item in re.split(',',(re.split('{|}',_samp)[1:-1][0])):
 				_in_lab = str(_item.split(':')[0].split('"')[1])
 				_in_val = _item.split(':')[1]
+				if _in_lab == 'units':# I dont want to rewrite this field a million times
+					if _samp_cnt==0:
+						cryo_data[_label][_in_lab] = str(_in_val.split('"')[1].strip())
+						continue
+					else:
+						if cryo_data[_label][_in_lab]==str(_in_val.split('"')[1]).strip():
+							continue # if we are just reading the same unit over and over don't rewrite the field
+						else:
+							print 'Your units are not constant for %s ....maybe check that out...'%(_label)
+							print 'Prior units = %s, units now = %s'%(cryo_data[_label][_in_lab][0],str(_in_val.split('"')[1]).strip())
+							continue
 				if _in_val == u' true':
 					cryo_data[_label][_in_lab].append(True)
 				elif _in_val == u' false':
