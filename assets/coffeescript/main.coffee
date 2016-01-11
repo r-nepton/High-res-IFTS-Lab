@@ -66,3 +66,4 @@ window.connection_ready = ->
 
 	# Create the control panel.
 	window.control_controller = new ControlController $("<div class='control'></div>").hide()
+

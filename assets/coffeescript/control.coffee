@@ -187,3 +187,4 @@ class @ControlController
 
 	update: ->
 		yes
+

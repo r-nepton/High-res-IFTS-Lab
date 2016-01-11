@@ -28,7 +28,7 @@ class CryoManager(object):
 		self.wakethread = WakeThread(self.stop_wake_thread, self)
 		self.wakethread.start()
 		self.password = True
-		self.log_data = False # By default, the system starts up in a state where it doesn't log data.
+		self.log_data = False # By default, the system starts up in a state where it does log data.
 
 		# Cycle settings
 		self.magnetization_hold_current = 18 # Amps

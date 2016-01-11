@@ -48,3 +48,4 @@ class @ReportController
 		@dashboard.bind @control, @chart
 		@chart.draw()
 		@dashboard.draw google.visualization.arrayToDataTable [["test", "test"],[700, 800],[600, 700],[500, 600]]
+

@@ -128,8 +128,8 @@ class MagUpOperation(GenericOperation):
 			self.success 	= True
 			self.print_log( "The current is over the specified current. Magnetization completed." )
 		else:
-			#Check that the back emf is not above 90mV
-			if back_emf > 0.09:
+			#Check that the back emf is not above 100mV
+			if back_emf['voltage'] > 0.1:
 				self.PID_interface.set_current( self.expected_output_current )
 				print "Magnet back EMF is too high, waiting for decrease"
 			else:
