@@ -35,10 +35,10 @@ RESPONSE 	= 1
 # it will behave as a wrapper to another thing that
 # will interface with measurement devices.
 class JHandler(tornado.websocket.WebSocketHandler):
+        connection = 0
+
 	def open(self):
-		print(type(self.request))
-		print(self.request)
-		print(self.request.remote_ip)
+		print "%s connecting to cryo-server." % (self.request.remote_ip)
 		pass
 
 	def on_message(self, message):
