@@ -89,46 +89,6 @@ class @TemperaturePlot2
 			@t.x = ( Math.min(0,(d.time - Date.now()/1000)/60) for d in r.history )
 			@t.plot()
 
-class @TemperaturePlot3
-	constructor: ->
-		element = $('<div id="temperature_plot" style="width: 650px; height: 250px;"></div>')
-		element.appendTo('.graphs')
-		@t = new ScatterPlot("0.4K Stage Temperature", element)
-		@update()
-		# Set a timer to constantly update the plot.
-		setInterval( => 
-			@update()
-		, 15000)
-
-	update: ->
-		# Request historical data from the server.
-		pycon.transaction { action: "sensor", arguments: {'sensor':'FAA_stage_temperature','number':50} }, (r) =>
-			@t.xtitle = "Time [minutes from now]"
-			@t.ytitle = "Temperature [mK]"	
-			@t.y = ( d.data.temperature*1000 for d in r.history )
-			@t.x = ( Math.min(0,(d.time - Date.now()/1000)/60) for d in r.history )
-			@t.plot()
-
-class @TemperaturePlot4
-	constructor: ->
-		element = $('<div id="temperature_plot" style="width: 650px; height: 250px;"></div>')
-		element.appendTo('.graphs')
-		@t = new ScatterPlot("1K Stage Temperature", element)
-		@update()
-		# Set a timer to constantly update the plot.
-		setInterval( => 
-			@update()
-		, 15000)
-
-	update: ->
-		# Request historical data from the server.
-		pycon.transaction { action: "sensor", arguments: {'sensor':'GGG_stage_temperature','number':50} }, (r) =>
-			@t.xtitle = "Time [minutes from now]"
-			@t.ytitle = "Temperature [mK]"	
-			@t.y = ( d.data.temperature*1000 for d in r.history )
-			@t.x = ( Math.min(0,(d.time - Date.now()/1000)/60) for d in r.history )
-			@t.plot()
-
 class @PressurePlot
 	constructor: ->
 		@element = $('<div id="pressure_plot" style="width: 650px; height: 250px;"></div>')
@@ -218,8 +178,6 @@ class @Dashboard
 		@latest_log.dom_element.appendTo @element
 		# Insert temperature dashboard element.
 		@dashboardelements.push new TemperatureFAADashboardElement()
-		@dashboardelements.push new TemperatureFAAStageDashboardElement()
-		@dashboardelements.push new TemperatureGGGStageDashboardElement()
 		@dashboardelements.push new Temperature3KDashboardElement()
 		@dashboardelements.push new Temperature50KDashboardElement()
 		@dashboardelements.push new PressureDashboardElement()
@@ -315,46 +273,6 @@ class @TemperatureFAADashboardElement extends DashboardElement
 
 	update: ->
 		pycon.transaction { action: "sensor", arguments: { sensor: "FAA_temperature" } }, (r) =>
-			# Now try to format the number appropriately. Support mK and K as units.
-			if r.data.error?
-				@state_ok = no
-			else
-				@state_ok = yes
-				if r.data.temperature < 1
-					@value = (r.data.temperature*1000).toPrecision(3) + " mK"
-				else
-					@value = (r.data.temperature).toPrecision(3) + " K"
-			@render()
-
-class @TemperatureFAAStageDashboardElement extends DashboardElement
-	constructor: ->
-		super()
-		@symbol = "T<sub>0.4K</sub>"
-		@element.addClass('h2o')
-		@value 	= "U"
-
-	update: ->
-		pycon.transaction { action: "sensor", arguments: { sensor: "FAA_stage_temperature" } }, (r) =>
-			# Now try to format the number appropriately. Support mK and K as units.
-			if r.data.error?
-				@state_ok = no
-			else
-				@state_ok = yes
-				if r.data.temperature < 1
-					@value = (r.data.temperature*1000).toPrecision(3) + " mK"
-				else
-					@value = (r.data.temperature).toPrecision(3) + " K"
-			@render()
-
-class @TemperatureGGGStageDashboardElement extends DashboardElement
-	constructor: ->
-		super()
-		@symbol = "T<sub>1K</sub>"
-		@element.addClass('h2o')
-		@value 	= "U"
-
-	update: ->
-		pycon.transaction { action: "sensor", arguments: { sensor: "GGG_stage_temperature" } }, (r) =>
 			# Now try to format the number appropriately. Support mK and K as units.
 			if r.data.error?
 				@state_ok = no

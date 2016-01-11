@@ -69,8 +69,6 @@ class CryoManager(object):
 			'pulse_tube_second_stage': 	PulseTubeSecondStageTemperatureSensor(),
 			'pressure':  			GenericPressureSensor(1),
 			'FAA_temperature': 		FAATemperatureSensor(),
-			'FAA_stage_temperature':	FAAStageTemperatureSensor(),
-			'GGG_stage_temperature':	GGGStageTemperatureSensor(),
 			'magnet_current':		MagnetCurrentSensor(),
 			'magnet_back_emf':		MagnetBackEmfSensor(),
 			'compressor':			CompressorSensor(),

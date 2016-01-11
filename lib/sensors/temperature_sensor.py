@@ -64,13 +64,13 @@ class RuOxTemperatureSensorConduit(GenericDataConduit):
 		try:
 			self.serial_connection.write("disconnect\r")
 			# First, connect to the octal multiplexer and set the channel.
-			self.serial_connection.write("CONN 6, 'disconnect'\r")
-			self.serial_connection.write("CHAN %d\r" % self.SIM925_port)
+			#self.serial_connection.write("CONN 6, 'disconnect'\r")
+			#self.serial_connection.write("CHAN %d\r" % self.SIM925_port)
 			# The channel switching time is 50 ms. Delay to ensure correct switch.
 			# The AC resistance bridge needs 3 seconds to stabilize
-			time.sleep(3)
+			#time.sleep(3)
 			# Now disconnect from the mux and connect to the bridge reader.
-			self.serial_connection.write("disconnect\r")
+			#self.serial_connection.write("disconnect\r")
 			self.serial_connection.write("CONN 1, 'disconnect'\r")
 			# Clear out the buffer.
 			self.serial_connection.read(2000)
@@ -156,24 +156,3 @@ class MagnetRuOxTemperatureSensor(GenericCryoDataModel):
 		
 		GenericCryoDataModel.__init__(self, self.name)
 
-
-class GGGStageTemperatureSensor(GenericCryoDataModel):
-	def __init__(self): 
-		self.name 			= "1 Kelvin Stage  Temperature (RuOx)" 
-		self.database_name 	= "GGG_stage_temperature"
-		# The interface number comes from the HPD operating manual, page 45.
-		self.conduit 		= RuOxTemperatureSensorConduit(6)
-		self.units 			= self.conduit.units
-		
-		GenericCryoDataModel.__init__(self, self.name)
-
-
-class FAAStageTemperatureSensor(GenericCryoDataModel):
-	def __init__(self): 
-		self.name 			= "0.4 Kelvin Stage  Temperature (RuOx)" 
-		self.database_name 	= "FAA_stage_temperature"
-		# The interface number comes from the HPD operating manual, page 45.
-		self.conduit 		= RuOxTemperatureSensorConduit(7)
-		self.units 			= self.conduit.units
-		
-		GenericCryoDataModel.__init__(self, self.name)
