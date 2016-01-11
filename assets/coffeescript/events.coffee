@@ -21,3 +21,4 @@ window.jevent = ( eventName, eventAction = null ) ->
 		# Otherwise, we'll have to create the list.
 		else 
 			window.jevents[eventName] = [ eventAction ]
+

@@ -77,3 +77,4 @@ class @PyAPI
 		# Send out the actual data, and wait for the response! (actually this is 
 		# asynchronous so we don't wait)
 		@socket.send( JSON.stringify { data: message, transaction_id: transaction_id } )
+

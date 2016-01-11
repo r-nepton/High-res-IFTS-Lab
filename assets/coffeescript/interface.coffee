@@ -109,3 +109,4 @@ class @UIToggleSlider
 
 	get_state: ->
 		@state
+

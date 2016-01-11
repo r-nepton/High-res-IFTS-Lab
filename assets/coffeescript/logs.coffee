@@ -126,3 +126,4 @@ class @LogElement
 	render: ->
 		@dom_message.html @message
 		@dom_timestamp.html @format_time()
+

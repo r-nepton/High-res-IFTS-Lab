@@ -36,6 +36,9 @@ RESPONSE 	= 1
 # will interface with measurement devices.
 class JHandler(tornado.websocket.WebSocketHandler):
 	def open(self):
+		print(type(self.request))
+		print(self.request)
+		print(self.request.remote_ip)
 		pass
 
 	def on_message(self, message):

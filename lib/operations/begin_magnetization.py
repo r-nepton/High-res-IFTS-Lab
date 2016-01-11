@@ -85,11 +85,12 @@ class BeginMagnetizationOperation(GenericOperation):
 		current_output = self.PID_instance.get_manual_output()
 		print "the current manual output is %s" % current_output
 
+		# &&& This check no longer makes sense, it is possible for the previous PID output to be negative
 		# Double-check to make sure the manual output value is not negative (which is nonsensical)
-		if current_output < 0:
-			print "The manual output value is negative, which is nonsensical. Halting operation."
-			self.finished = True
-			return
+		#if current_output < 0:
+		#	print "The manual output value is negative, which is nonsensical. Halting operation."
+		#	self.finished = True
+		#	return
 
 
 		# A good rampdown rate is 5 mV per second.
@@ -102,7 +103,7 @@ class BeginMagnetizationOperation(GenericOperation):
 			self.PID_instance.set_manual_output_voltage( current_output )
 			print "Magnet back EMF is too high, waiting for decrease"
 		# If within range of 0
-		elif current_output - step < 0:
+		elif abs(current_output) - step < 0:
 			# Wrap everything up:
 			self.PID_instance.set_manual_output_voltage( 0 )
 			# Engage the magnetization cycle switch.
@@ -111,5 +112,9 @@ class BeginMagnetizationOperation(GenericOperation):
 			# The operation completed without errors.
 			self.success = True
 		else: 
-			# Ramp down the output voltage.
-			self.PID_instance.set_manual_output_voltage( current_output - step )
+			if current_output < 0:
+				#Ramp up the output voltage.
+				self.PID_instance.set_manual_output_voltage( current_output + step )
+			else:
+				# Ramp down the output voltage.
+				self.PID_instance.set_manual_output_voltage( current_output - step )

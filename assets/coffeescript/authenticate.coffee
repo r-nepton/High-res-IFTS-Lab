@@ -39,3 +39,4 @@ class AuthenticationController
 	begin: (callback) ->
 		@show()
 		@callback = callback
+
