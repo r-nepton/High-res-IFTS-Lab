@@ -20,7 +20,9 @@ the coffeescript into javascript.
 
 Once everything is installed (the internet has plenty of tutorials), use the command (from the root directory) 
 
- coffee -wc --join ./assets/web.js ./assets/coffeescript/
+ cat ./assets/coffeescript/*.coffee | coffee -wcs > ./assets/web.js
+
+Each coffeescript file in ./assets/coffeescript/ should end with a blank line for the cat command to function as expected.
 
 ## Running the software ##
 
