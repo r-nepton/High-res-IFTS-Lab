@@ -351,11 +351,11 @@ class @MagnetCurrentDashboardElement extends DashboardElement
 				@state_ok = no
 			else
 				@state_ok = yes
-				if r.data.current < 0.001
+				if r.data.current < 0.001 and r.data.current > -0.001
 					@value = "#{(r.data.current*1000).toFixed(2)} mA"
-				else if r.data.current < 0.1
+				else if r.data.current < 0.1 and r.data.current > -0.1
 					@value = "#{(r.data.current*1000).toFixed(1)} mA"
-				else if r.data.current < 1
+				else if r.data.current < 1 and r.data.current > -1
 					@value = "#{r.data.current.toFixed(2)} A"
 				else 
 					@value = "#{r.data.current.toFixed(1)} A"
@@ -376,11 +376,11 @@ class @MagnetBackEmfDashboardElement extends DashboardElement
 				@state_ok = no
 			else
 				@state_ok = yes
-				if r.data.voltage < 0.001
+				if r.data.voltage < 0.001 and r.data.voltage > -0.001
 					@value = "#{(r.data.voltage*1000).toFixed(2)} mV"
-				else if r.data.voltage < 0.1
+				else if r.data.voltage < 0.1 and r.data.voltage > -0.1
 					@value = "#{(r.data.voltage*1000).toFixed(1)} mV"
-				else if r.data.voltage < 1
+				else if r.data.voltage < 1 and r.data.voltage > -1
 					@value = "#{r.data.voltage.toFixed(2)} V"
 				else
 					@value = "#{r.data.voltage.toFixed(1)} V"

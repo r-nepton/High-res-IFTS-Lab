@@ -32,7 +32,7 @@ class CryoManager(object):
 
 		# Cycle settings
 		self.magnetization_hold_current = 18 # Amps
-		self.magnetization_hold_time = 4*3600 # seconds
+		self.magnetization_hold_time = 3600 # seconds
 		self.ramp_up_time = 3600 # seconds
 		self.ramp_down_time = 3600 # seconds
 		self.regulation_temperature  = 0.10 #  Kelvin

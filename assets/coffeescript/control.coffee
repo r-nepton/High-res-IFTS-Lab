@@ -36,7 +36,7 @@ class @ControlController
 				</div>
 
 				<div class='horizontal-field'>
-					<div class='field cycle-time'><input type=text /><span class='units'>hours  </span></div>
+					<div class='field cycle-time'><input type=text /><span class='units'>minutes</span></div>
 					<span>hold time</span>
 				</div>
 
@@ -117,7 +117,7 @@ class @ControlController
 
 	update_cycle_parameters: ->
 		pycon.transaction { action: 'cycle_settings' }, (r) =>
-			@set_cycle_time r.hold_time/3600 #Display time in hours
+			@set_cycle_time r.hold_time/60 #Display time in minutes
 			@set_cycle_current r.hold_current
 			@set_ramp_up_time r.ramp_up_time/60 #Display time in minutes
 			@set_ramp_down_time r.ramp_down_time/60 #Display time in minutes
@@ -162,22 +162,26 @@ class @ControlController
 
 	cycle_save: ->
 		authentication_controller.begin (password) =>
-			#Until back emf can be monitored, restrict ramp up time to more then 20 minutes
+
 			ramp_up_time = @get_ramp_up_time()*60 # need to provide it in seconds
-			if ramp_up_time < 20*60
-				ramp_up_time = 20*60			
+			hold_current = @get_cycle_current()
+			hold_time = @get_cycle_time()*60 # need to provide it in seconds
+			ramp_down_time = @get_ramp_down_time()*60 # need to provide it in seconds
+
+			# SANITY CHECKS
+			#Maximum ramp up rate of 0.01 A/s
+			if hold_current/ramp_up_time > 0.01
+				#Ceiling keeps the ramp up time as an integer number of minutes
+				ramp_up_time = Math.ceil(hold_current/(60*0.01))*60			
 
 			#Magnet current must be kept below 18amps
-			hold_current = @get_cycle_current()
 			if hold_current > 18
 				hold_current = 18
 
-			hold_time = @get_cycle_time()*3600 # need to provide it in seconds.
-
-			#Until back emf can be monitored, restrict ramp down time to more then 20 minutes
-			ramp_down_time = @get_ramp_down_time()*60 # need to provide it in seconds
-			if ramp_down_time < 20*60
-				ramp_down_time = 20*60
+			#Maximum ramp down rate of 0.01 A/s
+			if hold_current/ramp_down_time > 0.01
+				#Ceiling keeps the ramp down time as an integer number of minutes
+				ramp_down_time = Math.ceil(hold_current/(60*0.01))*60
 
 			pycon.transaction { action: 'cycle_settings', arguments: { password: password, ramp_up_time: ramp_up_time, hold_time: hold_time, hold_current: hold_current, ramp_down_time: ramp_down_time } }, (r) =>
 				@update_cycle_parameters()

@@ -139,7 +139,7 @@
     function ControlController(dom_element) {
       this.dom_element = dom_element;
       $('.log').append(this.dom_element);
-      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>settings</h1>\n	<div class='horizontal-field'>\n		<div class='field log-data'><div class='slider'></div></div>\n		<span>log data?</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='menubutton close-heatswitch' style=\"background-color: rgb(250, 42, 0); color: white;\">close</div>\n		<div class='menubutton open-heatswitch' style=\" background-color: rgb(170,185,93); color: white;\">open</div>\n		<span>heat switch</span>\n	</div>\n\n	<div class='menubutton emergency-stop' style=\"background-color: black; color: white;\">emergency stop</div>\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>cycle</h1>\n\n	<div class='horizontal-field'>\n		<div class='field rampup-time'><input type=text /><span class='units'>minutes</span></div>\n		<span>ramp-up time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field cycle-current'><input type=text /><span class='units'>amps</span></div>\n		<span>hold current</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field cycle-time'><input type=text /><span class='units'>hours  </span></div>\n		<span>hold time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field rampdown-time'><input type=text /><span class='units'>minutes</span></div>\n		<span>ramp-down time</span>\n	</div>\n\n	<div class='menubutton cycle-save' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton cycle-begin' style=\" background-color: rgb(250, 42, 0); color: white;\">cycle</div>\n	\n\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>regulation</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><input type=text /><span class='units'>mK</span></div>\n		<span>regulation temperature</span>\n	</div>\n	<div class='menubutton regulate-save' style=\"background-color: black; color: white;\">save</div>\n	<div class=\"buttonspacer\"></div>\n</div>");
+      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>settings</h1>\n	<div class='horizontal-field'>\n		<div class='field log-data'><div class='slider'></div></div>\n		<span>log data?</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='menubutton close-heatswitch' style=\"background-color: rgb(250, 42, 0); color: white;\">close</div>\n		<div class='menubutton open-heatswitch' style=\" background-color: rgb(170,185,93); color: white;\">open</div>\n		<span>heat switch</span>\n	</div>\n\n	<div class='menubutton emergency-stop' style=\"background-color: black; color: white;\">emergency stop</div>\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>cycle</h1>\n\n	<div class='horizontal-field'>\n		<div class='field rampup-time'><input type=text /><span class='units'>minutes</span></div>\n		<span>ramp-up time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field cycle-current'><input type=text /><span class='units'>amps</span></div>\n		<span>hold current</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field cycle-time'><input type=text /><span class='units'>minutes</span></div>\n		<span>hold time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field rampdown-time'><input type=text /><span class='units'>minutes</span></div>\n		<span>ramp-down time</span>\n	</div>\n\n	<div class='menubutton cycle-save' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton cycle-begin' style=\" background-color: rgb(250, 42, 0); color: white;\">cycle</div>\n	\n\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>regulation</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><input type=text /><span class='units'>mK</span></div>\n		<span>regulation temperature</span>\n	</div>\n	<div class='menubutton regulate-save' style=\"background-color: black; color: white;\">save</div>\n	<div class=\"buttonspacer\"></div>\n</div>");
       $('.regulate-save').click((function(_this) {
         return function() {
           return _this.regulate_save();
@@ -255,7 +255,7 @@
         action: 'cycle_settings'
       }, (function(_this) {
         return function(r) {
-          _this.set_cycle_time(r.hold_time / 3600);
+          _this.set_cycle_time(r.hold_time / 60);
           _this.set_cycle_current(r.hold_current);
           _this.set_ramp_up_time(r.ramp_up_time / 60);
           _this.set_ramp_down_time(r.ramp_down_time / 60);
@@ -328,17 +328,17 @@
         return function(password) {
           var hold_current, hold_time, ramp_down_time, ramp_up_time;
           ramp_up_time = _this.get_ramp_up_time() * 60;
-          if (ramp_up_time < 20 * 60) {
-            ramp_up_time = 20 * 60;
-          }
           hold_current = _this.get_cycle_current();
+          hold_time = _this.get_cycle_time() * 60;
+          ramp_down_time = _this.get_ramp_down_time() * 60;
+          if (hold_current / ramp_up_time > 0.01) {
+            ramp_up_time = Math.ceil(hold_current / (60 * 0.01)) * 60;
+          }
           if (hold_current > 18) {
             hold_current = 18;
           }
-          hold_time = _this.get_cycle_time() * 3600;
-          ramp_down_time = _this.get_ramp_down_time() * 60;
-          if (ramp_down_time < 20 * 60) {
-            ramp_down_time = 20 * 60;
+          if (hold_current / ramp_down_time > 0.01) {
+            ramp_down_time = Math.ceil(hold_current / (60 * 0.01)) * 60;
           }
           return pycon.transaction({
             action: 'cycle_settings',
@@ -1057,11 +1057,11 @@
             _this.state_ok = false;
           } else {
             _this.state_ok = true;
-            if (r.data.current < 0.001) {
+            if (r.data.current < 0.001 && r.data.current > -0.001) {
               _this.value = ((r.data.current * 1000).toFixed(2)) + " mA";
-            } else if (r.data.current < 0.1) {
+            } else if (r.data.current < 0.1 && r.data.current > -0.1) {
               _this.value = ((r.data.current * 1000).toFixed(1)) + " mA";
-            } else if (r.data.current < 1) {
+            } else if (r.data.current < 1 && r.data.current > -1) {
               _this.value = (r.data.current.toFixed(2)) + " A";
             } else {
               _this.value = (r.data.current.toFixed(1)) + " A";
@@ -1098,11 +1098,11 @@
             _this.state_ok = false;
           } else {
             _this.state_ok = true;
-            if (r.data.voltage < 0.001) {
+            if (r.data.voltage < 0.001 && r.data.voltage > -0.001) {
               _this.value = ((r.data.voltage * 1000).toFixed(2)) + " mV";
-            } else if (r.data.voltage < 0.1) {
+            } else if (r.data.voltage < 0.1 && r.data.voltage > -0.1) {
               _this.value = ((r.data.voltage * 1000).toFixed(1)) + " mV";
-            } else if (r.data.voltage < 1) {
+            } else if (r.data.voltage < 1 && r.data.voltage > -1) {
               _this.value = (r.data.voltage.toFixed(2)) + " V";
             } else {
               _this.value = (r.data.voltage.toFixed(1)) + " V";
