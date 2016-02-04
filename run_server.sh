@@ -12,8 +12,8 @@ while [ "$1" != "" ]; do
 	shift
 done
 
-echo "Killing screens..."
-sudo killall screen
+echo "Killing screen..."
+sudo screen -S cryoserver -X quit
 
 if [ "$remove_database" -eq 1 ]; then
 	echo "Removing database..."
