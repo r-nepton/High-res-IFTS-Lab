@@ -38,9 +38,13 @@ class JHandler(tornado.websocket.WebSocketHandler):
         #Tracks the number of connection attempts to cryo-server
 	connection = 0
 
+	# TEMPORARY FIX AGAINST ERRNO 24: TOO MANY OPEN FILES
 	def open(self):
                 JHandler.connection += 1
-		print "%s connecting to cryo-server. Connection #%d" % (self.request.remote_ip, JHandler.connection)
+		#print "%s connecting to cryo-server. Connection #%d" % (self.request.remote_ip, JHandler.connection)
+		if JHandler.connection > 100:
+			self.close()			
+			JHandler.connection = 0
 		pass
 
 	def on_message(self, message):
