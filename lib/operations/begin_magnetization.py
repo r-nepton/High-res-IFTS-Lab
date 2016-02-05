@@ -105,7 +105,7 @@ class BeginMagnetizationOperation(GenericOperation):
 		# If within range of 0
 		elif abs(current_output) - step < 0:
 			# Wrap everything up:
-			self.PID_instance.set_manual_output_voltage( 0 )
+			self.PID_instance.set_manual_output_voltage( 0.005 ) # Set manual output to just above zero, will ensure current is positive when beginning ramp up
 			# Engage the magnetization cycle switch.
 			self.breakout_board.switch_to_magnetization_cycle()
 			self.finished = True
