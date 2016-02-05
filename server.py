@@ -43,8 +43,11 @@ class JHandler(tornado.websocket.WebSocketHandler):
                 JHandler.connection += 1
 		#print "%s connecting to cryo-server. Connection #%d" % (self.request.remote_ip, JHandler.connection)
 		if JHandler.connection > 100:
-			self.close()			
-			JHandler.connection = 0
+			try:
+				self.close()			
+				JHandler.connection = 0
+			except Exception:
+				pass
 		pass
 
 	def on_message(self, message):
