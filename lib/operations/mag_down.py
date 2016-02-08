@@ -100,6 +100,8 @@ class MagDownOperation(GenericOperation):
 
 		# Make sure that we're below the final current.
 		if current['current'] <= self.final_current or self.expected_output_current < self.final_current:
+			#Manually set output to 0 (should help bring current below 20mA)
+			self.PID_interface.set_manual_output_voltage( 0.0 )
 			self.finished 	= True
 			self.success 	= True
 			self.print_log("Current has reached target current. Finished demagnetization.")

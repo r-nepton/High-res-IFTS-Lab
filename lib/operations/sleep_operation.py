@@ -5,6 +5,11 @@ class SleepOperation(GenericOperation):
 	def __init__(self, sleep_time):
 		self.finished 	= False
 		super(SleepOperation, self).__init__()
+		self.has_started_message = True
+
+		
+		self.started_message = "Relaxing inductor for %0.1f minutes." % (sleep_time / 60)
+
 		self.sleep_time = sleep_time
 
 	def tick(self, dt):
