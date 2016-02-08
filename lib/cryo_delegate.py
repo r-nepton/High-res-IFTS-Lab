@@ -135,6 +135,17 @@ class CryoManager(object):
 			else:
 				self.print_log("Incorrect password issued for emergency stop.")
 
+	# This function is called in order to immediately stop all operations and ramp down current.
+	def emergency_shutdown(self, arguments):
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				self.print_log("Emergency shutdown issued.")
+				self.user_log_writer.write_log("Emergency shutdown issued.")
+				self.operations = []
+				self.operations.append( EmergencyShutdown(self.PID_controller) )
+			else:
+				self.print_log("Incorrect password issued for emergency shutdown.")
+
 	# This function is called to open the heatswitch.
 	def open_heatswitch(self, arguments):
 		if 'password' in arguments:
@@ -235,8 +246,8 @@ class CryoManager(object):
 				self.operations.append( MagnetizationHoldOperation( hold_time ))
 				# Now we need to demagnetize
 				self.operations.append( MagDownOperation( ramp_down_time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
-				# Now we need to wait 5 minutes to let the inductor relax
-				self.operations.append( InductorRelaxOperation( 300 ) )
+				# Now we need to wait 8 minutes to let the inductor relax
+				self.operations.append( InductorRelaxOperation( 480 ) )
 				# Finally, begin regulation.
 				self.operations.append( BeginRegulationOperation( regulation_temperature, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
 			else:

@@ -13,14 +13,22 @@ class @ControlController
 				</div>
 
 				<div class='horizontal-field'>
+					<div class='menubutton emergency-shutdown' style="background-color: red; color: white;"><span>E-shutdown</span></div>
+					<div class='menubutton emergency-stp' style="background-color: black; color: white;"><span>E-stop</span></div>
+					<span>emergency</span>
+				</div>
+			</div>
+
+
+			<div class='regionbox'>
+				<h1 class='regiontitle'>manual control</h1>
+				<div class='horizontal-field'>
 					<div class='menubutton close-heatswitch' style="background-color: rgb(250, 42, 0); color: white;">close</div>
 					<div class='menubutton open-heatswitch' style=" background-color: rgb(170,185,93); color: white;">open</div>
 					<span>heat switch</span>
 				</div>
-
-				<div class='menubutton emergency-stop' style="background-color: black; color: white;">emergency stop</div>
-				<div class="buttonspacer"></div>
 			</div>
+
 
 			<div class='regionbox'>
 				<h1 class='regiontitle'>cycle</h1>
@@ -61,6 +69,15 @@ class @ControlController
 				<div class='menubutton regulate-save' style="background-color: black; color: white;">save</div>
 				<div class="buttonspacer"></div>
 			</div>
+
+			<div class='regionbox'>
+				<h1 class='regiontitle'>manual control</h1>
+				<div class='horizontal-field'>
+					<div class='menubutton close-heatswitch' style="background-color: rgb(250, 42, 0); color: white;">close</div>
+					<div class='menubutton open-heatswitch' style=" background-color: rgb(170,185,93); color: white;">open</div>
+					<span>heat switch</span>
+				</div>
+			</div>
 		"""
 		# Now setup callbacks for all of the various buttons.
 		$('.regulate-save').click =>
@@ -72,8 +89,11 @@ class @ControlController
 		$('.cycle-begin').click =>
 			@cycle_begin()
 
-		$('.emergency-stop').click =>
-			@emergency_stop()
+		$('.emergency-stp').click =>
+			@emergency_stp()
+
+		$('.emergency-shutdown').click =>
+			@emergency_shutdown()
 
 		$('.open-heatswitch').click =>
 			@open_heatswitch()
@@ -93,9 +113,13 @@ class @ControlController
 		 	@update_cycle_parameters()
 		 , 30000
 
-	emergency_stop: (state) ->
+	emergency_stp: (state) ->
 		authentication_controller.begin (password) =>
 			pycon.transaction { action: 'emergency_stop', arguments: { password: password } }
+
+	emergency_shutdown: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'emergency_shutdown', arguments: { password: password } }
 
 	set_log_data: (state) ->
 		authentication_controller.begin (password) =>
