@@ -5,10 +5,6 @@ class SleepOperation(GenericOperation):
 	def __init__(self, sleep_time):
 		self.finished 	= False
 		super(SleepOperation, self).__init__()
-		self.has_started_message = True
-
-		
-		self.started_message = "Relaxing inductor for %0.1f minutes." % (sleep_time / 60)
 
 		self.sleep_time = sleep_time
 
@@ -29,3 +25,11 @@ class MagnetizationHoldOperation(SleepOperation):
 
 		self.has_started_message = True
 		self.started_message = "Magnetization soak (%0.2f hours) started." % (sleep_time / 3600)
+
+class InductorRelaxOperation(SleepOperation):
+	def __init__(self, sleep_time):
+		super(InductorRelaxOperation, self).__init__(sleep_time)
+
+		self.has_started_message = True
+		self.started_message = "Relaxing inductor (%0.02f minutes)." % (sleep_time / 60)
+

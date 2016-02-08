@@ -83,7 +83,7 @@ class BeginMagnetizationOperation(GenericOperation):
 
 		# Now we'll ramp down the manual PID output to zero.
 		current_output = self.PID_instance.get_manual_output()
-		print "the current manual output is %s" % current_output
+		print "The current manual output is %s V" % current_output
 
 		# &&& This check no longer makes sense, it is possible for the previous PID output to be negative
 		# Double-check to make sure the manual output value is not negative (which is nonsensical)
