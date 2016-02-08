@@ -5,6 +5,7 @@ import time
 import inspect
 import json, subprocess, os, sys
 import threading, Queue
+import datetime
 
 # It is helpful to change directories to the current directory of the
 # script. That way, we can access relative file paths properly.
@@ -35,22 +36,26 @@ RESPONSE 	= 1
 # it will behave as a wrapper to another thing that
 # will interface with measurement devices.
 class JHandler(tornado.websocket.WebSocketHandler):
-        #Tracks the number of connection attempts to cryo-server
-	connection = 0
+        # DEBUGGING: Tracks the number of open connections to cryo-server
+	#connection = 0
 
-	# TEMPORARY FIX AGAINST ERRNO 24: TOO MANY OPEN FILES
+	# When the handler is opened, set a 1 minute timeout
 	def open(self):
-                JHandler.connection += 1
+		# Add timeout to handler
+		self.timeout = tornado.ioloop.IOLoop.current().add_timeout(datetime.timedelta(minutes=1),self.force_close)
+
+		# DEBUGGING: Update number of connections
+		#JHandler.connection += 1
 		#print "%s connecting to cryo-server. Connection #%d" % (self.request.remote_ip, JHandler.connection)
-		if JHandler.connection > 100:
-			try:
-				self.close()			
-				JHandler.connection = 0
-			except Exception:
-				pass
-		pass
+
 
 	def on_message(self, message):
+		# Remove previous timeout if one exists
+		if self.timeout:
+			tornado.ioloop.IOLoop.current().remove_timeout(self.timeout)
+		# Update timeout
+		self.timeout = tornado.ioloop.IOLoop.current().add_timeout(datetime.timedelta(minutes=1),self.force_close)
+		
 		data = json.loads( message )
 
 		# The default response: it should be overwritten, or else some
@@ -69,6 +74,7 @@ class JHandler(tornado.websocket.WebSocketHandler):
 				response = actionablerequesthandler.invoke( data['data']['action'],  arguments)
 			else:
 				response = "Invalid action: no action specified";
+				print "kinda worked"
 		else:
 			response = "Invalid transaction: no transaction ID specified"
 
@@ -78,7 +84,15 @@ class JHandler(tornado.websocket.WebSocketHandler):
 		self.write_message( json.dumps ( {'data': response, 'transaction_id': data['transaction_id'] } ) )
 
 	def on_close(self):
-		pass
+		self.timeout = None
+
+		# DEBUGGING: Update number of connections
+		#JHandler.connection -= 1
+	
+	# Called on IOLoop timeout
+	def force_close(self):
+		self.timeout = None
+		self.close()
 
 # The JActionableRequestHandler class basically completes actions that the browser
 # asks of it. It should be spoken to through the "invoke" function, which basically
