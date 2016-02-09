@@ -42,13 +42,22 @@ class MagDownOperation(GenericOperation):
 			self.print_log("The current cannot be read, indicating an error. Terminating MagDown operation.")
 			return
 
-		# Make sure that we're below the final current.
+		# Check to see if we're below the final current.
 		if current['current'] < self.final_current:
 			self.finished = True
 			self.print_log("The current is already below the specified current.")
 
 		# Now, let's open the heat switch.
 		self.breakout_board.open_heat_switch()
+
+		# The mag down operation can now be called manually, which may include being called
+		# while regulating.  In order to prevent jumps during the switch, we'll copy the
+		# current PID output to manual mode before switching
+		if self.PID_interface.is_in_PID_mode():
+			self.PID_interface.copy_pid_output_to_manual_output()
+
+		# Set the PID controller to manual mode.
+		self.PID_interface.set_manual_mode()
 
 		voltage = self.PID_interface.get_manual_output()
 		self.expected_output_current = self.PID_interface.voltage_current_model( voltage )
@@ -57,8 +66,6 @@ class MagDownOperation(GenericOperation):
 		# is to establish the target rate of ramping.
 		self.ramping_rate = abs( (self.final_current - self.expected_output_current) / ( self.mag_down_time ) )
 
-		# Set the PID controller to manual mode.
-		self.PID_interface.set_manual_mode()
 
 	def ended(self):
 		pass
