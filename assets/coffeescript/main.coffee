@@ -40,7 +40,7 @@ window.connection_ready = ->
 	window.graphs_button = new GraphsMenuButton()
 	window.log_button = new LogMenuButton()
 	window.control_button = new ControlMenuButton()
-	#window.log_button = new ReportMenuButton()
+	#window.report_button = new ReportMenuButton()
 	# Create the dashboard elements.
 	window.dashboard = new Dashboard()
 	# Create the graphs.

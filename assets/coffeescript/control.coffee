@@ -9,7 +9,7 @@ class @ControlController
 				<h1 class='regiontitle'>settings</h1>
 				<div class='horizontal-field'>
 					<div class='field log-data'><div class='slider'></div></div>
-					<span>log data?</span>
+					<span>log data</span>
 				</div>
 
 				<div class='horizontal-field'>
@@ -44,7 +44,7 @@ class @ControlController
 				</div>
 
 				<div class='menubutton cycle-save' style="background-color: black; color: white;">save</div>
-				<div class='menubutton cycle-begin' style=" background-color: rgb(250, 42, 0); color: white;">start</div>
+				<div class='menubutton cycle-begin' style=" background-color: rgb(170, 185, 93); color: white;">start</div>
 				
 
 				<div class="buttonspacer"></div>

@@ -72,7 +72,7 @@ class GenericCryoDataModel(object):
 			self.units = "count"
 		
 		# By default, don't record data.
-		self.record_data = False
+		self.record_data = True
 		# The latest data goes here.
 		self.latest_data = None
 

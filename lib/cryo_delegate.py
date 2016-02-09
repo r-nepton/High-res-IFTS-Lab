@@ -28,7 +28,7 @@ class CryoManager(object):
 		self.wakethread = WakeThread(self.stop_wake_thread, self)
 		self.wakethread.start()
 		self.password = True
-		self.log_data = False # By default, the system starts up in a state where it does log data.
+		self.log_data = True # By default, the system starts up in a state where it does log data.
 
 		# Cycle settings
 		self.magnetization_hold_current = 10 # Amps
@@ -197,7 +197,7 @@ class CryoManager(object):
 						if self.PID_controller.is_in_PID_mode():
 							if len(self.operations) == 0:
 								self.print_log("Starting operation to change regulation setpoint.")
-								print "operations = %s" % self.operations
+								#print "operations = %s" % self.operations
 								try:
 									self.operations.append( ChangeRegulationOperation( self.regulation_temperature, self.PID_controller) )
 								except Exception as e:
