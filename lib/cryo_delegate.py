@@ -263,14 +263,9 @@ class CryoManager(object):
 			if arguments['password'] == self.password:
 				self.print_log( "Manual mag-down started." )
 				ramp_down_time = self.ramp_down_time # seconds
-				regulation_temperature = self.regulation_temperature #seconds
 
 				# We need to demagnetize
 				self.operations.append( MagDownOperation( ramp_down_time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
-				# Now we need to wait 8 minutes to let the inductor relax
-				self.operations.append( InductorRelaxOperation( 480 ) )
-				# Finally, begin regulation.
-				self.operations.append( BeginRegulationOperation( regulation_temperature, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
 			else:
 				self.print_log( "Attempted to start manual mag-down with incorrect password." )
 		else:
