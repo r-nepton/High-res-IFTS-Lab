@@ -21,16 +21,6 @@ class @ControlController
 
 
 			<div class='regionbox'>
-				<h1 class='regiontitle'>manual control</h1>
-				<div class='horizontal-field'>
-					<div class='menubutton close-heatswitch' style="background-color: rgb(250, 42, 0); color: white;">close</div>
-					<div class='menubutton open-heatswitch' style=" background-color: rgb(170,185,93); color: white;">open</div>
-					<span>heat switch</span>
-				</div>
-			</div>
-
-
-			<div class='regionbox'>
 				<h1 class='regiontitle'>cycle</h1>
 
 				<div class='horizontal-field'>
@@ -54,7 +44,7 @@ class @ControlController
 				</div>
 
 				<div class='menubutton cycle-save' style="background-color: black; color: white;">save</div>
-				<div class='menubutton cycle-begin' style=" background-color: rgb(250, 42, 0); color: white;">cycle</div>
+				<div class='menubutton cycle-begin' style=" background-color: rgb(250, 42, 0); color: white;">start</div>
 				
 
 				<div class="buttonspacer"></div>
@@ -76,6 +66,12 @@ class @ControlController
 					<div class='menubutton close-heatswitch' style="background-color: rgb(250, 42, 0); color: white;">close</div>
 					<div class='menubutton open-heatswitch' style=" background-color: rgb(170,185,93); color: white;">open</div>
 					<span>heat switch</span>
+				</div>
+
+				<div class='horizontal-field'>
+					<div class='menubutton manual-regulate' style="background-color: red; color: white;"><span>regulate</span></div>
+					<div class='menubutton manual-magdown' style="background-color: black; color: white;"><span>mag-down</span></div>
+					<span>cycle</span>
 				</div>
 			</div>
 		"""
@@ -100,6 +96,12 @@ class @ControlController
 
 		$('.close-heatswitch').click =>
 			@close_heatswitch()
+
+		$('.manual-magdown').click =>
+			@manual_magdown()
+		
+		$('.manual-regulate').click =>
+			@manual_regulate()
 
 
 		@log_data_slider = new UIToggleSlider @dom_element.find('.slider'), (state) =>
@@ -133,6 +135,14 @@ class @ControlController
 	close_heatswitch: (state) ->
 		authentication_controller.begin (password) =>
 			pycon.transaction { action: 'close_heatswitch', arguments: { password: password } }
+	
+	manual_magdown: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'manual_magdown', arguments: { password: password } }
+
+	manual_regulate: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'manual_regulate', arguments: { password: password } }
 
 	# This function queries for the current log data state.
 	update_log_data_state: -> 

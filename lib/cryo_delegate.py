@@ -31,11 +31,11 @@ class CryoManager(object):
 		self.log_data = False # By default, the system starts up in a state where it does log data.
 
 		# Cycle settings
-		self.magnetization_hold_current = 18 # Amps
-		self.magnetization_hold_time = 3600 # seconds
-		self.ramp_up_time = 3600 # seconds
-		self.ramp_down_time = 3600 # seconds
-		self.regulation_temperature  = 0.10 #  Kelvin
+		self.magnetization_hold_current = 10 # Amps
+		self.magnetization_hold_time = 1200 # seconds
+		self.ramp_up_time = 1200 # seconds
+		self.ramp_down_time = 1200 # seconds
+		self.regulation_temperature  = 0.25 #  Kelvin
 
 	# This function is used to call a function on itself based
 	# upon a string argument.
@@ -254,6 +254,44 @@ class CryoManager(object):
 				self.print_log( "Attempted to start magnetization cycle with incorrect password." )
 		else:
 			self.print_log( "Attempted to start magnetization cycle with no password." )
+
+	# This function begins a manual mag-down cycle. Ideally used if the cryo-server
+	# fails while performing a regular magnetization cycle with current still in the coil
+	def manual_magdown(self, arguments):
+		# The user needs to authenticate first.
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				self.print_log( "Manual mag-down started." )
+				ramp_down_time = self.ramp_down_time # seconds
+				regulation_temperature = self.regulation_temperature #seconds
+
+				# We need to demagnetize
+				self.operations.append( MagDownOperation( ramp_down_time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
+				# Now we need to wait 8 minutes to let the inductor relax
+				self.operations.append( InductorRelaxOperation( 480 ) )
+				# Finally, begin regulation.
+				self.operations.append( BeginRegulationOperation( regulation_temperature, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
+			else:
+				self.print_log( "Attempted to start manual mag-down with incorrect password." )
+		else:
+			self.print_log( "Attempted to start manual mag-down with no password." )
+
+	# This function manually starts regulation mode. Ideally used if the cryo-server
+	# fails while starting to regulate, with the stage temperature below the setpoint
+	def manual_regulate(self, arguments):
+		# The user needs to authenticate first.
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				self.print_log( "Manual regulate started." )
+				regulation_temperature = self.regulation_temperature #seconds
+
+				# Begin regulation.
+				self.operations.append( BeginRegulationOperation( regulation_temperature, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
+			else:
+				self.print_log( "Attempted to start manual regulate with incorrect password." )
+		else:
+			self.print_log( "Attempted to start manual regulate with no password." )
+
 	# This function is called every one second, and is used to step the current
 	# process. A process is a class, which describes a long time-scale operation.
 	def step(self, arguments):
