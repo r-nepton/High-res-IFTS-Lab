@@ -135,16 +135,17 @@ actionablerequesthandler = JActionableRequestHandler()
 # This static file handler override class is used
 # to force caching to be turned off for all static
 # files, which is a debugging measure.
-class DebugStaticFileHandler(tornado.web.StaticFileHandler):
-	def set_extra_headers(self, path):
+#class DebugStaticFileHandler(tornado.web.StaticFileHandler):
+#	def set_extra_headers(self, path):
 		# This is necessary to prevent Chrome from caching everything. Can be safely
 		# removed when debugging is over.
-		self.set_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+#		self.set_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
 
 application = tornado.web.Application( [
 	(r"/json", JHandler),
-	(r"/()", DebugStaticFileHandler, {'path': 'assets/web.html'} ),
-	(r"/(.*)", DebugStaticFileHandler, {'path': 'assets/'}),
+	(r"/()", tornado.web.StaticFileHandler, {'path': 'assets/web.html'} ),
+	(r"/(.*)", tornado.web.StaticFileHandler, {'path': 'assets/'}),
+	(r'/(favicon\.ico)',tornado.web.StaticFileHandler, {'path': 'assets/favicon.ico'}),
 ])
 
 try:
