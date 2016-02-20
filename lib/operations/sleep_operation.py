@@ -24,7 +24,7 @@ class MagnetizationHoldOperation(SleepOperation):
 		super(MagnetizationHoldOperation, self).__init__(sleep_time)
 
 		self.has_started_message = True
-		self.started_message = "Magnetization soak (%0.2f hours) started." % (sleep_time / 3600)
+		self.started_message = "Magnetization soak (%0.02f hours) started." % (sleep_time / 3600)
 
 class InductorRelaxOperation(SleepOperation):
 	def __init__(self, sleep_time):

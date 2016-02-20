@@ -69,7 +69,7 @@ class @ControlController
 				</div>
 
 				<div class='horizontal-field'>
-					<div class='menubutton manual-regulate' style="background-color: red; color: white;"><span>regulate</span></div>
+					<div class='menubutton manual-regulate' style="background-color: rgb(51,102,204); color: white;"><span>regulate</span></div>
 					<div class='menubutton manual-magdown' style="background-color: black; color: white;"><span>mag-down</span></div>
 					<span>cycle</span>
 				</div>

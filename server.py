@@ -36,7 +36,7 @@ RESPONSE 	= 1
 # it will behave as a wrapper to another thing that
 # will interface with measurement devices.
 class JHandler(tornado.websocket.WebSocketHandler):
-        # DEBUGGING: Tracks the number of open connections to cryo-server
+        #  DEBUGGING: Tracks the number of open connections to cryo-server
 	#connection = 0
 
 	# When the handler is opened, set a 1 minute timeout
