@@ -36,6 +36,19 @@ class CryoManager(object):
 		self.ramp_up_time = 1200 # seconds
 		self.ramp_down_time = 1200 # seconds
 		self.regulation_temperature  = 0.25 #  Kelvin
+		self.inductor_relax_time = 480 # seconds
+
+		# Schedule settings
+		self.scheduling = False # By default, the system does not schedule any mag cycles
+		self.sched_run_on_weekend = False # By default, no cycles will run on weekends
+		self.sched_number_days = 5 # Number of days to schedule cyce for
+		self.sched_start_time = 0 # Start time
+		self.sched_magnetization_hold_current = self.magnetization_hold_current # Amps
+		self.sched_magnetization_hold_time = self.magnetization_hold_time # seconds
+		self.sched_ramp_up_time = self.ramp_up_time # seconds
+		self.sched_ramp_down_time = self.ramp_down_time # seconds
+		self.sched_regulation_temperature = self.regulation_temperature # Kelvin
+		self.sched_estimated_time = self.sched_magnetization_hold_time + self.sched_ramp_up_time + self.sched_ramp_down_time + self.inductor_relax_time # seconds
 
 	# This function is used to call a function on itself based
 	# upon a string argument.
@@ -232,8 +245,9 @@ class CryoManager(object):
 				ramp_up_time = self.ramp_up_time # seconds
 				ramp_down_time = self.ramp_down_time # seconds
 				current = self.magnetization_hold_current # amperes (max 18.5)
-				hold_time = self.magnetization_hold_time #seconds
-				regulation_temperature = self.regulation_temperature #seconds
+				hold_time = self.magnetization_hold_time # seconds
+				regulation_temperature = self.regulation_temperature # seconds
+				inductor_relax_time = self.inductor_relax_time # seconds
 
 				# Start by setting up manual mode, switching to mag cycle, etc.
 				self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
@@ -247,7 +261,7 @@ class CryoManager(object):
 				# Now we need to demagnetize
 				self.operations.append( MagDownOperation( ramp_down_time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
 				# Now we need to wait 8 minutes to let the inductor relax
-				self.operations.append( InductorRelaxOperation( 480 ) )
+				self.operations.append( InductorRelaxOperation( inductor_relax_time ) )
 				# Finally, begin regulation.
 				self.operations.append( BeginRegulationOperation( regulation_temperature, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
 			else:

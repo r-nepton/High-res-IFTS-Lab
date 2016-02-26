@@ -31,6 +31,7 @@ class @OverviewMenuButton extends MenuButton
 		$('#dashboard').show()
 		$('.report').hide()
 		$('.control').hide()
+		$('.schedule').hide()
 
 class @GraphsMenuButton extends MenuButton
 	constructor: ->
@@ -46,6 +47,7 @@ class @GraphsMenuButton extends MenuButton
 		$('.logs').hide()
 		$('.report').hide()
 		$('.control').hide()
+		$('.schedule').hide()
 
 class @LogMenuButton extends MenuButton
 	constructor: ->
@@ -59,6 +61,7 @@ class @LogMenuButton extends MenuButton
 		$('.graphs').hide()
 		$('.report').hide()
 		$('.control').hide()
+		$('.schedule').hide()
 
 		window.logs_controller.focus()
 
@@ -74,6 +77,7 @@ class @ReportMenuButton extends MenuButton
 		$('.graphs').hide()
 		$('.report').show()
 		$('.control').hide()
+		$('.schedule').hide()
 
 class @ControlMenuButton extends MenuButton
 	constructor: ->
@@ -86,6 +90,20 @@ class @ControlMenuButton extends MenuButton
 		$('#dashboard').hide()
 		$('.graphs').hide()
 		$('.control').show()
+		$('.schedule').hide()
+
+class @ScheduleMenuButton extends MenuButton
+	constructor: ->
+		@text = "schedule"
+		@background_color = "#FAA700"
+		super()
+
+	action: ->
+		$('.logs').hide()
+		$('#dashboard').hide()
+		$('.graphs').hide()
+		$('.control').hide()
+		$('.schedule').show()
 
 class @UIToggleSlider
 	# The UI slider is a yes/no toggle slider/

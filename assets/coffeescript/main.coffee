@@ -40,6 +40,7 @@ window.connection_ready = ->
 	window.graphs_button = new GraphsMenuButton()
 	window.log_button = new LogMenuButton()
 	window.control_button = new ControlMenuButton()
+	window.schedule_button = new ScheduleMenuButton()
 	#window.report_button = new ReportMenuButton()
 	# Create the dashboard elements.
 	window.dashboard = new Dashboard()
@@ -64,4 +65,7 @@ window.connection_ready = ->
 
 	# Create the control panel.
 	window.control_controller = new ControlController $("<div class='control'></div>").hide()
+
+	# Create the schedule panel
+	window.schedule_controller = new ScheduleController $("<div class='schedule'></div>").hide()
 

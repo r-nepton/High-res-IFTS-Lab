@@ -1254,7 +1254,8 @@
       $('.logs').hide();
       $('#dashboard').show();
       $('.report').hide();
-      return $('.control').hide();
+      $('.control').hide();
+      return $('.schedule').hide();
     };
 
     return OverviewMenuButton;
@@ -1281,7 +1282,8 @@
       $('#dashboard').hide();
       $('.logs').hide();
       $('.report').hide();
-      return $('.control').hide();
+      $('.control').hide();
+      return $('.schedule').hide();
     };
 
     return GraphsMenuButton;
@@ -1303,6 +1305,7 @@
       $('.graphs').hide();
       $('.report').hide();
       $('.control').hide();
+      $('.schedule').hide();
       return window.logs_controller.focus();
     };
 
@@ -1324,7 +1327,8 @@
       $('#dashboard').hide();
       $('.graphs').hide();
       $('.report').show();
-      return $('.control').hide();
+      $('.control').hide();
+      return $('.schedule').hide();
     };
 
     return ReportMenuButton;
@@ -1344,10 +1348,32 @@
       $('.logs').hide();
       $('#dashboard').hide();
       $('.graphs').hide();
-      return $('.control').show();
+      $('.control').show();
+      return $('.schedule').hide();
     };
 
     return ControlMenuButton;
+
+  })(MenuButton);
+
+  this.ScheduleMenuButton = (function(superClass) {
+    extend(ScheduleMenuButton, superClass);
+
+    function ScheduleMenuButton() {
+      this.text = "schedule";
+      this.background_color = "#FAA700";
+      ScheduleMenuButton.__super__.constructor.call(this);
+    }
+
+    ScheduleMenuButton.prototype.action = function() {
+      $('.logs').hide();
+      $('#dashboard').hide();
+      $('.graphs').hide();
+      $('.control').hide();
+      return $('.schedule').show();
+    };
+
+    return ScheduleMenuButton;
 
   })(MenuButton);
 
@@ -1601,6 +1627,7 @@
     window.graphs_button = new GraphsMenuButton();
     window.log_button = new LogMenuButton();
     window.control_button = new ControlMenuButton();
+    window.schedule_button = new ScheduleMenuButton();
     window.dashboard = new Dashboard();
     $('.log').append('<div class="graphs"></div>');
     $('.graphs').hide();
@@ -1612,7 +1639,8 @@
     window.graphs.push(new BackEmfPlot());
     window.logs_controller = new LogsController($('<div class="logs"></div>').hide());
     window.authentication_controller = new AuthenticationController($('<div class="authentication"></div>'));
-    return window.control_controller = new ControlController($("<div class='control'></div>").hide());
+    window.control_controller = new ControlController($("<div class='control'></div>").hide());
+    return window.schedule_controller = new ScheduleController($("<div class='schedule'></div>").hide());
   };
 
   this.ReportController = (function() {
@@ -1673,6 +1701,194 @@
     };
 
     return ReportController;
+
+  })();
+
+  this.ScheduleController = (function() {
+    function ScheduleController(dom_element) {
+      this.dom_element = dom_element;
+      $('.log').append(this.dom_element);
+      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>schedule settings</h1>\n	<div class='horizontal-field'>\n		<div class='field schedule-cycles'><div class='slider'></div></div>\n		<span>scheduling on</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field weekend-cycles'><div class='slider'></div></div>\n		<span>cycle on weekends</span>\n	</div>\n\n\n	<div class='horizontal-field'>\n		<div class='field number-days'><input type=text /><span class='units'>days</span></div>\n		<span>scheduling duration</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field start-time'><input type=text /><span class='units'>HH:MM</span></div>\n		<span>start time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field end-time'><input type=text /><span class='units'>HH:MM</span></div>\n		<span>end time</span>\n	</div>\n\n	<div class='menubutton schedule-save' style=\"background-color: black; color: white;\">save</div>\n\n	<div class=\"buttonspacer\"></div>\n</div>");
+      $('.schedule-cycles').click((function(_this) {
+        return function() {
+          return _this.schedule_cycles();
+        };
+      })(this));
+      $('.weekend-cycles').click((function(_this) {
+        return function() {
+          return _this.weekend_cycles();
+        };
+      })(this));
+      $('.number-days').click((function(_this) {
+        return function() {
+          return _this.number_days();
+        };
+      })(this));
+      $('.start-time').click((function(_this) {
+        return function() {
+          return _this.start_time();
+        };
+      })(this));
+      $('.end-time').click((function(_this) {
+        return function() {
+          return _this.end_time();
+        };
+      })(this));
+      $('.schedule-save').click((function(_this) {
+        return function() {
+          return _this.schedule_save();
+        };
+      })(this));
+      this.schedule_cycles_slider = new UIToggleSlider(this.dom_element.find('.slider'), (function(_this) {
+        return function(state) {
+          return _this.set_schedule_cycles(state);
+        };
+      })(this));
+      this.weekend_cycles_slider = new UIToggleSlider(this.dom_element.find('.slider'), (function(_this) {
+        return function(state) {
+          return _this.set_weekend_cycles(state);
+        };
+      })(this));
+      this.update_schedule_cycles_state();
+      this.update_weekend_cycles_state();
+      this.update_schedule_parameters();
+      setInterval((function(_this) {
+        return function() {
+          _this.update_schedule_cycles_state();
+          _this.update_weekend_cycles_state();
+          return _this.update_schedule_parameters();
+        };
+      })(this), 30000);
+    }
+
+    ScheduleController.prototype.set_schedule_cycles = function(state) {
+      return authentication_controller.begin((function(_this) {
+        return function(password) {
+          return pycon.transaction({
+            action: 'set_cycle_scheduling_state',
+            "arguments": {
+              state: state,
+              password: password
+            }
+          }, function(r) {
+            return _this.update_schedule_cycles_state();
+          });
+        };
+      })(this));
+    };
+
+    ScheduleController.prototype.set_weekend_cycles = function(state) {
+      return authentication_controller.begin((function(_this) {
+        return function(password) {
+          return pycon.transaction({
+            action: 'set_weekend_cycle_state',
+            "arguments": {
+              state: state,
+              password: password
+            }
+          }, function(r) {
+            return _this.update_weekend_cycles_state();
+          });
+        };
+      })(this));
+    };
+
+    ScheduleController.prototype.schedule_save = function(state) {
+      return authentication_controller.begin((function(_this) {
+        return function(password) {
+          return pycon.transaction({
+            action: 'cycle_schedule_save',
+            "arguments": {
+              password: password
+            }
+          });
+        };
+      })(this));
+    };
+
+    ScheduleController.prototype.update_schedule_cycles_state = function() {
+      return pycon.transaction({
+        action: 'get_cycle_scheduling_state'
+      }, (function(_this) {
+        return function(r) {
+          return _this.schedule_cycles_slider.set_state(r.state);
+        };
+      })(this));
+    };
+
+    ScheduleController.prototype.update_weekend_cycles_state = function() {
+      return pycon.transaction({
+        action: 'get_weekend_cycle_state'
+      }, (function(_this) {
+        return function(r) {
+          return _this.weekend_cycles_slider.set_state(r.state);
+        };
+      })(this));
+    };
+
+    ScheduleController.prototype.update_schedule_parameters = function() {
+      return pycon.transaction({
+        action: 'schedule_settings'
+      }, (function(_this) {
+        return function(r) {
+          _this.set_number_days(r.number_days);
+          _this.set_start_time(r.start_time);
+          return _this.set_end_time(r.end_time);
+        };
+      })(this));
+    };
+
+    ScheduleController.prototype.get_number_days = function() {
+      return $('.number-days').children('input').val();
+    };
+
+    ScheduleController.prototype.get_start_time = function() {
+      return $('.start-time').children('input').val();
+    };
+
+    ScheduleController.prototype.get_end_time = function() {
+      return $('.end-time').children('input').val();
+    };
+
+    ScheduleController.prototype.set_number_days = function(value) {
+      return $('.number-days').children('input').val(value);
+    };
+
+    ScheduleController.prototype.set_start_time = function(value) {
+      return $('.start-time').children('input').val(value);
+    };
+
+    ScheduleController.prototype.set_end_time = function(value) {
+      return $('.end-time').children('input').val(value);
+    };
+
+    ScheduleController.prototype.schedule_save = function() {
+      return authentication_controller.begin((function(_this) {
+        return function(password) {
+          var end_time, number_days, start_time;
+          number_days = _this.get_number_days();
+          start_time = _this.get_start_time();
+          end_time = _this.get_end_time();
+          return pycon.transaction({
+            action: 'schedule_settings',
+            "arguments": {
+              password: password,
+              number_days: number_days,
+              start_time: start_time,
+              end_time: end_time
+            }
+          }, function(r) {
+            return _this.update_schedule_parameters();
+          });
+        };
+      })(this));
+    };
+
+    ScheduleController.prototype.update = function() {
+      return true;
+    };
+
+    return ScheduleController;
 
   })();
 
