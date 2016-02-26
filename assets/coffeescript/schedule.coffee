@@ -9,14 +9,8 @@ class @ScheduleController
 				<h1 class='regiontitle'>schedule settings</h1>
 				<div class='horizontal-field'>
 					<div class='field schedule-cycles'><div class='slider'></div></div>
-					<span>scheduling on</span>
+					<span>schedule cycles</span>
 				</div>
-
-				<div class='horizontal-field'>
-					<div class='field weekend-cycles'><div class='slider'></div></div>
-					<span>cycle on weekends</span>
-				</div>
-
 
 				<div class='horizontal-field'>
 					<div class='field number-days'><input type=text /><span class='units'>days</span></div>
@@ -44,9 +38,6 @@ class @ScheduleController
 		$('.schedule-cycles').click =>
 			@schedule_cycles()
 
-		$('.weekend-cycles').click =>
-			@weekend_cycles()
-
 		$('.number-days').click =>
 			@number_days()
 
@@ -63,16 +54,11 @@ class @ScheduleController
 		@schedule_cycles_slider = new UIToggleSlider @dom_element.find('.slider'), (state) =>
 			@set_schedule_cycles(state)
 		
-		@weekend_cycles_slider = new UIToggleSlider @dom_element.find('.slider'), (state) =>
-			@set_weekend_cycles(state)
-
 		@update_schedule_cycles_state()
-		@update_weekend_cycles_state()
 		@update_schedule_parameters()
 
 		setInterval =>
 		 	@update_schedule_cycles_state()
-		 	@update_weekend_cycles_state()
 		 	@update_schedule_parameters()
 		 , 30000
 
@@ -80,11 +66,6 @@ class @ScheduleController
 		authentication_controller.begin (password) =>
 			pycon.transaction { action: 'set_cycle_scheduling_state', arguments: { state: state, password: password } }, (r) =>
 				@update_schedule_cycles_state()
-
-	set_weekend_cycles: (state) ->
-		authentication_controller.begin (password) =>
-			pycon.transaction { action: 'set_weekend_cycle_state', arguments: { state: state, password: password } }, (r) =>
-				@update_weekend_cycles_state()
 
 	schedule_save: (state) ->
 		authentication_controller.begin (password) =>
@@ -95,12 +76,6 @@ class @ScheduleController
 	update_schedule_cycles_state: -> 
 		pycon.transaction { action: 'get_cycle_scheduling_state' }, (r) =>
 			@schedule_cycles_slider.set_state( r.state )
-
-
-	# This function queries for the current weekend cycles state.
-	update_weekend_cycles_state: -> 
-		pycon.transaction { action: 'get_weekend_cycle_state' }, (r) =>
-			@weekend_cycles_slider.set_state( r.state )
 
 
 	update_schedule_parameters: ->

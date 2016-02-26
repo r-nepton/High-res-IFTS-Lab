@@ -1708,15 +1708,10 @@
     function ScheduleController(dom_element) {
       this.dom_element = dom_element;
       $('.log').append(this.dom_element);
-      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>schedule settings</h1>\n	<div class='horizontal-field'>\n		<div class='field schedule-cycles'><div class='slider'></div></div>\n		<span>scheduling on</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field weekend-cycles'><div class='slider'></div></div>\n		<span>cycle on weekends</span>\n	</div>\n\n\n	<div class='horizontal-field'>\n		<div class='field number-days'><input type=text /><span class='units'>days</span></div>\n		<span>scheduling duration</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field start-time'><input type=text /><span class='units'>HH:MM</span></div>\n		<span>start time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field end-time'><input type=text /><span class='units'>HH:MM</span></div>\n		<span>end time</span>\n	</div>\n\n	<div class='menubutton schedule-save' style=\"background-color: black; color: white;\">save</div>\n\n	<div class=\"buttonspacer\"></div>\n</div>");
+      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>schedule settings</h1>\n	<div class='horizontal-field'>\n		<div class='field schedule-cycles'><div class='slider'></div></div>\n		<span>schedule cycles</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field number-days'><input type=text /><span class='units'>days</span></div>\n		<span>scheduling duration</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field start-time'><input type=text /><span class='units'>HH:MM</span></div>\n		<span>start time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field end-time'><input type=text /><span class='units'>HH:MM</span></div>\n		<span>end time</span>\n	</div>\n\n	<div class='menubutton schedule-save' style=\"background-color: black; color: white;\">save</div>\n\n	<div class=\"buttonspacer\"></div>\n</div>");
       $('.schedule-cycles').click((function(_this) {
         return function() {
           return _this.schedule_cycles();
-        };
-      })(this));
-      $('.weekend-cycles').click((function(_this) {
-        return function() {
-          return _this.weekend_cycles();
         };
       })(this));
       $('.number-days').click((function(_this) {
@@ -1744,18 +1739,11 @@
           return _this.set_schedule_cycles(state);
         };
       })(this));
-      this.weekend_cycles_slider = new UIToggleSlider(this.dom_element.find('.slider'), (function(_this) {
-        return function(state) {
-          return _this.set_weekend_cycles(state);
-        };
-      })(this));
       this.update_schedule_cycles_state();
-      this.update_weekend_cycles_state();
       this.update_schedule_parameters();
       setInterval((function(_this) {
         return function() {
           _this.update_schedule_cycles_state();
-          _this.update_weekend_cycles_state();
           return _this.update_schedule_parameters();
         };
       })(this), 30000);
@@ -1772,22 +1760,6 @@
             }
           }, function(r) {
             return _this.update_schedule_cycles_state();
-          });
-        };
-      })(this));
-    };
-
-    ScheduleController.prototype.set_weekend_cycles = function(state) {
-      return authentication_controller.begin((function(_this) {
-        return function(password) {
-          return pycon.transaction({
-            action: 'set_weekend_cycle_state',
-            "arguments": {
-              state: state,
-              password: password
-            }
-          }, function(r) {
-            return _this.update_weekend_cycles_state();
           });
         };
       })(this));
@@ -1812,16 +1784,6 @@
       }, (function(_this) {
         return function(r) {
           return _this.schedule_cycles_slider.set_state(r.state);
-        };
-      })(this));
-    };
-
-    ScheduleController.prototype.update_weekend_cycles_state = function() {
-      return pycon.transaction({
-        action: 'get_weekend_cycle_state'
-      }, (function(_this) {
-        return function(r) {
-          return _this.weekend_cycles_slider.set_state(r.state);
         };
       })(this));
     };

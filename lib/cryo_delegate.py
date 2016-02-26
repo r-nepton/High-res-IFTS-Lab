@@ -39,10 +39,11 @@ class CryoManager(object):
 		self.inductor_relax_time = 480 # seconds
 
 		# Schedule settings
-		self.scheduling = False # By default, the system does not schedule any mag cycles
-		self.sched_run_on_weekend = False # By default, no cycles will run on weekends
+		self.schedule_cycles = False # By default, the system does not schedule any mag cycles
+		#self.sched_run_on_weekend = False # By default, no cycles will run on weekends
 		self.sched_number_days = 5 # Number of days to schedule cyce for
 		self.sched_start_time = 0 # Start time
+		self.sched_end_time = 0 # End time, will be calculated from start time and estimated run time
 		self.sched_magnetization_hold_current = self.magnetization_hold_current # Amps
 		self.sched_magnetization_hold_time = self.magnetization_hold_time # seconds
 		self.sched_ramp_up_time = self.ramp_up_time # seconds
@@ -235,6 +236,27 @@ class CryoManager(object):
 		# Well, if we didn't set anything,it must be just a get request.
 		return { 'hold_time': self.magnetization_hold_time, 'hold_current': self.magnetization_hold_current, 'ramp_up_time': self.ramp_up_time, 'ramp_down_time': self.ramp_down_time, 'regulation_temperature': self.regulation_temperature }
 
+	def schedule_settings(self, arguments):
+		# Authenticate first, in case we are doing a "set operation.
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				# Now check if we are setting or getting
+				if 'number_days' in arguments:
+					try:
+						self.sched_number_days = int(arguments['number_days'])
+						self.print_log("Updated scheduling run time to %d days" % self.sched_number_days)
+						self.sched_start_time = float(arguments['start_time'])
+						self.print_log("Updated scheduling start time to %s" % self.sched_start_time)
+						self.sched_end_time = float(arguments['end_time'])
+						self.print_log("Updated scheduling end time to %s" % self.sched_end_time)
+						return { 'result': 'success' }
+					except Exception:
+						return { 'error': 'invalid parameters specified.' }
+
+		# If nothing was set, it must be a get request.
+		return { 'number_days': self.sched_number_days, 'start_time': self.sched_start_time, 'end_time': self.sched_end_time}
+
+
 	# This function begins a full magnetization cycle. It's a dangerous
 	# operation to run, so it has a lot of self-checks built in.
 	def begin_magnetization_cycle(self, arguments):
@@ -424,7 +446,7 @@ class CryoManager(object):
 		else:
 			self.print_log( "UPS shutdown attempted with no password." )
 
-	# When the program starts up, by default it doesn't take 
+	# When the program starts up, by default it DOES take 
 	# data. You have to enable data collection using the form
 	# on the webpage, which requires a password.
 	def set_data_logging_state(self, arguments):
@@ -451,6 +473,48 @@ class CryoManager(object):
 	def get_data_logging_state(self, arguments):
 		return { 'state': self.log_data }
 
+	# When the program starts up, by deafult cycles are not scheduled
+	def set_cycle_scheduling_state(self, arguments):
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				if 'state' in arguments:
+					self.print_log( "cycle scheduling set to: %s" % arguments['state'] )
+					if arguments['state'] == True:
+						self.schedule_cycles = True
+					else:
+						self.schedule_cycles = False
+					return { "success": True }
+				else:
+					self.print_log( "Cycle scheduling state change attempted with no state." )
+			else:
+				self.print_log( "Illegal password sent for cycle scheduling state change." )
+		else:
+			self.print_log( "Cycle scheduling state change attempted with no password." )
+
+	def get_cycle_scheduling_state(self, arguments):
+		return { 'state': self.schedule_cycles }
+
+	# When the program starts up, by deafult the scheduled cycles will not run on weekends
+	#def set_weekend_cycle_state(self, arguments):
+	#	if 'password' in arguments:
+	#		if arguments['password'] == self.password:
+	#			if 'state' in arguments:
+	#				self.print_log( "weekend scheduling set to: %s" % arguments['state'] )
+	#				if arguments['state'] == True:
+	#					self.sched_run_on_weekend = True
+	#				else:
+	#					self.sched_run_on_weekend = False
+	#				return { "success": True }
+	#			else:
+	#				self.print_log( "Weekend scheduling state change attempted with no state." )
+	#		else:
+	#			self.print_log( "Illegal password sent for weekend scheduling state change." )
+	#	else:
+	#		self.print_log( "Weekend scheduling state change attempted with no password." )
+
+	#def get_weekend_cycle_state(self, arguments):
+	#	return { 'state': self.sched_run_on_weekend }
+	
 	def shutdown_server(self, arguments):
 		if 'password' in arguments:
 			if arguments['password'] == self.password:
