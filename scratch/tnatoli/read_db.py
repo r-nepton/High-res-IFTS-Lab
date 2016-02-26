@@ -103,6 +103,8 @@ def read_data(input_db, no_processing=False):
 			for _item in re.split(',',(re.split('{|}',_samp)[1:-1][0])):
 				_in_lab = str(_item.split(':')[0].split('"')[1])
 				_in_val = _item.split(':')[1]
+                                if _in_lab=='error':
+                                        continue
 				if _in_lab == 'units':# I dont want to rewrite this field a million times
 					if _samp_cnt==0:
 						cryo_data[_label][_in_lab] = str(_in_val.split('"')[1].strip())
@@ -118,11 +120,13 @@ def read_data(input_db, no_processing=False):
 					cryo_data[_label][_in_lab].append(True)
 				elif _in_val == u' false':
 					cryo_data[_label][_in_lab].append(False)
-				else:
-					try:# this will convert the unicode to a number, if _in_val is a float
-						cryo_data[_label][_in_lab].append(float(_in_val))
-					except ValueError: # if _in_val is not a float, assume we should save a string
-						cryo_data[_label][_in_lab].append(str(_in_val.split('"')[1]).strip())
+                                elif _in_val == u' "unknown"':
+                                        cryo_data[_label][_in_lab].append(-1)
+                                else:
+                                        try:# this will convert the unicode to a number, if _in_val is a float
+                                                cryo_data[_label][_in_lab].append(float(_in_val))
+                                        except ValueError: # if _in_val is not a float, assume we should save a string
+                                                cryo_data[_label][_in_lab].append(str(_in_val.split('"')[1]).strip())
 			#if cryo_data[_label][_in_lab] ----make an exception for 'units'
 			
 
