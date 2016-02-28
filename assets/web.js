@@ -1708,27 +1708,7 @@
     function ScheduleController(dom_element) {
       this.dom_element = dom_element;
       $('.log').append(this.dom_element);
-      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>schedule settings</h1>\n	<div class='horizontal-field'>\n		<div class='field schedule-cycles'><div class='slider'></div></div>\n		<span>schedule cycles</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field number-days'><input type=text /><span class='units'>days</span></div>\n		<span>scheduling duration</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field start-time'><input type=text /><span class='units'>HH:MM</span></div>\n		<span>start time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field end-time'><input type=text /><span class='units'>HH:MM</span></div>\n		<span>end time</span>\n	</div>\n\n	<div class='menubutton schedule-save' style=\"background-color: black; color: white;\">save</div>\n\n	<div class=\"buttonspacer\"></div>\n</div>");
-      $('.schedule-cycles').click((function(_this) {
-        return function() {
-          return _this.schedule_cycles();
-        };
-      })(this));
-      $('.number-days').click((function(_this) {
-        return function() {
-          return _this.number_days();
-        };
-      })(this));
-      $('.start-time').click((function(_this) {
-        return function() {
-          return _this.start_time();
-        };
-      })(this));
-      $('.end-time').click((function(_this) {
-        return function() {
-          return _this.end_time();
-        };
-      })(this));
+      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>schedule settings</h1>\n	<div class='horizontal-field'>\n		<div class='field schedule-cycles'><div class='slider'></div></div>\n		<span>run scheduler</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field start-time'><input type=text /></div>\n		<span>cycle start time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field end-time'><input type=text /></div>\n		<span>estimated end time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field number-days'><input type=text /><span class='units'>days</span></div>\n		<span>scheduling duration</span>\n	</div>\n\n	<div class='menubutton schedule-save' style=\"background-color: black; color: white;\">save</div>\n\n	<div class=\"buttonspacer\"></div>\n</div>");
       $('.schedule-save').click((function(_this) {
         return function() {
           return _this.schedule_save();
