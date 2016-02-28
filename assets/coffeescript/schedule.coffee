@@ -44,10 +44,10 @@ class @ScheduleController
 		@update_schedule_cycles_state()
 		@update_schedule_parameters()
 
-		setInterval =>
-		 	@update_schedule_cycles_state()
-		 	@update_schedule_parameters()
-		 , 30000
+		#setInterval =>
+		# 	@update_schedule_cycles_state()
+		# 	@update_schedule_parameters()
+		# , 30000
 
 	set_schedule_cycles: (state) ->
 		authentication_controller.begin (password) =>

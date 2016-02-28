@@ -110,10 +110,10 @@ class @ControlController
 		@update_log_data_state()
 		@update_cycle_parameters()
 
-		setInterval =>
-		 	@update_log_data_state()
-		 	@update_cycle_parameters()
-		 , 30000
+		#setInterval =>
+		# 	@update_log_data_state()
+		# 	@update_cycle_parameters()
+		# , 30000
 
 	emergency_stp: (state) ->
 		authentication_controller.begin (password) =>

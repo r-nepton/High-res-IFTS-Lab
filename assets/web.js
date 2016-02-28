@@ -192,12 +192,6 @@
       })(this));
       this.update_log_data_state();
       this.update_cycle_parameters();
-      setInterval((function(_this) {
-        return function() {
-          _this.update_log_data_state();
-          return _this.update_cycle_parameters();
-        };
-      })(this), 30000);
     }
 
     ControlController.prototype.emergency_stp = function(state) {
@@ -1721,12 +1715,6 @@
       })(this));
       this.update_schedule_cycles_state();
       this.update_schedule_parameters();
-      setInterval((function(_this) {
-        return function() {
-          _this.update_schedule_cycles_state();
-          return _this.update_schedule_parameters();
-        };
-      })(this), 30000);
     }
 
     ScheduleController.prototype.set_schedule_cycles = function(state) {

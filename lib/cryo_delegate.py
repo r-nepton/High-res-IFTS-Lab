@@ -265,7 +265,7 @@ class CryoManager(object):
 						
 						# Calculate the end time from the estimated duration
 						self.sched_end_time = self.sched_start_time + datetime.timedelta(0,self.sched_estimated_time) # End time, will be calculated from start time and estimated run time
-						self.print_log("Updated Estimated end time to %s" % self.sched_end_time.strftime('%H:%M'))
+						self.print_log("Updated estimated end time to %s" % self.sched_end_time.strftime('%H:%M'))
 						return { 'result': 'success' }
 					except Exception:
 						return { 'error': 'invalid parameters specified.' }
