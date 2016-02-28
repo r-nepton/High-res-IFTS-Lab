@@ -446,6 +446,44 @@ class CryoManager(object):
 		# Only log data if we have data logging enabled.
 		for k,s in self.sensors_list.iteritems():
 			s.poll()
+
+		# Check to see if its time for a scheduled magcycle
+		if self.schedule_cycles:
+			# Easiest to compare strings
+			if ( self.sched_start_time.strftime('%H:%M') == datetime.datetime.now().strftime('%H:%M') ):
+				if len(self.operations) == 0:
+					self.scheduled_cycle_starting = True # Prevents the 'cryostat busy' error from being called (wake is called twice in a minute)
+					self.print_log( "Scheduled magnetization cycle started." )
+					ramp_up_time = self.sched_ramp_up_time # seconds
+					ramp_down_time = self.sched_ramp_down_time # seconds
+					current = self.sched_magnetization_hold_current # amperes (max 18.5)
+					hold_time = self.sched_magnetization_hold_time # seconds
+					regulation_temperature = self.sched_regulation_temperature # seconds
+					inductor_relax_time = self.inductor_relax_time # seconds
+
+					# Start by setting up manual mode, switching to mag cycle, etc.
+					self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
+					# Wait for 30 seconds before beginning the next stage to allow for
+					# fluctuations from the mag cycle switch throw.
+					self.operations.append( SleepOperation( 30 ) )
+					# Now begin magnetization
+					self.operations.append( MagUpOperation( ramp_up_time, current, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
+					# Now we must soak (for the hold time).
+					self.operations.append( MagnetizationHoldOperation( hold_time ))
+					# Now we need to demagnetize
+					self.operations.append( MagDownOperation( ramp_down_time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
+					# Now we need to wait 8 minutes to let the inductor relax
+					self.operations.append( InductorRelaxOperation( inductor_relax_time ) )
+					# Finally, begin regulation.
+					self.operations.append( BeginRegulationOperation( regulation_temperature, PID_interface=self.PID_controller, current_sensor=self.sensors_list['magnet_current'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
+				else:
+					if self.scheduled_cycle_starting == False:
+						self.print_log( "Cryostat busy, scheduled magnetization cycle aborted." )
+			else:
+				self.scheduled_cycle_starting = False
+
+
+		# Commit database
 		database_connection.commit()
 
 	def ups_power_lost(self, arguments):
@@ -507,27 +545,6 @@ class CryoManager(object):
 
 	def get_cycle_scheduling_state(self, arguments):
 		return { 'state': self.schedule_cycles }
-
-	# When the program starts up, by deafult the scheduled cycles will not run on weekends
-	#def set_weekend_cycle_state(self, arguments):
-	#	if 'password' in arguments:
-	#		if arguments['password'] == self.password:
-	#			if 'state' in arguments:
-	#				self.print_log( "weekend scheduling set to: %s" % arguments['state'] )
-	#				if arguments['state'] == True:
-	#					self.sched_run_on_weekend = True
-	#				else:
-	#					self.sched_run_on_weekend = False
-	#				return { "success": True }
-	#			else:
-	#				self.print_log( "Weekend scheduling state change attempted with no state." )
-	#		else:
-	#			self.print_log( "Illegal password sent for weekend scheduling state change." )
-	#	else:
-	#		self.print_log( "Weekend scheduling state change attempted with no password." )
-
-	#def get_weekend_cycle_state(self, arguments):
-	#	return { 'state': self.sched_run_on_weekend }
 	
 	def shutdown_server(self, arguments):
 		if 'password' in arguments:
