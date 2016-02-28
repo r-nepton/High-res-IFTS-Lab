@@ -1,6 +1,6 @@
 import threading
 import Queue
-import sqlite3, json, os, sys, numpy, datetime
+import sqlite3, json, os, sys, numpy, datetime, smtplib
 from StringIO import StringIO
 from dataconduits import *
 
@@ -449,6 +449,7 @@ class CryoManager(object):
 		database_connection.commit()
 
 	def ups_power_lost(self, arguments):
+		self.send_email("lwlabcryostat@gmail.com","REDACTED",["young@astro.utoronto.ca","tnatoli2@gmail.com","vanderlinde@dunlap.utoronto.ca"],"UPS Power Lost","The UPS power has been lost, emergency shutdown initiated.")
 		if 'password' in arguments:
 			if arguments['password'] == self.password:
 				self.print_log( "UPS power lost!" )
@@ -538,7 +539,31 @@ class CryoManager(object):
 		else:
 			self.print_log( "Server shutdown attempted with no password." )
 
+	def send_email(self, user, pwd, recipient, subject, body):
+
+ 		gmail_user = user
+		gmail_pwd = pwd
+		FROM = user
+		TO = recipient if type(recipient) is list else [recipient]
+		SUBJECT = subject
+		TEXT = body
+
+		# Prepare the actual message
+		message = """\From: %s\nTo: %s\nSubject: %s\n\n%s""" % (FROM, ", ".join(TO), SUBJECT, TEXT)
+		try:
+			server = smtplib.SMTP("smtp.gmail.com", 587)
+			server.ehlo()
+			server.starttls()
+			server.login(gmail_user, gmail_pwd)
+			server.sendmail(FROM, TO, message)
+			server.close()
+			print "Successfully sent email"
+		except:
+			print "Failed to send email"
+
+
 class CryoManagerThread(threading.Thread):
+
 	def __init__(self, parent):
 		threading.Thread.__init__(self)
 		self.parent = parent
