@@ -31,24 +31,22 @@ class CryoManager(object):
 		self.log_data = True # By default, the system starts up in a state where it does log data.
 
 		# Cycle settings
-		self.magnetization_hold_current = 10 # Amps
-		self.magnetization_hold_time = 1200 # seconds
-		self.ramp_up_time = 1200 # seconds
-		self.ramp_down_time = 1200 # seconds
+		self.magnetization_hold_current = 18 # Amps
+		self.magnetization_hold_time = 14400 # seconds
+		self.ramp_up_time = 3600 # seconds
+		self.ramp_down_time = 3600 # seconds
 		self.regulation_temperature  = 0.25 #  Kelvin
 		self.inductor_relax_time = 480 # seconds
 
 		# Schedule settings
 		self.schedule_cycles = False # By default, the system does not schedule any mag cycles
-		#self.sched_run_on_weekend = False # By default, no cycles will run on weekends
-		self.sched_number_days = 5 # Number of days to schedule cyce for
 		self.sched_magnetization_hold_current = self.magnetization_hold_current # Amps
 		self.sched_magnetization_hold_time = self.magnetization_hold_time # seconds
 		self.sched_ramp_up_time = self.ramp_up_time # seconds
 		self.sched_ramp_down_time = self.ramp_down_time # seconds
 		self.sched_regulation_temperature = self.regulation_temperature # Kelvin
 		self.sched_estimated_time = self.sched_magnetization_hold_time + self.sched_ramp_up_time + self.sched_ramp_down_time + self.inductor_relax_time # seconds
-		self.sched_start_time = datetime.datetime.strptime('04:00','%H:%M') # Start time
+		self.sched_start_time = datetime.datetime.strptime('03:52','%H:%M') # Start time
 		self.sched_end_time = self.sched_start_time + datetime.timedelta(0,self.sched_estimated_time) # End time, will be calculated from start time and estimated run time
 
 
@@ -242,7 +240,7 @@ class CryoManager(object):
 		if 'password' in arguments:
 			if arguments['password'] == self.password:
 				# Now check if we are setting or getting
-				if 'number_days' in arguments:
+				if 'start_time' in arguments:
 					try:
 						# Update the scheduled cycle parameters using the current saved cycle parameters
 						self.sched_magnetization_hold_current = self.magnetization_hold_current # Amps
@@ -258,8 +256,6 @@ class CryoManager(object):
 						self.print_log("Updated scheduled regulation temperatur to %s K" % self.sched_regulation_temperature)					
 	
 						# Update the start time and end time from the webpage
-						self.sched_number_days = int(arguments['number_days'])
-						self.print_log("Updated scheduling run time to %d days" % self.sched_number_days)
 						self.sched_start_time = datetime.datetime.strptime((arguments['start_time']),'%H:%M')
 						self.print_log("Updated scheduling start time to %s" % self.sched_start_time.strftime('%H:%M'))
 						
@@ -271,7 +267,7 @@ class CryoManager(object):
 						return { 'error': 'invalid parameters specified.' }
 
 		# If nothing was set, it must be a get request.
-		return { 'number_days': self.sched_number_days, 'start_time': self.sched_start_time.strftime('%H:%M'), 'end_time': self.sched_end_time.strftime('%H:%M')}
+		return { 'start_time': self.sched_start_time.strftime('%H:%M'), 'end_time': self.sched_end_time.strftime('%H:%M')}
 
 
 	# This function begins a full magnetization cycle. It's a dangerous

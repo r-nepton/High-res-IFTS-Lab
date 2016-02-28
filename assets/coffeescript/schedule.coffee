@@ -22,11 +22,6 @@ class @ScheduleController
 					<span>estimated end time</span>
 				</div>
 
-				<div class='horizontal-field'>
-					<div class='field number-days'><input type=text /><span class='units'>days</span></div>
-					<span>scheduling duration</span>
-				</div>
-
 				<div class='menubutton schedule-save' style="background-color: black; color: white;">save</div>
 
 				<div class="buttonspacer"></div>
@@ -67,21 +62,14 @@ class @ScheduleController
 
 	update_schedule_parameters: ->
 		pycon.transaction { action: 'schedule_settings' }, (r) =>
-			@set_number_days r.number_days
 			@set_start_time r.start_time
 			@set_end_time r.end_time
-
-	get_number_days: ->
-		$('.number-days').children('input').val()
 
 	get_start_time: ->
 		$('.start-time').children('input').val()
 
-	get_end_time: ->
-		$('.end-time').children('input').val()
-
-	set_number_days: (value) ->
-		$('.number-days').children('input').val value
+	#get_end_time: ->
+	#	$('.end-time').children('input').val()
 
 	set_start_time: (value) ->
 		$('.start-time').children('input').val value
@@ -93,41 +81,10 @@ class @ScheduleController
 	schedule_save: ->
 		authentication_controller.begin (password) =>
 
-			number_days = @get_number_days()
 			start_time = @get_start_time()
-			end_time = @get_end_time()
-			# Values needed to calculate estimated end time
-			# Im sure there's a better way to do this but arrays/structures kept giving undefined errors
-			#hold_time = pycon.transaction { action: 'cycle_settings' }, (r) =>
-			#	hold_time = r.hold_time
-			#ramp_up_time = pycon.transaction { action: 'cycle_settings' }, (r) =>
-			#	ramp_up_time = r.ramp_up_time
-			#ramp_down_time = pycon.transaction { action: 'cycle_settings' }, (r) =>
-			#	ramp_down_time = r.ramp_down_time
-			#inductor_relax_time = pycon.transaction { action: 'cycle_settings' }, (r) =>
-			#	inductor_relax_time = r.inductor_relax_time
+			#end_time = @get_end_time()
 
-			#estimated_run_time = hold_time + ramp_up_time + ramp_down_time + inductor_relax_time
-
-			# Convert start time to seconds
-			#start_time_array = start_time.split(':')
-			#start_time_seconds = (+start_time_array[0])*60*60 + (+start_time_array[1])*60
-
-			# Convert end time to string
-			#end_time_seconds = start_time_seconds + estimated_run_time
-			# once again, sure theres a better way to do this
-			#date = new Date(end_time_seconds*1000)
-			#hh = date.getUTCHours()
-			#mm = date.getUTCMinutes()
-			#if (hh < 10)
-			#	hh = '0'+hh
-			#if (mm < 10)
-			#	mm = '0'+mm
-			#end_time = hh+':'+mm
-			#end_time = dat.clearTime().addSeconds(end_time_seconds).toString('HH:mm')
-
-
-			pycon.transaction { action: 'schedule_settings', arguments: { password: password, number_days: number_days, start_time: start_time, end_time: end_time} }, (r) =>
+			pycon.transaction { action: 'schedule_settings', arguments: { password: password, start_time: start_time} }, (r) =>
 				@update_schedule_parameters()
 	
 	update: ->

@@ -1702,7 +1702,7 @@
     function ScheduleController(dom_element) {
       this.dom_element = dom_element;
       $('.log').append(this.dom_element);
-      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>schedule settings</h1>\n	<div class='horizontal-field'>\n		<div class='field schedule-cycles'><div class='slider'></div></div>\n		<span>run scheduler</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field start-time'><input type=text /></div>\n		<span>cycle start time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field end-time'><input type=text /></div>\n		<span>estimated end time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field number-days'><input type=text /><span class='units'>days</span></div>\n		<span>scheduling duration</span>\n	</div>\n\n	<div class='menubutton schedule-save' style=\"background-color: black; color: white;\">save</div>\n\n	<div class=\"buttonspacer\"></div>\n</div>");
+      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>schedule settings</h1>\n	<div class='horizontal-field'>\n		<div class='field schedule-cycles'><div class='slider'></div></div>\n		<span>run scheduler</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field start-time'><input type=text /></div>\n		<span>cycle start time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field end-time'><input type=text /></div>\n		<span>estimated end time</span>\n	</div>\n\n	<div class='menubutton schedule-save' style=\"background-color: black; color: white;\">save</div>\n\n	<div class=\"buttonspacer\"></div>\n</div>");
       $('.schedule-save').click((function(_this) {
         return function() {
           return _this.schedule_save();
@@ -1761,27 +1761,14 @@
         action: 'schedule_settings'
       }, (function(_this) {
         return function(r) {
-          _this.set_number_days(r.number_days);
           _this.set_start_time(r.start_time);
           return _this.set_end_time(r.end_time);
         };
       })(this));
     };
 
-    ScheduleController.prototype.get_number_days = function() {
-      return $('.number-days').children('input').val();
-    };
-
     ScheduleController.prototype.get_start_time = function() {
       return $('.start-time').children('input').val();
-    };
-
-    ScheduleController.prototype.get_end_time = function() {
-      return $('.end-time').children('input').val();
-    };
-
-    ScheduleController.prototype.set_number_days = function(value) {
-      return $('.number-days').children('input').val(value);
     };
 
     ScheduleController.prototype.set_start_time = function(value) {
@@ -1795,17 +1782,13 @@
     ScheduleController.prototype.schedule_save = function() {
       return authentication_controller.begin((function(_this) {
         return function(password) {
-          var end_time, number_days, start_time;
-          number_days = _this.get_number_days();
+          var start_time;
           start_time = _this.get_start_time();
-          end_time = _this.get_end_time();
           return pycon.transaction({
             action: 'schedule_settings',
             "arguments": {
               password: password,
-              number_days: number_days,
-              start_time: start_time,
-              end_time: end_time
+              start_time: start_time
             }
           }, function(r) {
             return _this.update_schedule_parameters();
