@@ -283,6 +283,7 @@ class CryoManager(object):
 				hold_time = self.magnetization_hold_time # seconds
 				regulation_temperature = self.regulation_temperature # seconds
 				inductor_relax_time = self.inductor_relax_time # seconds
+				pause_temp = 0.9                                
 
 				# Start by setting up manual mode, switching to mag cycle, etc.
 				self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
@@ -294,7 +295,7 @@ class CryoManager(object):
 				# Now we must soak (for the hold time).
 				self.operations.append( MagnetizationHoldOperation( hold_time ))
 				# Now we need to demagnetize
-				self.operations.append( MagDownOperation( ramp_down_time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
+				self.operations.append( MagDownOperation( ramp_down_time, pause_temp, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'], back_emf_sensor=self.sensors_list['magnet_back_emf'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'] ) )
 				# Now we need to wait 8 minutes to let the inductor relax
 				self.operations.append( InductorRelaxOperation( inductor_relax_time ) )
 				# Finally, begin regulation.
@@ -312,9 +313,10 @@ class CryoManager(object):
 			if arguments['password'] == self.password:
 				self.print_log( "Manual mag-down started." )
 				ramp_down_time = self.ramp_down_time # seconds
+				pause_temp = 0.0
 
 				# We need to demagnetize
-				self.operations.append( MagDownOperation( ramp_down_time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
+				self.operations.append( MagDownOperation( ramp_down_time, pause_temp, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'], back_emf_sensor=self.sensors_list['magnet_back_emf'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'] ) )
 			else:
 				self.print_log( "Attempted to start manual mag-down with incorrect password." )
 		else:
@@ -460,6 +462,7 @@ class CryoManager(object):
 					hold_time = self.sched_magnetization_hold_time # seconds
 					regulation_temperature = self.sched_regulation_temperature # seconds
 					inductor_relax_time = self.inductor_relax_time # seconds
+					pause_temp = 0.9
 
 					# Start by setting up manual mode, switching to mag cycle, etc.
 					self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
@@ -471,7 +474,7 @@ class CryoManager(object):
 					# Now we must soak (for the hold time).
 					self.operations.append( MagnetizationHoldOperation( hold_time ))
 					# Now we need to demagnetize
-					self.operations.append( MagDownOperation( ramp_down_time, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )
+					self.operations.append( MagDownOperation( ramp_down_time, pause_temp, PID_interface=self.PID_controller, breakout_board=self.sensors_list['breakout'], current_sensor=self.sensors_list['magnet_current'], back_emf_sensor=self.sensors_list['magnet_back_emf'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'] ) )
 					# Now we need to wait 8 minutes to let the inductor relax
 					self.operations.append( InductorRelaxOperation( inductor_relax_time ) )
 					# Finally, begin regulation.

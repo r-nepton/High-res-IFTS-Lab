@@ -2,13 +2,15 @@ from generic_operation import *
 from cryo_delegate import *
 
 class MagDownOperation(GenericOperation):
-	def __init__(self, mag_down_time, PID_interface, breakout_board, current_sensor, back_emf_sensor): 
+	def __init__(self, mag_down_time, pause_temp, PID_interface, breakout_board, current_sensor, back_emf_sensor, temperature_FAA_sensor): 
 		self.mag_down_time 	= mag_down_time
 		self.final_current 	= 0
 		self.PID_interface 	= PID_interface
 		self.current_sensor	= current_sensor.conduit
 		self.breakout_board = breakout_board.conduit
 		self.back_emf_sensor	= back_emf_sensor.conduit
+		self.temperature_FAA_sensor = temperature_FAA_sensor.conduit
+		self.pause_temp = pause_temp # stop mag-down at this temperature
 
 		# Set the safety settings.
 		self.absolute_min_mag_down_time = 3*60 # seconds
@@ -71,10 +73,18 @@ class MagDownOperation(GenericOperation):
 		pass
 
 	def tick(self, dt):
+		# TEMPORARY addition to stop the mag down at 1 K (temp should stabilise around 700mK)
+                # We are then able to manually continue the magdown later and manually regulate
+		temperature_FAA = self.temperature_FAA_sensor.get_data()
+		if temperature_FAA['temperature'] < self.pause_temp:
+			self.finished = True
+			self.print_log("Pausing mag-down, expect regulate to fail")
+
+		
 		# Don't run the operation if yield is called. There are already
 		# some other checks for this, but here's another.
 		if self.finished:
-			return
+			return	
 
 		# Measure the current data, and double-check that the current is sensible.
 		current = self.current_sensor.get_data()

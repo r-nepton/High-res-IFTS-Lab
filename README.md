@@ -20,13 +20,15 @@ the coffeescript into javascript.
 
 Once everything is installed (the internet has plenty of tutorials), use the command (from the root directory) 
 
- cat ./assets/coffeescript/(star).coffee | coffee -wcs > ./assets/web.js
+ cat ./assets/coffeescript/*.coffee | coffee -wcs > ./assets/web.js
 
 Each coffeescript file in ./assets/coffeescript/ should end with a blank line for the cat command to fucntion as expected.
 
 ## Running the software ##
 
-Do
+Run the script 'run_server.sh'. You may have to edit python's location in the last line of the script.
+
+OR
  
  sudo python server.py
 
