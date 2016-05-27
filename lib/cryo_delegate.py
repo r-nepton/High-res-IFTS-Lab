@@ -181,6 +181,26 @@ class CryoManager(object):
 			else:
 				self.print_log("Incorrect password issued for closing heat switch.")
 
+	# This function is called to switch to regulate mode
+	def switch_to_regulate_mode(self, arguments):
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				self.print_log("Switching to regulate Mode.")
+				self.user_log_writer.write_log("Switched to Regulate Mode.")
+				self.sensors_list["breakout"].conduit.switch_to_regulation_cycle()
+			else:
+				self.print_log("Incorrect password issued for closing heat switch.")
+
+	# This function is called to switch to mag cycle mode
+	def switch_to_mag_cycle_mode(self, arguments):
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				self.print_log("Switching to Mag Cycle Mode.")
+				self.user_log_writer.write_log("Switched to Mag Cycle Mode.")
+				self.sensors_list["breakout"].conduit.switch_to_magnetization_cycle()
+			else:
+				self.print_log("Incorrect password issued for closing heat switch.")
+
 	def cycle_settings(self, arguments):
 		# Authenticate first, in case we are doing a "set" operation.
 		if 'password' in arguments:

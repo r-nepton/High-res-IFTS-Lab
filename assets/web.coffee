@@ -201,6 +201,11 @@ class @ControlController
 		$('.close-heatswitch').click =>
 			@close_heatswitch()
 
+		$('.manual-switch-to-regulate-mode').click =>
+			@switch_to_regulate_mode()
+
+		$('.switch_to_mag_cycle_mode').click =>
+			@switch_to_mag_cycle_mode()
 
 		@log_data_slider = new UIToggleSlider @dom_element.find('.slider'), (state) =>
 			@set_log_data(state)
@@ -229,6 +234,14 @@ class @ControlController
 	close_heatswitch: (state) ->
 		authentication_controller.begin (password) =>
 			pycon.transaction { action: 'close_heatswitch', arguments: { password: password } }
+
+	switch_to_regulate_mode: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'switch_to_regulate_mode', arguments: { password: password } }
+
+	switch_to_mag_cycle_mode: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'switch_to_mag_cycle_mode', arguments: { password: password } }
 
 	# This function queries for the current log data state.
 	update_log_data_state: -> 

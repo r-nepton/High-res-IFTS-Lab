@@ -73,6 +73,13 @@ class @ControlController
 					<div class='menubutton manual-magdown' style="background-color: black; color: white;"><span>mag-down</span></div>
 					<span>cycle</span>
 				</div>
+
+				<div class='horizontal-field'>
+					<div class='menubutton manual-switch-to-regulate-mode' style="background-color: rgb(0, 255, 0); color: white;"><span>regulate mode</span></div>
+					<div class='menubutton manual-switch-to-mag-cycle-mode' style="background-color: rgb(255, 0, 0); color: white;"><span>mag cycle mode</span></div>
+					<span>current mode</span>
+				</div>
+
 			</div>
 		"""
 		# Now setup callbacks for all of the various buttons.
@@ -103,6 +110,11 @@ class @ControlController
 		$('.manual-regulate').click =>
 			@manual_regulate()
 
+		$('.manual-switch-to-regulate-mode').click =>
+			@switch_to_regulate_mode()
+
+		$('.manual-switch-to-mag-cycle-mode').click =>
+			@switch_to_mag_cycle_mode()
 
 		@log_data_slider = new UIToggleSlider @dom_element.find('.slider'), (state) =>
 			@set_log_data(state)
@@ -143,6 +155,14 @@ class @ControlController
 	manual_regulate: (state) ->
 		authentication_controller.begin (password) =>
 			pycon.transaction { action: 'manual_regulate', arguments: { password: password } }
+
+	switch_to_regulate_mode: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'switch_to_regulate_mode', arguments: { password: password } }
+
+	switch_to_mag_cycle_mode: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'switch_to_mag_cycle_mode', arguments: { password: password } }
 
 	# This function queries for the current log data state.
 	update_log_data_state: -> 
