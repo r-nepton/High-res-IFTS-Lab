@@ -303,7 +303,7 @@ class CryoManager(object):
 				hold_time = self.magnetization_hold_time # seconds
 				regulation_temperature = self.regulation_temperature # seconds
 				inductor_relax_time = self.inductor_relax_time # seconds
-				pause_temp = 0.9                                
+				pause_temp = 0.0                               
 
 				# Start by setting up manual mode, switching to mag cycle, etc.
 				self.operations.append( BeginMagnetizationOperation( PID_interface=self.PID_controller, temperature_3K_sensor=self.sensors_list['pulse_tube_second_stage'], temperature_FAA_sensor=self.sensors_list['FAA_temperature'], breakout_board=self.sensors_list['breakout'], back_emf_sensor=self.sensors_list['magnet_back_emf'] ) )

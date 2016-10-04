@@ -5,14 +5,17 @@ from cryo_delegate import *
 # when the system is already in regulation mode.
 
 class ChangeRegulationOperation(GenericOperation):
-	def __init__(self, regulation_temperature, PID_interface):
+	def __init__(self, regulation_temperature, PID_interface, use_slow_ramp=False):
 		self.PID_instance = PID_interface
 
 		# Set all the safety settings.
 		self.max_start_current 		= 0.020 # 20 mA can be safely switched.
 		self.max_FAA_temperature 	= 2 # max allowable temperature to begin regulation
-		self.ramping_rate			= 0.002 # 2 mK per second ramping rate.
-		self.max_step				= 0.004 # 2 mK is the max step.
+                if use_slow_ramp:
+                        self.ramping_rate       = 0.0001# this is the ramping rate for R(T) measurements
+                else:
+                        self.ramping_rate	= 0.002#0.0001 #0.002 is 2 mK per second ramping rate.#0.0001 is the smallest this can be and still work
+		self.max_step			= 0.004 # 2 mK is the max step.
 		self.regulation_temperature = regulation_temperature
 
 		super(ChangeRegulationOperation, self).__init__()
@@ -50,7 +53,11 @@ class ChangeRegulationOperation(GenericOperation):
 			self.finished 	= True
 			# Operation successful.
 			self.success	= True
+                        self.print_log( "here")
 			return
 
 		# Take a step.
 		self.PID_instance.set_setpoint( setpoint + step )
+                self.print_log( "taking a temp that is {:4.5f} mK large and current setpoint is {:4.5f}, dt = {:1.1f}".format(step*1000,setpoint*1000,dt))
+                #self.print_log(str(time.localtime().tm_min) + ' min   '+ str(time.localtime().tm_sec)+' sec')
+                #time.sleep(3) # this just makes things jerky
