@@ -75,9 +75,15 @@ class @ControlController
 				</div>
 
 				<div class='horizontal-field'>
-					<div class='menubutton manual-switch-to-regulate-mode' style="background-color: rgb(0, 255, 0); color: white;"><span>regulate mode</span></div>
-					<div class='menubutton manual-switch-to-mag-cycle-mode' style="background-color: rgb(255, 0, 0); color: white;"><span>mag cycle mode</span></div>
+					<div class='menubutton manual-switch-to-regulate-mode' style="background-color: rgb(170,185,93); color: white;"><span>regulate</span></div>
+					<div class='menubutton manual-switch-to-mag-cycle-mode' style="background-color: rgb(250, 42, 0); color: white;"><span>mag-cycle</span></div>
 					<span>current mode</span>
+				</div>
+				
+				<div class='horizontal-field'>
+					<div class='menubutton fast-ramp-rate' style="background-color: rgb(250, 42, 0); color: white;"><span>fast</span></div>
+					<div class='menubutton slow-ramp-rate' style="background-color: rgb(51,102,204); color: white;"><span>slow</span></div>
+					<span>regulate ramp rate</span>
 				</div>
 
 			</div>
@@ -115,6 +121,12 @@ class @ControlController
 
 		$('.manual-switch-to-mag-cycle-mode').click =>
 			@switch_to_mag_cycle_mode()
+
+		$('.fast-ramp-rate').click =>
+			@fast_ramp_rate()
+
+		$('.slow-ramp-rate').click =>
+			@slow_ramp_rate()
 
 		@log_data_slider = new UIToggleSlider @dom_element.find('.slider'), (state) =>
 			@set_log_data(state)
@@ -163,6 +175,14 @@ class @ControlController
 	switch_to_mag_cycle_mode: (state) ->
 		authentication_controller.begin (password) =>
 			pycon.transaction { action: 'switch_to_mag_cycle_mode', arguments: { password: password } }
+			
+	fast_ramp_rate: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'fast_ramp_rate', arguments: { password: password } }
+
+	slow_ramp_rate: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'slow_ramp_rate', arguments: { password: password } }
 
 	# This function queries for the current log data state.
 	update_log_data_state: -> 

@@ -30,13 +30,15 @@ class CryoManager(object):
 		self.password = True
 		self.log_data = True # By default, the system starts up in a state where it does log data.
 
-		# Cycle settings
-		self.magnetization_hold_current = 18 # Amps
-		self.magnetization_hold_time = 14400 # seconds
-		self.ramp_up_time = 3600 # seconds
-		self.ramp_down_time = 3600 # seconds
-		self.regulation_temperature  = 0.25 #  Kelvin
+		# Cycle settings (default)
+		self.magnetization_hold_current = 10 # Amps
+		self.magnetization_hold_time = 1200 # seconds
+		self.ramp_up_time = 1200 # seconds
+		self.ramp_down_time = 1200 # seconds
+		self.regulation_temperature  = 0.05 #  Kelvin
 		self.inductor_relax_time = 480 # seconds
+
+		self.use_slow_ramp = False # ramp rate during regulation mode
 
 		# Schedule settings
 		self.schedule_cycles = False # By default, the system does not schedule any mag cycles
@@ -46,7 +48,7 @@ class CryoManager(object):
 		self.sched_ramp_down_time = self.ramp_down_time # seconds
 		self.sched_regulation_temperature = self.regulation_temperature # Kelvin
 		self.sched_estimated_time = self.sched_magnetization_hold_time + self.sched_ramp_up_time + self.sched_ramp_down_time + self.inductor_relax_time # seconds
-		self.sched_start_time = datetime.datetime.strptime('03:52','%H:%M') # Start time
+		self.sched_start_time = datetime.datetime.strptime('08:52','%H:%M') # Start time
 		self.sched_end_time = self.sched_start_time + datetime.timedelta(0,self.sched_estimated_time) # End time, will be calculated from start time and estimated run time
 
 
@@ -185,21 +187,44 @@ class CryoManager(object):
 	def switch_to_regulate_mode(self, arguments):
 		if 'password' in arguments:
 			if arguments['password'] == self.password:
-				self.print_log("Switching to regulate Mode.")
-				self.user_log_writer.write_log("Switched to Regulate Mode.")
+				self.print_log("Switching to Regulate mode.")
+				self.user_log_writer.write_log("Switched to Regulate mode.")
 				self.sensors_list["breakout"].conduit.switch_to_regulation_cycle()
 			else:
-				self.print_log("Incorrect password issued for closing heat switch.")
+				self.print_log("Incorrect password issued for switching to Regulate mode.")
 
 	# This function is called to switch to mag cycle mode
 	def switch_to_mag_cycle_mode(self, arguments):
 		if 'password' in arguments:
 			if arguments['password'] == self.password:
-				self.print_log("Switching to Mag Cycle Mode.")
-				self.user_log_writer.write_log("Switched to Mag Cycle Mode.")
+				self.print_log("Switching to Mag-Cycle mode.")
+				self.user_log_writer.write_log("Switched to Mag-Cycle mode.")
 				self.sensors_list["breakout"].conduit.switch_to_magnetization_cycle()
 			else:
-				self.print_log("Incorrect password issued for closing heat switch.")
+				self.print_log("Incorrect password issued for switching to Mag-Cycle mode.")
+
+	# This function is called to use fast ramping during regulation
+	def fast_ramp_rate(self, arguments):
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				self.print_log("Fast ramping enabled.")
+				self.user_log_writer.write_log("Fast ramping enabled.")
+				self.use_slow_ramp = False
+				self.operations.append( ChangeRegulationOperation( self.regulation_temperature, self.PID_controller, self.use_slow_ramp) )
+			else:
+				self.print_log("Incorrect password issued for enabling fast ramping.")
+
+	# This function is called to use slow ramping during regulation
+	def slow_ramp_rate(self, arguments):
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+				self.print_log("Slow ramping enabled.")
+				self.user_log_writer.write_log("Slow ramping enabled.")
+				self.use_slow_ramp = True
+				self.operations.append( ChangeRegulationOperation( self.regulation_temperature, self.PID_controller, self.use_slow_ramp) )
+			else:
+				self.print_log("Incorrect password issued for enabling slow ramping.")
+
 
 	def cycle_settings(self, arguments):
 		# Authenticate first, in case we are doing a "set" operation.
@@ -232,7 +257,7 @@ class CryoManager(object):
 								self.print_log("Starting operation to change regulation setpoint.")
 								#print "operations = %s" % self.operations
 								try:
-									self.operations.append( ChangeRegulationOperation( self.regulation_temperature, self.PID_controller) )
+									self.operations.append( ChangeRegulationOperation( self.regulation_temperature, self.PID_controller, self.use_slow_ramp) )
 								except Exception as e:
 									print e
 						else:
