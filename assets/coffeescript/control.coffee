@@ -2,9 +2,16 @@
 class @ControlController
 	constructor: (@dom_element) ->
 		$('.log').append @dom_element
+        
+		# Insert latest log item
+		@latest_log = new LogElement()
+		@dom_element.append @latest_log.dom_element
+		#Set up control panel element
+		@control_element = $("<div class='control_element'></div>")
+		@dom_element.append @control_element
 
 		# Set up the style of the element.
-		@dom_element.html """
+		@control_element.html """
 			<div class='regionbox'>
 				<h1 class='regiontitle'>settings</h1>
 				<div class='horizontal-field'>
@@ -131,6 +138,11 @@ class @ControlController
 		@log_data_slider = new UIToggleSlider @dom_element.find('.slider'), (state) =>
 			@set_log_data(state)
 
+		setInterval( =>
+			@update_latest_log()
+		, 30000)
+
+		@update_latest_log()
 		@update_log_data_state()
 		@update_cycle_parameters()
 
@@ -138,6 +150,13 @@ class @ControlController
 		# 	@update_log_data_state()
 		# 	@update_cycle_parameters()
 		# , 30000
+
+	update_latest_log: ->
+		pycon.transaction { action: "user_log" }, (r) =>
+			@latest_log.message = r.data
+			@latest_log.timestamp = r.time
+			@latest_log.render()
+
 
 	emergency_stp: (state) ->
 		authentication_controller.begin (password) =>

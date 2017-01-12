@@ -139,7 +139,11 @@
     function ControlController(dom_element) {
       this.dom_element = dom_element;
       $('.log').append(this.dom_element);
-      this.dom_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>settings</h1>\n	<div class='horizontal-field'>\n		<div class='field log-data'><div class='slider'></div></div>\n		<span>log data</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='menubutton emergency-shutdown' style=\"background-color: red; color: white;\"><span>E-shutdown</span></div>\n		<div class='menubutton emergency-stp' style=\"background-color: black; color: white;\"><span>E-stop</span></div>\n		<span>emergency</span>\n	</div>\n</div>\n\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>cycle</h1>\n\n	<div class='horizontal-field'>\n		<div class='field rampup-time'><input type=text /><span class='units'>minutes</span></div>\n		<span>ramp-up time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field cycle-current'><input type=text /><span class='units'>amps</span></div>\n		<span>hold current</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field cycle-time'><input type=text /><span class='units'>minutes</span></div>\n		<span>hold time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field rampdown-time'><input type=text /><span class='units'>minutes</span></div>\n		<span>ramp-down time</span>\n	</div>\n\n	<div class='menubutton cycle-save' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton cycle-begin' style=\" background-color: rgb(170, 185, 93); color: white;\">start</div>\n	\n\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>regulation</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><input type=text /><span class='units'>mK</span></div>\n		<span>regulation temperature</span>\n	</div>\n	<div class='menubutton regulate-save' style=\"background-color: black; color: white;\">save</div>\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>manual control</h1>\n	<div class='horizontal-field'>\n		<div class='menubutton close-heatswitch' style=\"background-color: rgb(250, 42, 0); color: white;\">close</div>\n		<div class='menubutton open-heatswitch' style=\" background-color: rgb(170,185,93); color: white;\">open</div>\n		<span>heat switch</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='menubutton manual-regulate' style=\"background-color: rgb(51,102,204); color: white;\"><span>regulate</span></div>\n		<div class='menubutton manual-magdown' style=\"background-color: black; color: white;\"><span>mag-down</span></div>\n		<span>cycle</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='menubutton manual-switch-to-regulate-mode' style=\"background-color: rgb(170,185,93); color: white;\"><span>regulate</span></div>\n		<div class='menubutton manual-switch-to-mag-cycle-mode' style=\"background-color: rgb(250, 42, 0); color: white;\"><span>mag-cycle</span></div>\n		<span>current mode</span>\n	</div>\n	\n	<div class='horizontal-field'>\n		<div class='menubutton fast-ramp-rate' style=\"background-color: rgb(250, 42, 0); color: white;\"><span>fast</span></div>\n		<div class='menubutton slow-ramp-rate' style=\"background-color: rgb(51,102,204); color: white;\"><span>slow</span></div>\n		<span>regulate ramp rate</span>\n	</div>\n\n</div>");
+      this.latest_log = new LogElement();
+      this.dom_element.append(this.latest_log.dom_element);
+      this.control_element = $("<div class='control_element'></div>");
+      this.dom_element.append(this.control_element);
+      this.control_element.html("<div class='regionbox'>\n	<h1 class='regiontitle'>settings</h1>\n	<div class='horizontal-field'>\n		<div class='field log-data'><div class='slider'></div></div>\n		<span>log data</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='menubutton emergency-shutdown' style=\"background-color: red; color: white;\"><span>E-shutdown</span></div>\n		<div class='menubutton emergency-stp' style=\"background-color: black; color: white;\"><span>E-stop</span></div>\n		<span>emergency</span>\n	</div>\n</div>\n\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>cycle</h1>\n\n	<div class='horizontal-field'>\n		<div class='field rampup-time'><input type=text /><span class='units'>minutes</span></div>\n		<span>ramp-up time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field cycle-current'><input type=text /><span class='units'>amps</span></div>\n		<span>hold current</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field cycle-time'><input type=text /><span class='units'>minutes</span></div>\n		<span>hold time</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='field rampdown-time'><input type=text /><span class='units'>minutes</span></div>\n		<span>ramp-down time</span>\n	</div>\n\n	<div class='menubutton cycle-save' style=\"background-color: black; color: white;\">save</div>\n	<div class='menubutton cycle-begin' style=\" background-color: rgb(170, 185, 93); color: white;\">start</div>\n	\n\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>regulation</h1>\n	<div class='horizontal-field'>\n		<div class='field regulation-temperature'><input type=text /><span class='units'>mK</span></div>\n		<span>regulation temperature</span>\n	</div>\n	<div class='menubutton regulate-save' style=\"background-color: black; color: white;\">save</div>\n	<div class=\"buttonspacer\"></div>\n</div>\n\n<div class='regionbox'>\n	<h1 class='regiontitle'>manual control</h1>\n	<div class='horizontal-field'>\n		<div class='menubutton close-heatswitch' style=\"background-color: rgb(250, 42, 0); color: white;\">close</div>\n		<div class='menubutton open-heatswitch' style=\" background-color: rgb(170,185,93); color: white;\">open</div>\n		<span>heat switch</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='menubutton manual-regulate' style=\"background-color: rgb(51,102,204); color: white;\"><span>regulate</span></div>\n		<div class='menubutton manual-magdown' style=\"background-color: black; color: white;\"><span>mag-down</span></div>\n		<span>cycle</span>\n	</div>\n\n	<div class='horizontal-field'>\n		<div class='menubutton manual-switch-to-regulate-mode' style=\"background-color: rgb(170,185,93); color: white;\"><span>regulate</span></div>\n		<div class='menubutton manual-switch-to-mag-cycle-mode' style=\"background-color: rgb(250, 42, 0); color: white;\"><span>mag-cycle</span></div>\n		<span>current mode</span>\n	</div>\n	\n	<div class='horizontal-field'>\n		<div class='menubutton fast-ramp-rate' style=\"background-color: rgb(250, 42, 0); color: white;\"><span>fast</span></div>\n		<div class='menubutton slow-ramp-rate' style=\"background-color: rgb(51,102,204); color: white;\"><span>slow</span></div>\n		<span>regulate ramp rate</span>\n	</div>\n\n</div>");
       $('.regulate-save').click((function(_this) {
         return function() {
           return _this.regulate_save();
@@ -210,9 +214,27 @@
           return _this.set_log_data(state);
         };
       })(this));
+      setInterval((function(_this) {
+        return function() {
+          return _this.update_latest_log();
+        };
+      })(this), 30000);
+      this.update_latest_log();
       this.update_log_data_state();
       this.update_cycle_parameters();
     }
+
+    ControlController.prototype.update_latest_log = function() {
+      return pycon.transaction({
+        action: "user_log"
+      }, (function(_this) {
+        return function(r) {
+          _this.latest_log.message = r.data;
+          _this.latest_log.timestamp = r.time;
+          return _this.latest_log.render();
+        };
+      })(this));
+    };
 
     ControlController.prototype.emergency_stp = function(state) {
       return authentication_controller.begin((function(_this) {
