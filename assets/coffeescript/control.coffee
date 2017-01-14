@@ -64,6 +64,7 @@ class @ControlController
 					<span>regulation temperature</span>
 				</div>
 				<div class='menubutton regulate-save' style="background-color: black; color: white;">save</div>
+				<div class='menubutton manual-mode' style="background-color: rgb(250, 42, 0); color: white;">off</div>
 				<div class="buttonspacer"></div>
 			</div>
 
@@ -78,13 +79,13 @@ class @ControlController
 				<div class='horizontal-field'>
 					<div class='menubutton manual-regulate' style="background-color: rgb(51,102,204); color: white;"><span>regulate</span></div>
 					<div class='menubutton manual-magdown' style="background-color: black; color: white;"><span>mag-down</span></div>
-					<span>cycle</span>
+					<span>cryoserver opration</span>
 				</div>
 
 				<div class='horizontal-field'>
 					<div class='menubutton manual-switch-to-regulate-mode' style="background-color: rgb(170,185,93); color: white;"><span>regulate</span></div>
 					<div class='menubutton manual-switch-to-mag-cycle-mode' style="background-color: rgb(250, 42, 0); color: white;"><span>mag-cycle</span></div>
-					<span>current mode</span>
+					<span>breakout box current mode</span>
 				</div>
 				
 				<div class='horizontal-field'>
@@ -92,7 +93,6 @@ class @ControlController
 					<div class='menubutton slow-ramp-rate' style="background-color: rgb(51,102,204); color: white;"><span>slow</span></div>
 					<span>regulate ramp rate</span>
 				</div>
-
 			</div>
 		"""
 		# Now setup callbacks for all of the various buttons.
@@ -122,6 +122,9 @@ class @ControlController
 		
 		$('.manual-regulate').click =>
 			@manual_regulate()
+
+		$('.manual-mode').click =>
+			@manual_mode()
 
 		$('.manual-switch-to-regulate-mode').click =>
 			@switch_to_regulate_mode()
@@ -186,6 +189,10 @@ class @ControlController
 	manual_regulate: (state) ->
 		authentication_controller.begin (password) =>
 			pycon.transaction { action: 'manual_regulate', arguments: { password: password } }
+
+	manual_mode: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'manual_mode', arguments: { password: password } }
 
 	switch_to_regulate_mode: (state) ->
 		authentication_controller.begin (password) =>

@@ -381,6 +381,26 @@ class CryoManager(object):
 		else:
 			self.print_log( "Attempted to start manual regulate with no password." )
 
+        # This function switches the SIM960 from PID mode to manual mode, first by copying the
+        # PID output to the manual output.
+        def manual_mode(self, arguments):
+		# The user needs to authenticate first.
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+                                if self.PID_controller.is_in_PID_mode(): 
+                                        self.print_log( "Switched from regulate mode to manual mode." )
+                                        self.PID_controller.copy_pid_output_to_manual_output()
+                                        self.PID_controller.set_manual_mode()
+                                else:
+                                        self.print_log( "Already in manual mode." )
+                        else:
+				self.print_log( "Attempted to switch to manual mode with incorrect password." )
+		else:
+			self.print_log( "Attempted to switch to manual mode with no password." )
+
+
+
+
 	# This function is called every one second, and is used to step the current
 	# process. A process is a class, which describes a long time-scale operation.
 	def step(self, arguments):
