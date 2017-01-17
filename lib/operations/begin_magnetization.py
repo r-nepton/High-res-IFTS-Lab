@@ -77,7 +77,7 @@ class BeginMagnetizationOperation(GenericOperation):
 		if self.breakout_board.heat_switch_open == True:
 			# If the stage temperature and 3 K stage temperature have equalized, 
 			# we'll close the heat switch.
-			if temperature_3K['temperature'] > temperature_FAA['temperature']:
+			if temperature_FAA['temperature'] > temperature_3K['temperature']:
 				self.breakout_board.close_heat_switch()
 				self.breakout_board.heat_switch_open = False
 
