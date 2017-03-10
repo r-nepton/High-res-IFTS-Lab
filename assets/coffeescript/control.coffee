@@ -64,7 +64,8 @@ class @ControlController
 					<span>regulation temperature</span>
 				</div>
 				<div class='menubutton regulate-save' style="background-color: black; color: white;">save</div>
-				<div class='menubutton manual-mode' style="background-color: rgb(250, 42, 0); color: white;">off</div>
+				<div class='menubutton manual-mode' style="background-color: rgb(250, 42, 0); color: white;">pause</div>
+				<div class='menubutton PID-mode' style="background-color: rgb(170,185,93); color: white;">unpause</div>
 				<div class="buttonspacer"></div>
 			</div>
 
@@ -125,6 +126,16 @@ class @ControlController
 
 		$('.manual-mode').click =>
 			@manual_mode()
+			$('.manual-mode').hide()
+			$('.PID-mode').show()
+
+		# The PID-mode button (unpause) should be hidden to start with
+		$('.PID-mode').hide()
+
+		$('.PID-mode').click =>
+			@PID_mode()
+			$('.PID-mode').hide()
+			$('.manual-mode').show()
 
 		$('.manual-switch-to-regulate-mode').click =>
 			@switch_to_regulate_mode()
@@ -193,6 +204,10 @@ class @ControlController
 	manual_mode: (state) ->
 		authentication_controller.begin (password) =>
 			pycon.transaction { action: 'manual_mode', arguments: { password: password } }
+
+	PID_mode: (state) ->
+		authentication_controller.begin (password) =>
+			pycon.transaction { action: 'PID_mode', arguments: { password: password } }
 
 	switch_to_regulate_mode: (state) ->
 		authentication_controller.begin (password) =>

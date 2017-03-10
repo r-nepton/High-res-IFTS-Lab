@@ -168,6 +168,24 @@ class @BackEmfPlot
 			@t.x = ( Math.min(0,(d.time - Date.now()/1000)/60) for d in r.history )
 			@t.plot()
 
+#class @GraphScreenLog
+#	constructor: ->
+#		#@element = $("<div id='graph_screen_log'></div>")
+#		$('.log').append @dom_element
+#		@latest_log = new LogElement()
+#		@dom_element.append @latest_log.dom_element
+#		@update
+#		setInterval( =>
+#			@update()
+#		, 30000)
+#
+#	update: ->
+#		pycon.transaction { action: "user_log" }, (r) =>
+#			@latest_log.message = r.data
+#			@latest_log.timestamp = r.time
+#			@latest_log.render
+
+
 class @Dashboard
 	constructor: ->
 		@element = $('<div id="dashboard"></div>')

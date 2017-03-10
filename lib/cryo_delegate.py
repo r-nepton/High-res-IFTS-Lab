@@ -398,7 +398,21 @@ class CryoManager(object):
 		else:
 			self.print_log( "Attempted to switch to manual mode with no password." )
 
-
+        # This function switches the SIM960 from manual mode to PID mode.  This is only intended for use after
+        # pausing regulation using the 'manual_mode' function.
+        def PID_mode(self, arguments):
+		# The user needs to authenticate first.
+		if 'password' in arguments:
+			if arguments['password'] == self.password:
+                                if not self.PID_controller.is_in_PID_mode(): 
+                                        self.print_log( "Switched from manual mode to regulate mode." )
+                                        self.PID_controller.set_regulation_mode()
+                                else:
+                                        self.print_log( "Already in PID mode." )
+                        else:
+				self.print_log( "Attempted to switch to PID mode with incorrect password." )
+		else:
+			self.print_log( "Attempted to switch to PID mode with no password." )
 
 
 	# This function is called every one second, and is used to step the current

@@ -48,6 +48,7 @@ window.connection_ready = ->
 	$('.log').append('<div class="graphs"></div>')
 	$('.graphs').hide()
 	window.graphs = []
+#	window.graphs.push new GraphScreenLog()
 	window.graphs.push new TemperaturePlot2()
 	window.graphs.push new TemperaturePlot()
 	window.graphs.push new PressurePlot()
