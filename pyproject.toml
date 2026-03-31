@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mkid-ifts-sim"
+version = "0.1.0"
+description = "Modular simulator for a high-resolution IFTS with MKID order sorting."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "High-Resolution IFTS Lab" }
+]
+dependencies = [
+  "numpy>=1.24",
+  "scipy>=1.10",
+  "matplotlib>=3.7",
+  "astropy>=5.3",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=8.0",
+]
+
+[project.scripts]
+mkid-ifts-etc = "mkid_ifts_sim.etc:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mkid_ifts_sim*"]
+
+[tool.setuptools.package-data]
+mkid_ifts_sim = ["data/templates/*.csv"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
