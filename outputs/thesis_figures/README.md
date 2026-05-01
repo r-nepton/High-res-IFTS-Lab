@@ -1,0 +1,6 @@
+# Thesis Figure Outputs
+
+- `00_pipeline_overview.png`: End-to-end simulator flowchart from astrophysical source to SNR/ETC output, with module mapping for each stage.
+- `01_fts_signal_chain.png`: Single-folding-order FTS demonstration for the Halpha + [NII] + [SII] complex. The plotted band (14000-16000 cm^-1) is inside folding order 1 for the configured scan (`delta_x_m = 6.25e-7`, `FSR = 8000 cm^-1`). Panels show input lines, science interferogram, and FFT-recovered spectrum with and without apodization.
+- `02_order_sorting_performance.png`: Analytic order-separation diagnostics versus MKID energy resolving power. Left: cross-order contamination under probabilistic assignment. Right: grey-zone photon loss under hard-cut filtering (`k_sigma = 1, 2, 3`). Curves use a representative order width derived from the reference scan FSR; they are diagnostic curves, not full source SNR predictions.
+- `03_strategy_comparison.png`: Strategy 1 vs Strategy 2 SNR comparison. Left: `SNR_probabilistic / SNR_hard-cut` at reference wavelengths versus `R_E` for three science cases. Right: full SNR curves for the faint-galaxy case at `R_E = 40`. Ratios above unity indicate lower discard loss; ratios below unity indicate hard-cut is favored for that regime.
