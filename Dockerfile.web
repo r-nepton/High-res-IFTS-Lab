@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY pyproject.toml README.md ./
+COPY mkid_ifts_sim ./mkid_ifts_sim
+COPY web ./web
+COPY outputs/thesis_figures ./outputs/thesis_figures
+COPY project_materials ./project_materials
+
+RUN pip install --no-cache-dir -e ".[web]"
+
+ENV CORS_ORIGINS="*"
+
+CMD ["sh", "-c", "uvicorn web.api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

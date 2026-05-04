@@ -24,6 +24,11 @@ dependencies = [
 test = [
   "pytest>=8.0",
 ]
+web = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "httpx>=0.27",
+]
 
 [project.scripts]
 mkid-ifts-etc = "mkid_ifts_sim.etc:main"
@@ -33,10 +38,10 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["mkid_ifts_sim*"]
+include = ["mkid_ifts_sim*", "web*"]
 
 [tool.setuptools.package-data]
-mkid_ifts_sim = ["data/templates/*.csv"]
+mkid_ifts_sim = ["data/templates/*.csv", "data/sky/*.csv"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

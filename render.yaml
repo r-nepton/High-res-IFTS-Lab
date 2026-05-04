@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: mkid-ifts-api
+    env: python
+    plan: free
+    buildCommand: pip install -e ".[web]"
+    startCommand: uvicorn web.api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: CORS_ORIGINS
+        value: "*"
