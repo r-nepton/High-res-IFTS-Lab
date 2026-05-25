@@ -5,13 +5,16 @@ import numpy as np
 from mkid_ifts_sim import (
     InstrumentConfig,
     RecoveredOrderSpectrum,
+    Spectrum,
     apodize,
     fft_to_spectrum,
+    generate_interferogram,
     optimize_config,
     phase_correction,
     prepare_observation,
     recover_order_spectrum,
     remove_dc,
+    run_full_simulation,
     snr_from_time,
     stitch_orders,
     time_from_snr,
@@ -72,3 +75,73 @@ def test_prepare_observation_builds_detector_rates() -> None:
     source = make_input_source({"mode": "point", "spectral_type": "stellar_a0v", "magnitude": 20.0}, cfg)
     observation = prepare_observation(source, cfg)
     assert np.all(observation.total_rate_per_nm >= observation.source_rate_per_nm)
+
+
+def test_single_sided_mertz_recovers_line_location() -> None:
+    cfg_single = InstrumentConfig(
+        n_steps=256,
+        n_sigma=1024,
+        zpd_fraction=0.10,
+        delta_x_m=1.0e-8,
+        sigma_min_cm=14_500.0,
+        sigma_max_cm=15_500.0,
+        apodization="none",
+    )
+    cfg_centered = cfg_single.with_updates(zpd_fraction=0.50)
+    sigma = cfg_single.sigma_grid()
+    spectrum = np.exp(-0.5 * ((sigma - 15_000.0) / 2.0) ** 2) * 1.0e5
+
+    single = generate_interferogram(spectrum, sigma, cfg_single)
+    centered = generate_interferogram(spectrum, sigma, cfg_centered)
+    recovered_single = recover_order_spectrum(
+        0.5 * (single.expected_port_0 - single.expected_port_1),
+        cfg_single.delta_x_m,
+        cfg_single.zpd_index,
+        phase_method="mertz",
+        apodization_window="none",
+    )
+    recovered_centered = recover_order_spectrum(
+        0.5 * (centered.expected_port_0 - centered.expected_port_1),
+        cfg_centered.delta_x_m,
+        cfg_centered.zpd_index,
+        phase_method="mertz",
+        apodization_window="none",
+    )
+
+    peak_single = recovered_single.sigma_cm[np.argmax(recovered_single.flux)]
+    peak_centered = recovered_centered.sigma_cm[np.argmax(recovered_centered.flux)]
+    resolution_bin = recovered_single.sigma_cm[1] - recovered_single.sigma_cm[0]
+    amplitude_ratio = np.max(recovered_single.flux) / np.max(recovered_centered.flux)
+    assert abs(peak_single - 15_000.0) < 3.0 * resolution_bin
+    assert abs(peak_centered - 15_000.0) < 3.0 * resolution_bin
+    assert 0.5 < amplitude_ratio < 1.5
+
+
+def test_full_pipeline_monochromatic_line_is_sinc_like() -> None:
+    cfg = InstrumentConfig(
+        n_steps=256,
+        n_sigma=2048,
+        delta_x_m=6.25e-7,
+        zpd_fraction=0.5,
+        sigma_min_cm=14_000.0,
+        sigma_max_cm=15_000.0,
+        R_energy_ref=1.0e6,
+        apodization="none",
+        airmass=0.0,
+    )
+    sigma = cfg.sigma_grid()
+    source = Spectrum(sigma, np.exp(-0.5 * ((sigma - 14_500.0) / 1.0) ** 2) * 1.0e6)
+    result = run_full_simulation(source, cfg, include_noise=False, include_sky=False)
+    recovered = result.stitched_spectrum
+    peak_idx = int(np.argmax(recovered.flux_photons_per_s_cm2_nm))
+    peak_sigma = recovered.sigma_cm[peak_idx]
+    assert abs(peak_sigma - 14_500.0) < 25.0
+
+    local_mask = np.abs(recovered.sigma_cm - peak_sigma) < 250.0
+    local_sigma = recovered.sigma_cm[local_mask] - peak_sigma
+    local_flux = recovered.flux_photons_per_s_cm2_nm[local_mask] / recovered.flux_photons_per_s_cm2_nm[peak_idx]
+    opd_max_cm = (cfg.n_steps - cfg.zpd_index - 1) * cfg.delta_x_cm
+    expected = np.sinc(2.0 * opd_max_cm * local_sigma)
+    correlation = np.corrcoef(local_flux, expected)[0, 1]
+    assert correlation > 0.8
+    assert np.min(local_flux) < 0.0

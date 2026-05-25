@@ -1,5 +1,5 @@
 from .config import InstrumentConfig
-from .source import Spectrum, apply_redshift, blackbody, emission_lines, load_template, make_input_source
+from .source import Spectrum, apply_redshift, blackbody, emission_lines, from_file, load_template, make_input_source
 from .atmosphere import transmission
 from .sky_background import oh_lines, sky_spectrum, thermal_background
 from .telescope import ThroughputResult, collecting_area, mirror_reflectivity, throughput, throughput_components
@@ -8,17 +8,24 @@ from .ifts import (
     OrderLayout,
     add_photon_noise,
     combine_dual_output,
+    fold_sigma_to_local,
     folding_orders,
     generate_interferogram,
     modulation_matrix,
+    modulation_efficiency,
+    optics_transmission,
     opd_positions,
+    unfold_local_sigma,
 )
-from .mkid_detector import apply_dead_time, check_saturation, energy_resolution, energy_sigma_eV, qe
+from .mkid_detector import DetectorRateResult, apply_dead_time, apply_detector_response, check_saturation, energy_resolution, energy_sigma_eV, qe
 from .order_sorting import (
     OrderSortingResult,
+    assignment_probabilities,
     contamination_fraction,
     grey_zone_loss,
     hard_cut_assignment,
+    monte_carlo_assignments,
+    monte_carlo_order_statistics,
     probabilistic_assignment,
     sort_spectrum_into_orders,
 )
@@ -32,6 +39,7 @@ from .spectrum_recovery import (
     stitch_orders,
 )
 from .snr import NoiseComponents, SNRResult, compute_snr, noise_breakdown
+from .simulation import FullModeSNRComparison, FullSimulationResult, estimate_full_mode_snr, run_full_simulation
 
 
 def prepare_observation(*args, **kwargs):
@@ -63,6 +71,7 @@ __all__ = [
     "apply_redshift",
     "blackbody",
     "emission_lines",
+    "from_file",
     "load_template",
     "make_input_source",
     "transmission",
@@ -78,19 +87,28 @@ __all__ = [
     "OrderLayout",
     "add_photon_noise",
     "combine_dual_output",
+    "fold_sigma_to_local",
     "folding_orders",
     "generate_interferogram",
     "modulation_matrix",
+    "modulation_efficiency",
+    "optics_transmission",
     "opd_positions",
+    "unfold_local_sigma",
+    "DetectorRateResult",
     "apply_dead_time",
+    "apply_detector_response",
     "check_saturation",
     "energy_resolution",
     "energy_sigma_eV",
     "qe",
     "OrderSortingResult",
+    "assignment_probabilities",
     "contamination_fraction",
     "grey_zone_loss",
     "hard_cut_assignment",
+    "monte_carlo_assignments",
+    "monte_carlo_order_statistics",
     "probabilistic_assignment",
     "sort_spectrum_into_orders",
     "RecoveredOrderSpectrum",
@@ -104,6 +122,10 @@ __all__ = [
     "SNRResult",
     "compute_snr",
     "noise_breakdown",
+    "FullModeSNRComparison",
+    "FullSimulationResult",
+    "estimate_full_mode_snr",
+    "run_full_simulation",
     "optimize_config",
     "prepare_observation",
     "snr_from_time",

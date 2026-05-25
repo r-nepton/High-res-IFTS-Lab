@@ -163,6 +163,8 @@ def from_file(filepath: str | Path, sigma_grid_cm: np.ndarray | None = None) -> 
     suffix = file_path.suffix.lower()
     if suffix == ".csv":
         wavelength_nm, flux = _read_csv_spectrum(file_path)
+    elif suffix in {".txt", ".dat"}:
+        wavelength_nm, flux = _read_text_spectrum(file_path)
     elif suffix in {".fits", ".fit", ".fts"}:
         wavelength_nm, flux = _read_fits_spectrum(file_path)
     else:
@@ -277,3 +279,40 @@ def _read_fits_spectrum(path: Path) -> tuple[np.ndarray, np.ndarray]:
         flux_key = "flux_photons_per_s_cm2_nm" if "flux_photons_per_s_cm2_nm" in names else "flux"
         flux = np.asarray(table[names[flux_key]], dtype=float)
     return wavelength_nm, flux
+
+
+def _read_text_spectrum(path: Path) -> tuple[np.ndarray, np.ndarray]:
+    rows: list[np.ndarray] = []
+    with path.open("r", encoding="utf-8") as handle:
+        for raw_line in handle:
+            stripped = raw_line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            rows.append(np.fromstring(stripped, sep=" "))
+
+    if not rows:
+        raise ValueError("Text spectrum file is empty.")
+
+    if len(rows) == 2 and rows[0].size == rows[1].size and rows[0].size > 10:
+        first, second = rows
+        if _looks_like_wavelength_axis(first) and not _looks_like_wavelength_axis(second):
+            wavelength_nm, flux = first, second
+        elif _looks_like_wavelength_axis(second):
+            wavelength_nm, flux = second, first
+        else:
+            wavelength_nm, flux = second, first
+        return wavelength_nm, flux
+
+    stacked = np.vstack([row for row in rows if row.size >= 2])
+    wavelength_nm = stacked[:, 0]
+    flux = stacked[:, 1]
+    return wavelength_nm, flux
+
+
+def _looks_like_wavelength_axis(values: np.ndarray) -> bool:
+    values = np.asarray(values, dtype=float)
+    if values.ndim != 1 or values.size < 2:
+        return False
+    increasing = np.all(np.diff(values) > 0)
+    span = values[-1] - values[0]
+    return increasing and span > 100.0

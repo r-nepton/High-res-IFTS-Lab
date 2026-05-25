@@ -50,7 +50,7 @@ Recommended low-cost deployment:
 1. Deploy `web/app` to Cloudflare Pages.
    - Build command: `npm run build`
    - Output directory: `dist`
-   - Set `VITE_API_URL` to the backend URL, for example `https://api.mkid-ifts.shayaanauqil.ca`.
+   - Set `VITE_API_URL` to the backend URL, for example `https://mkid-ifts-api.onrender.com`.
 2. Deploy the Python backend to Render/Fly/Railway or another Python host.
    - Install command: `pip install -e ".[web]"`
    - Start command: `uvicorn web.api.main:app --host 0.0.0.0 --port $PORT`

@@ -1,3 +1,5 @@
+import pipelineOverviewPng from "../assets/00_pipeline_overview.png";
+
 export function Home() {
   return (
     <main className="article-page">
@@ -56,7 +58,7 @@ export function Home() {
         </p>
 
         <figure className="inline-figure">
-          <img src="/figures/00_pipeline_overview.png" alt="MKID-IFTS simulator pipeline" />
+          <img src={pipelineOverviewPng} alt="MKID-IFTS simulator pipeline" />
           <figcaption>
             <strong>Simulator signal chain.</strong> The web ETC uses the analytical
             branch of the same source-to-SNR pipeline: source, atmosphere, sky,

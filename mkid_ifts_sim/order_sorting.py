@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import math
 
 import numpy as np
 from scipy.special import ndtr
@@ -21,6 +20,89 @@ class OrderSortingResult:
     contamination_fraction: np.ndarray
     discarded_fraction: np.ndarray
     layout: OrderLayout
+
+
+def assignment_probabilities(
+    E_true: np.ndarray,
+    sigma_E: np.ndarray,
+    order_boundaries: np.ndarray,
+    strategy: str = "probabilistic",
+    k_sigma: float = 2.0,
+    include_discard: bool = False,
+) -> np.ndarray:
+    E_true = np.asarray(E_true, dtype=float)
+    sigma_E = np.asarray(sigma_E, dtype=float)
+    boundaries = np.asarray(order_boundaries, dtype=float)
+
+    if strategy == "probabilistic":
+        probabilities = probabilistic_assignment(E_true, sigma_E, boundaries)
+    elif strategy == "hard_cut":
+        low = boundaries[:-1][None, :] + k_sigma * sigma_E[:, None]
+        high = boundaries[1:][None, :] - k_sigma * sigma_E[:, None]
+        valid = high > low
+        z_low = (low - E_true[:, None]) / sigma_E[:, None]
+        z_high = (high - E_true[:, None]) / sigma_E[:, None]
+        probabilities = np.where(valid, ndtr(z_high) - ndtr(z_low), 0.0)
+    else:
+        raise ValueError("Unknown order sorting strategy.")
+
+    probabilities = np.clip(probabilities, 0.0, 1.0)
+    if include_discard:
+        discarded = np.clip(1.0 - probabilities.sum(axis=1), 0.0, 1.0)
+        return np.hstack([probabilities, discarded[:, None]])
+    return probabilities
+
+
+def monte_carlo_assignments(
+    E_true: np.ndarray,
+    sigma_E: np.ndarray,
+    order_boundaries: np.ndarray,
+    strategy: str = "probabilistic",
+    k_sigma: float = 2.0,
+    rng: np.random.Generator | None = None,
+) -> np.ndarray:
+    rng = np.random.default_rng() if rng is None else rng
+    probabilities = assignment_probabilities(
+        E_true,
+        sigma_E,
+        order_boundaries,
+        strategy=strategy,
+        k_sigma=k_sigma,
+        include_discard=True,
+    )
+    cumulative = np.cumsum(probabilities, axis=1)
+    cumulative[:, -1] = 1.0
+    draws = rng.random(probabilities.shape[0])[:, None]
+    assignments = np.argmax(draws <= cumulative, axis=1)
+    n_orders = probabilities.shape[1] - 1
+    assignments = assignments.astype(int)
+    assignments[assignments == n_orders] = -1
+    return assignments
+
+
+def monte_carlo_order_statistics(
+    R_E: float,
+    order_width_eV: float,
+    strategy: str = "probabilistic",
+    k_sigma: float = 2.0,
+    n_photons: int = 100_000,
+    rng: np.random.Generator | None = None,
+) -> tuple[float, float]:
+    rng = np.random.default_rng() if rng is None else rng
+    sigma_E = np.full(n_photons, order_width_eV / max(R_E, 1.0))
+    E_true = np.zeros(n_photons)
+    boundaries = np.array([-1.5, -0.5, 0.5, 1.5], dtype=float) * order_width_eV
+    assignments = monte_carlo_assignments(
+        E_true,
+        sigma_E,
+        boundaries,
+        strategy=strategy,
+        k_sigma=k_sigma,
+        rng=rng,
+    )
+    contamination = float(np.mean((assignments != 1) & (assignments != -1)))
+    discarded = float(np.mean(assignments == -1))
+    return contamination, discarded
 
 
 def hard_cut_assignment(
@@ -59,13 +141,28 @@ def probabilistic_assignment(
 
 def contamination_fraction(R_E: float, order_width_eV: float) -> float:
     sigma_E = order_width_eV / max(R_E, 1.0)
-    return float(0.5 * (1.0 - math.erf(order_width_eV / (2.0 * np.sqrt(2.0) * sigma_E))))
+    boundaries = np.array([-1.5, -0.5, 0.5, 1.5], dtype=float) * order_width_eV
+    probabilities = assignment_probabilities(
+        np.array([0.0]),
+        np.array([sigma_E]),
+        boundaries,
+        strategy="probabilistic",
+    )
+    return float(1.0 - probabilities[0, 1])
 
 
 def grey_zone_loss(R_E: float, order_width_eV: float, k_sigma: float) -> float:
     sigma_E = order_width_eV / max(R_E, 1.0)
-    usable_half_width = max(order_width_eV / 2.0 - k_sigma * sigma_E, 0.0)
-    return float(1.0 - (2.0 * usable_half_width / order_width_eV))
+    boundaries = np.array([-1.5, -0.5, 0.5, 1.5], dtype=float) * order_width_eV
+    probabilities = assignment_probabilities(
+        np.array([0.0]),
+        np.array([sigma_E]),
+        boundaries,
+        strategy="hard_cut",
+        k_sigma=k_sigma,
+        include_discard=True,
+    )
+    return float(probabilities[0, -1])
 
 
 def sort_spectrum_into_orders(
@@ -88,13 +185,14 @@ def sort_spectrum_into_orders(
     weights = np.zeros_like(base_prob)
     if config.strategy == "probabilistic":
         weights = base_prob
-        discarded = np.zeros_like(sigma_cm)
     elif config.strategy == "hard_cut":
-        assignments = hard_cut_assignment(true_energies, sigma_e, boundaries_eV, config.k_sigma)
-        valid = assignments >= 0
-        in_range = assignments < weights.shape[1]
-        weights[np.where(valid & in_range)[0], assignments[valid & in_range]] = 1.0
-        discarded = 1.0 - weights.sum(axis=1)
+        weights = assignment_probabilities(
+            true_energies,
+            sigma_e,
+            boundaries_eV,
+            strategy="hard_cut",
+            k_sigma=config.k_sigma,
+        )
     else:
         raise ValueError("Unknown order sorting strategy.")
 

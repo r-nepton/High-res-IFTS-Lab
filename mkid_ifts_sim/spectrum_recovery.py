@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .ifts import OrderLayout
+from .ifts import OrderLayout, unfold_local_sigma
 from .source import Spectrum
 
 
@@ -20,19 +20,35 @@ def remove_dc(interferogram: np.ndarray) -> np.ndarray:
     return interferogram - np.mean(interferogram)
 
 
+def _center_zpd(interferogram: np.ndarray, n_zpd: int) -> np.ndarray:
+    center_idx = interferogram.size // 2
+    return np.roll(interferogram, center_idx - n_zpd)
+
+
 def phase_correction(interferogram: np.ndarray, n_zpd: int, method: str = "mertz") -> np.ndarray:
     interferogram = np.asarray(interferogram, dtype=float)
     n_left = n_zpd
     n_right = interferogram.size - n_zpd - 1
     n_overlap = min(n_left, n_right)
     corrected = interferogram.copy()
-    left = interferogram[n_zpd - n_overlap : n_zpd][::-1]
-    right = interferogram[n_zpd + 1 : n_zpd + 1 + n_overlap]
     if method == "mertz":
-        symmetric = 0.5 * (left + right)
-        corrected[n_zpd - n_overlap : n_zpd] = symmetric[::-1]
-        corrected[n_zpd + 1 : n_zpd + 1 + n_overlap] = symmetric
+        if n_overlap < 1:
+            return corrected
+        centered = _center_zpd(interferogram, n_zpd)
+        short_centered = np.zeros_like(centered)
+        center_idx = centered.size // 2
+        segment = centered[center_idx - n_overlap : center_idx + n_overlap + 1]
+        if segment.size < 3:
+            return corrected
+        short_centered[center_idx - n_overlap : center_idx + n_overlap + 1] = segment * np.hanning(segment.size)
+        full_spectrum = np.fft.rfft(np.fft.ifftshift(centered))
+        short_spectrum = np.fft.rfft(np.fft.ifftshift(short_centered))
+        phase = np.unwrap(np.angle(short_spectrum))
+        corrected_centered = np.fft.fftshift(np.fft.irfft(full_spectrum * np.exp(-1.0j * phase), n=interferogram.size))
+        return np.roll(corrected_centered, n_zpd - center_idx)
     elif method == "forman":
+        left = interferogram[n_zpd - n_overlap : n_zpd][::-1]
+        right = interferogram[n_zpd + 1 : n_zpd + 1 + n_overlap]
         symmetric = 0.5 * (left + right)
         corrected[n_zpd - n_overlap : n_zpd] = symmetric[::-1]
         corrected[n_zpd + 1 : n_zpd + 1 + n_overlap] = 0.75 * right + 0.25 * symmetric
@@ -60,10 +76,11 @@ def apodize(interferogram: np.ndarray, window: str = "none") -> np.ndarray:
     return interferogram * win
 
 
-def fft_to_spectrum(interferogram: np.ndarray, delta_x: float) -> tuple[np.ndarray, np.ndarray]:
+def fft_to_spectrum(interferogram: np.ndarray, delta_x: float, zpd_index: int | None = None) -> tuple[np.ndarray, np.ndarray]:
     interferogram = np.asarray(interferogram, dtype=float)
     delta_x_cm = delta_x * 100.0
-    shifted = np.fft.ifftshift(interferogram)
+    centered = _center_zpd(interferogram, zpd_index) if zpd_index is not None else interferogram
+    shifted = np.fft.ifftshift(centered)
     spectrum = np.fft.rfft(shifted)
     sigma = np.fft.rfftfreq(interferogram.size, d=delta_x_cm)
     recovered = np.real(spectrum) * 2.0 * delta_x_cm
@@ -78,11 +95,18 @@ def recover_order_spectrum(
     apodization_window: str = "none",
     order_offset_cm: float = 0.0,
     order_index: int = 0,
+    order_number: int | None = None,
+    sigma_nyquist_cm: float | None = None,
 ) -> RecoveredOrderSpectrum:
     corrected = phase_correction(remove_dc(interferogram), n_zpd, phase_method)
     windowed = apodize(corrected, apodization_window)
-    sigma_local, flux = fft_to_spectrum(windowed, delta_x_m)
-    return RecoveredOrderSpectrum(sigma_local + order_offset_cm, flux, order_index=order_index)
+    sigma_local, flux = fft_to_spectrum(windowed, delta_x_m, zpd_index=n_zpd)
+    if order_number is not None and sigma_nyquist_cm is not None:
+        sigma_global = unfold_local_sigma(sigma_local, order_number, sigma_nyquist_cm)
+    else:
+        sigma_global = sigma_local + order_offset_cm
+    order = np.argsort(sigma_global)
+    return RecoveredOrderSpectrum(sigma_global[order], flux[order], order_index=order_index)
 
 
 def stitch_orders(

@@ -1,128 +1,115 @@
 # MKID-IFTS Instrument Simulator
 
-Modular simulator for a high-resolution imaging Fourier transform spectrograph (IFTS) paired with energy-resolving MKIDs. The package implements the development plan as a Python package with source models, atmosphere and sky background, telescope throughput, interferogram generation, MKID order sorting, spectrum recovery, analytical SNR estimation, and a command-line exposure time calculator.
+Python package and planning tools for a high-resolution imaging Fourier transform spectrograph (IFTS) with energy-resolving microwave kinetic inductance detectors (MKIDs). The project models the path from astrophysical source to recovered spectrum and SNR, including filterless order sorting, analytical exposure-time estimation, and an interactive web calculator.
 
-The repository still includes the original exploratory notebook, `ifts_mkid_sim.ipynb`, but the maintained simulator now lives in the `mkid_ifts_sim` package.
+**Principal investigator:** Dr. Laurie Rousseau-Nepton (High-Resolution IFTS Lab)
 
-## Package Layout
+## Live demo
 
-```text
-mkid_ifts_sim/
-    __init__.py
-    config.py
-    source.py
-    atmosphere.py
-    sky_background.py
-    telescope.py
-    ifts.py
-    mkid_detector.py
-    order_sorting.py
-    spectrum_recovery.py
-    snr.py
-    etc.py
-    plotting.py
-    data/templates/
-tests/
-```
+| Resource | URL |
+|----------|-----|
+| Web ETC | [https://mkid-ifts.shayaanauqil.ca/](https://mkid-ifts.shayaanauqil.ca/) |
+| API (Render) | [https://mkid-ifts-api.onrender.com/health](https://mkid-ifts-api.onrender.com/health) |
+| Source repository | [https://github.com/r-nepton/High-res-IFTS-Lab](https://github.com/r-nepton/High-res-IFTS-Lab) |
 
-## Features
+The web app is a v1.0 planning and demonstration interface. It uses the fast analytical ETC path, not a fully calibrated observatory ETC.
 
-- Native spectral grid in wavenumber with wavelength conversion only at user-facing boundaries.
-- Source entry points for point-source magnitude plus spectral type, extended-source surface brightness plus template, or user-provided CSV/FITS spectra.
-- Atmospheric transmission with airmass scaling and optical telluric features.
-- Sky background with moon-dependent continuum, representative OH airglow structure, atomic airglow, and thermal tail.
-- Telescope collecting area and mirror-coating throughput.
-- Vectorized Michelson interferogram generation with dual-output handling and Poisson counting noise.
-- MKID QE, energy-resolution scaling, dead time, and saturation checks.
-- Hard-cut and probabilistic order-sorting models.
-- FFT-based spectrum recovery, optional apodization, and broadband order stitching.
-- Analytical SNR and ETC modes suitable for batch calculations and parameter sweeps.
+## Repository contents
+
+| Path | Description |
+|------|-------------|
+| [`mkid_ifts_sim/`](mkid_ifts_sim/) | Core simulator: sources, atmosphere, sky, telescope, IFTS, MKID, order sorting, recovery, SNR, ETC, full simulation |
+| [`web/`](web/) | FastAPI backend and React/Vite frontend — see [`web/README.md`](web/README.md) |
+| [`notebooks/`](notebooks/) | Worked examples, strategy comparison, config optimization, SITELLE SN3 benchmark |
+| [`docs/`](docs/) | [API reference](docs/api_reference.md), [notebook guide](docs/notebooks.md), [benchmark notes](docs/benchmarks.md) |
+| [`scripts/`](scripts/) | Regenerate thesis figures and the pipeline overview diagram |
+| [`outputs/thesis_figures/`](outputs/thesis_figures/) | Canonical figures `00`–`03` and captions — see [`outputs/thesis_figures/README.md`](outputs/thesis_figures/README.md) |
+| [`project_materials/`](project_materials/) | Project overview and development PDFs |
+| [`tests/`](tests/) | Package, pipeline, simulation, and web API tests |
+| `ifts_mkid_sim.ipynb` | Original exploratory notebook |
+
+Built-in spectral templates ship with the package under `mkid_ifts_sim/data/templates/`.
 
 ## Installation
 
-Use Python 3.10+.
+Python 3.10+ (3.11 recommended for API deployment).
 
 ```bash
-pip install -e .[test]
+git clone https://github.com/r-nepton/High-res-IFTS-Lab.git
+cd High-res-IFTS-Lab
+pip install -e ".[test]"
 ```
 
-Core dependencies:
+Web and API development:
 
-- `numpy`
-- `scipy`
-- `matplotlib`
-- `astropy`
-- `PyYAML`
+```bash
+pip install -e ".[web,test]"
+```
 
-## Quick Start
+Dependencies: `numpy`, `scipy`, `matplotlib`, `astropy`, `PyYAML`.
 
-### Python API
+## Quick start
+
+### Analytical SNR
 
 ```python
 from mkid_ifts_sim import InstrumentConfig, snr_from_time
 
 config = InstrumentConfig()
-source = {
-    "mode": "point",
-    "spectral_type": "stellar_g2v",
-    "magnitude": 20.0,
-    "band": "r",
-}
-
+source = {"mode": "point", "spectral_type": "stellar_g2v", "magnitude": 20.0, "band": "r"}
 result = snr_from_time(source, config, t_total_s=1800.0)
 print(result.snr.max())
 ```
 
-### Command-Line ETC
-
-Create a request file such as:
-
-```yaml
-mode: snr_from_time
-t_total_s: 1800
-config:
-  strategy: probabilistic
-  moon_phase: new
-source:
-  mode: point
-  spectral_type: stellar_g2v
-  magnitude: 20.0
-  band: r
-```
-
-Run:
+### Command-line ETC
 
 ```bash
 mkid-ifts-etc request.yaml
 ```
 
-Supported ETC modes:
+Supported modes: `snr_from_time`, `time_from_snr`, `optimize_config`. See [`mkid_ifts_sim/etc.py`](mkid_ifts_sim/etc.py) and the [API reference](docs/api_reference.md).
 
-- `snr_from_time`
-- `time_from_snr`
-- `optimize_config`
+### Full simulation
 
-## Development Notes
+```python
+from mkid_ifts_sim import InstrumentConfig, run_full_simulation
 
-- `config.py` contains the central `InstrumentConfig` dataclass used across the package.
-- The analytical ETC path uses `source -> atmosphere -> sky -> telescope -> snr`.
-- The interferometric path is implemented in modular pieces so full end-to-end simulations can be assembled in scripts or notebooks using `ifts.py`, `order_sorting.py`, and `spectrum_recovery.py`.
-- The current sky model includes representative OH structure and a thermal continuum approximation; it is designed to be extensible with fuller tabulated site data later.
+result = run_full_simulation(
+    {"mode": "point", "spectral_type": "stellar_g2v", "magnitude": 20.0, "band": "r"},
+    InstrumentConfig(),
+)
+print(result.stitched_spectrum.wavelength_nm[:5])
+```
+
+## Web ETC
+
+- **Run locally:** [`web/README.md`](web/README.md) — `uvicorn` for the API and `npm run dev` for the frontend.
+- **Production frontend:** build `web/app` with `VITE_API_URL=https://mkid-ifts-api.onrender.com`, deploy `dist/` to Cloudflare Pages.
+- **Production backend:** `Dockerfile.web`, `render.yaml`, and `runtime.txt` (Python 3.11) for Render or similar hosts.
+
+## Notebooks
+
+| Notebook | Topic |
+|----------|--------|
+| [`worked_example.ipynb`](notebooks/worked_example.ipynb) | End-to-end simulation chain |
+| [`strategy_comparison.ipynb`](notebooks/strategy_comparison.ipynb) | Hard-cut vs probabilistic order sorting |
+| [`config_optimization.ipynb`](notebooks/config_optimization.ipynb) | SNR vs scan parameters |
+| [`sitelle_sn3_benchmark.ipynb`](notebooks/sitelle_sn3_benchmark.ipynb) | SN3-like filtered FTS reference |
+
+## Figures
+
+```bash
+python scripts/generate_pipeline_figure.py
+python scripts/generate_usable_figures.py
+python scripts/generate_strategy_figure.py
+```
 
 ## Testing
-
-Run the test suite with:
 
 ```bash
 pytest
 ```
 
-The tests cover:
+## Citation and materials
 
-- blackbody and redshift behavior
-- atmospheric absorption structure
-- interferogram and dual-output consistency
-- MKID detector scaling and saturation
-- order sorting limits
-- FFT recovery and stitching utilities
-- ETC smoke tests
+Project context and references are in `project_materials/`. The web Credits tab links to the latest overview PDF served from the API.

@@ -9,6 +9,7 @@ from .config import InstrumentConfig
 
 @dataclass(slots=True)
 class OrderLayout:
+    order_numbers: np.ndarray
     order_edges_cm: np.ndarray
     order_bounds_cm: list[tuple[float, float]]
     sigma_min_cm: float
@@ -67,6 +68,20 @@ def nm_flux_to_sigma_flux(wavelength_nm: np.ndarray, flux_per_nm: np.ndarray) ->
     return flux_per_nm * (wavelength_nm**2 / 1.0e7)
 
 
+def fold_sigma_to_local(sigma_cm: np.ndarray, sigma_nyquist_cm: float) -> np.ndarray:
+    sigma_cm = np.asarray(sigma_cm, dtype=float)
+    order_number = np.floor(sigma_cm / sigma_nyquist_cm).astype(int)
+    frac = sigma_cm - order_number * sigma_nyquist_cm
+    return np.where(order_number % 2 == 0, frac, sigma_nyquist_cm - frac)
+
+
+def unfold_local_sigma(local_sigma_cm: np.ndarray, order_number: int, sigma_nyquist_cm: float) -> np.ndarray:
+    local_sigma_cm = np.asarray(local_sigma_cm, dtype=float)
+    if order_number % 2 == 0:
+        return order_number * sigma_nyquist_cm + local_sigma_cm
+    return (order_number + 1) * sigma_nyquist_cm - local_sigma_cm
+
+
 def generate_interferogram(
     spectrum_per_nm: np.ndarray,
     sigma_cm: np.ndarray,
@@ -110,13 +125,16 @@ def folding_orders(config: InstrumentConfig) -> OrderLayout:
     order_min = int(np.floor(config.sigma_min_cm / fsr))
     order_max = int(np.ceil(config.sigma_max_cm / fsr))
     edges = np.arange(order_min, order_max + 1, dtype=float) * fsr
+    order_numbers: list[int] = []
     bounds: list[tuple[float, float]] = []
-    for start, stop in zip(edges[:-1], edges[1:]):
+    for order_number, (start, stop) in enumerate(zip(edges[:-1], edges[1:]), start=order_min):
         lo = max(start, config.sigma_min_cm)
         hi = min(stop, config.sigma_max_cm)
         if hi > lo:
+            order_numbers.append(order_number)
             bounds.append((lo, hi))
     return OrderLayout(
+        order_numbers=np.asarray(order_numbers, dtype=int),
         order_edges_cm=edges,
         order_bounds_cm=bounds,
         sigma_min_cm=config.sigma_min_cm,

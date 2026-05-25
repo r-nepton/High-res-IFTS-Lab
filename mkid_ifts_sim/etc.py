@@ -10,6 +10,7 @@ import yaml
 
 from .atmosphere import transmission
 from .config import InstrumentConfig
+from .ifts import optics_transmission
 from .sky_background import sky_spectrum
 from .snr import SNRResult, compute_snr
 from .source import Spectrum, make_input_source
@@ -17,22 +18,40 @@ from .telescope import ThroughputResult, throughput_components
 
 
 def prepare_observation(source: Spectrum | Mapping[str, Any], config: InstrumentConfig) -> ThroughputResult:
+    """Propagate a source through atmosphere, sky, and telescope throughput.
+
+    Parameters
+    ----------
+    source:
+        Either a fully constructed `Spectrum` or a source request mapping accepted
+        by `make_input_source()`.
+    config:
+        Instrument and observing configuration.
+
+    Returns
+    -------
+    ThroughputResult
+        Detector-entering source and sky rates in photons s^-1 nm^-1 on the
+        simulator wavelength grid.
+    """
     spectrum = source if isinstance(source, Spectrum) else make_input_source(source, config)
     wavelength_nm = config.wavelength_grid_nm()
     source_resampled = spectrum.resample(config.sigma_grid())
     atmospheric = transmission(wavelength_nm, config.airmass, config.altitude_m, config.pwv_mm)
-    source_post_atm = source_resampled.flux_photons_per_s_cm2_nm * atmospheric
+    optics = optics_transmission(wavelength_nm, config)
+    source_post_atm = source_resampled.flux_photons_per_s_cm2_nm * atmospheric * optics
     sky = sky_spectrum(
         wavelength_nm,
         moon_phase=config.moon_phase,
         altitude_m=config.altitude_m,
         T_amb=config.ambient_temp_k,
         emissivity=config.thermal_emissivity,
-    )
+    ) * optics
     return throughput_components(wavelength_nm, config, source_post_atm, sky)
 
 
 def snr_from_time(source: Spectrum | Mapping[str, Any], config: InstrumentConfig, t_total_s: float) -> SNRResult:
+    """Compute the analytical SNR curve for a fixed total observing time."""
     per_step = max(t_total_s / config.n_steps, 1.0e-6)
     working_config = config.with_updates(t_exp_per_step_s=per_step)
     rates = prepare_observation(source, working_config)
@@ -45,6 +64,7 @@ def time_from_snr(
     target_snr: float,
     ref_nm: float,
 ) -> float:
+    """Solve for the total observing time needed to reach a target SNR."""
     base_result = snr_from_time(source, config, t_total_s=1.0)
     ref_snr = float(np.interp(ref_nm, base_result.wavelength_nm[::-1], base_result.snr[::-1]))
     if ref_snr <= 0:
@@ -53,6 +73,7 @@ def time_from_snr(
 
 
 def optimize_config(source: Spectrum | Mapping[str, Any], science_goal: Mapping[str, Any]) -> InstrumentConfig:
+    """Search a small discrete configuration grid for a high-SNR setup."""
     ref_nm = float(science_goal.get("ref_nm", 656.3))
     target_snr = float(science_goal.get("target_snr", 10.0))
     target_resolution = float(science_goal.get("target_resolution", 3000.0))
@@ -89,6 +110,7 @@ def optimize_config(source: Spectrum | Mapping[str, Any], science_goal: Mapping[
 
 
 def load_request(path: str | Path) -> dict[str, Any]:
+    """Load a JSON or YAML ETC request file."""
     path = Path(path)
     suffix = path.suffix.lower()
     text = path.read_text(encoding="utf-8")
@@ -109,6 +131,7 @@ def _result_to_dict(result: SNRResult) -> dict[str, Any]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run the command-line ETC entry point."""
     parser = argparse.ArgumentParser(description="MKID-IFTS analytical ETC")
     parser.add_argument("request_file", help="Path to a JSON or YAML request file.")
     args = parser.parse_args(argv)
