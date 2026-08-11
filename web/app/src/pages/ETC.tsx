@@ -5,7 +5,8 @@ import {
   optimizeConfig,
   runRates,
   runSnr,
-  runTimeFromSnr
+  runTimeFromSnr,
+  waitForApi
 } from "../api";
 import { ChartPanel } from "../components/ChartPanel";
 import { NumberField } from "../components/NumberField";
@@ -77,9 +78,30 @@ export function ETC() {
   const [optimized, setOptimized] = useState<Record<string, number | string | boolean> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [apiReady, setApiReady] = useState(false);
+  const [apiStatus, setApiStatus] = useState("Starting calculator…");
+
+  async function wakeApi() {
+    setApiReady(false);
+    setApiStatus("Starting calculator…");
+    setError(null);
+    const ok = await waitForApi();
+    if (ok) {
+      setApiReady(true);
+      setApiStatus("Calculator ready.");
+      try {
+        setPresets(await getPresets());
+      } catch (err) {
+        setError(String(err));
+      }
+      return;
+    }
+    setApiStatus("Calculator unavailable.");
+    setError("Could not reach the API. Wait a moment and press Retry (free hosts may take up to a minute to wake).");
+  }
 
   useEffect(() => {
-    getPresets().then(setPresets).catch((err) => setError(String(err)));
+    void wakeApi();
   }, []);
 
   const snrData = useMemo(() => {
@@ -164,9 +186,17 @@ export function ETC() {
     <main className="etc-layout">
       <aside className="panel controls">
         <h2>ETC controls</h2>
+        <div className={`api-status ${apiReady ? "ready" : "warming"}`}>
+          <span>{apiStatus}</span>
+          {!apiReady ? (
+            <button type="button" onClick={() => void wakeApi()} disabled={apiStatus === "Starting calculator…"}>
+              Retry
+            </button>
+          ) : null}
+        </div>
         <label className="field">
           <span>Science preset</span>
-          <select onChange={(event) => applyPreset(event.target.value)} defaultValue="">
+          <select onChange={(event) => applyPreset(event.target.value)} defaultValue="" disabled={!apiReady}>
             <option value="" disabled>
               Select a preset
             </option>
@@ -239,7 +269,7 @@ export function ETC() {
         <NumberField label="k_sigma" value={config.k_sigma ?? 2} step={0.25} min={0} onChange={(value) => setConfig({ ...config, k_sigma: value })} />
 
         <div className="button-row">
-          <button type="button" onClick={runAll} disabled={busy}>
+          <button type="button" onClick={runAll} disabled={busy || !apiReady}>
             {busy ? "Computing..." : "Compute ETC"}
           </button>
           <button type="button" onClick={() => snr && downloadJson("mkid-ifts-result.json", { snr, rates, strategies })}>
@@ -276,7 +306,7 @@ export function ETC() {
             <div className="inline-fields">
               <NumberField label="Target SNR" value={targetSnr} step={1} min={0.1} onChange={setTargetSnr} />
               <NumberField label="Reference wavelength (nm)" value={refNm} step={0.1} min={100} onChange={setRefNm} />
-              <button type="button" onClick={solveTime} disabled={busy}>
+              <button type="button" onClick={solveTime} disabled={busy || !apiReady}>
                 Solve time
               </button>
             </div>
@@ -284,7 +314,7 @@ export function ETC() {
           </div>
           <div>
             <h3>Configuration search</h3>
-            <button type="button" onClick={optimize} disabled={busy}>
+            <button type="button" onClick={optimize} disabled={busy || !apiReady}>
               Optimize scan setup
             </button>
             {optimized ? <pre>{JSON.stringify(optimized, null, 2)}</pre> : null}

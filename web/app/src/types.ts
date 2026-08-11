@@ -30,6 +30,7 @@ export interface InstrumentPayload {
   R_energy_ref_nm?: number;
   R_energy_scaling?: string;
   qe_model?: string;
+  calibration_profile?: "parametric" | "tables";
   strategy?: Strategy;
   k_sigma?: number;
   apodization?: string;

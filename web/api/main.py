@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from web.api.routes import router as etc_router
 
 _ROOT = Path(__file__).resolve().parents[2]
-_FIGURES = _ROOT / "outputs" / "thesis_figures"
+_FIGURES = _ROOT / "outputs" / "canonical_figures"
 _PROJECT_MATERIALS = _ROOT / "project_materials"
 _FRONTEND_DIST = _ROOT / "web" / "app" / "dist"
 

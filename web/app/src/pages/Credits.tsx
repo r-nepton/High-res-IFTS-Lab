@@ -6,8 +6,8 @@ export function Credits() {
       <section className="panel wide">
         <h2>Credits</h2>
         <p>
-          This temporary v1.0 webpage serves as a private demonstration and
-          planning interface for the MKID-IFTS simulator.
+          This v1.1 webpage is a planning and demonstration interface for the
+          MKID-IFTS simulator (package 0.2.0).
         </p>
       </section>
       <section className="panel">
@@ -40,16 +40,15 @@ export function Credits() {
         <h3>References and project materials</h3>
         <p>
           Project background and technical context are summarized in the downloadable
-          overview document. This private demonstration page is intended to make the
-          simulator easier to inspect and discuss before a polished public release.
+          overview document.
         </p>
       </section>
       <section className="panel wide">
         <h3>Use note</h3>
         <p>
-          This v1.0 website is a planning and demonstration interface for the
-          current simulator. It should not be interpreted as a fully calibrated
-          observatory ETC until validated against measured instrument and site data.
+          This website is a planning and demonstration interface for the current
+          simulator. Absolute SNR values should not be treated as observatory-calibrated
+          until validated against measured instrument and site data.
         </p>
       </section>
     </main>

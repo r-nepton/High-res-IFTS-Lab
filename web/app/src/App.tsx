@@ -17,7 +17,7 @@ export default function App() {
       {page === "how" ? <Explore /> : null}
       {page === "credits" ? <Credits /> : null}
       <footer>
-        <span>MKID-IFTS Web ETC v1.0</span>
+        <span>MKID-IFTS Web ETC v1.1</span>
         <span>Planning/demo tool based on current model assumptions.</span>
       </footer>
     </div>

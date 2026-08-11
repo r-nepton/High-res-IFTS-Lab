@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
-OUTPUT = Path(__file__).resolve().parents[1] / "outputs" / "thesis_figures"
+OUTPUT = Path(__file__).resolve().parents[1] / "outputs" / "canonical_figures"
 OUTPUT.mkdir(parents=True, exist_ok=True)
 
 # --- Layout constants ---

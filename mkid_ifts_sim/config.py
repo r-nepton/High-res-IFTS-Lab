@@ -15,6 +15,7 @@ _VALID_STRATEGIES = {"hard_cut", "probabilistic"}
 _VALID_APODIZATIONS = {"none", "norton-beer", "gaussian", "hanning"}
 _VALID_PHASE_METHODS = {"mertz", "forman"}
 _VALID_MOON_PHASES = {"new", "crescent", "quarter", "full"}
+_VALID_CALIBRATION_PROFILES = {"parametric", "tables"}
 
 
 @dataclass(slots=True)
@@ -43,6 +44,16 @@ class InstrumentConfig:
     dead_time_us: float = 10.0
     max_count_rate_hz: float = 5_000.0
     dark_rate_hz: float = 0.0
+
+    # Optional calibration tables under mkid_ifts_sim/data/calibration/
+    # "parametric" uses formulas; "tables" loads packaged example CSVs.
+    # Individual *_curve fields override a single curve (filename in that folder).
+    calibration_profile: str = "parametric"
+    qe_curve: str | None = None
+    re_curve: str | None = None
+    mirror_reflectivity_curve: str | None = None
+    optics_transmission_curve: str | None = None
+    sky_continuum_curve: str | None = None
 
     # Observation
     t_exp_per_step_s: float = 1.0
@@ -91,6 +102,8 @@ class InstrumentConfig:
             raise ValueError("R_energy_ref and R_energy_ref_nm must be positive.")
         if self.R_energy_scaling not in _VALID_SCALINGS:
             raise ValueError(f"R_energy_scaling must be one of {_VALID_SCALINGS}.")
+        if self.calibration_profile not in _VALID_CALIBRATION_PROFILES:
+            raise ValueError(f"calibration_profile must be one of {_VALID_CALIBRATION_PROFILES}.")
         if self.dead_time_us < 0 or self.max_count_rate_hz <= 0 or self.dark_rate_hz < 0:
             raise ValueError("Detector rates and dead time must be physically valid.")
         if self.t_exp_per_step_s <= 0:

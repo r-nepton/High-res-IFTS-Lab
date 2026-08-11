@@ -15,7 +15,7 @@ from mkid_ifts_sim.etc import prepare_observation
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT_DIR = ROOT / "outputs" / "thesis_figures"
+OUTPUT_DIR = ROOT / "outputs" / "canonical_figures"
 
 
 def _save(fig: plt.Figure, filename: str) -> None:

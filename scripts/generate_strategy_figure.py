@@ -10,7 +10,7 @@ import numpy as np
 
 from mkid_ifts_sim import InstrumentConfig, load_template, snr_from_time
 
-OUTPUT = Path(__file__).resolve().parents[1] / "outputs" / "thesis_figures"
+OUTPUT = Path(__file__).resolve().parents[1] / "outputs" / "canonical_figures"
 OUTPUT.mkdir(parents=True, exist_ok=True)
 
 

@@ -46,6 +46,7 @@ def prepare_observation(source: Spectrum | Mapping[str, Any], config: Instrument
         altitude_m=config.altitude_m,
         T_amb=config.ambient_temp_k,
         emissivity=config.thermal_emissivity,
+        config=config,
     ) * optics
     return throughput_components(wavelength_nm, config, source_post_atm, sky)
 
@@ -72,25 +73,34 @@ def time_from_snr(
     return float((target_snr / ref_snr) ** 2)
 
 
-def optimize_config(source: Spectrum | Mapping[str, Any], science_goal: Mapping[str, Any]) -> InstrumentConfig:
-    """Search a small discrete configuration grid for a high-SNR setup."""
+def optimize_config(
+    source: Spectrum | Mapping[str, Any],
+    science_goal: Mapping[str, Any],
+    base_config: InstrumentConfig | None = None,
+) -> InstrumentConfig:
+    """Search a small discrete scan/strategy grid for a high-SNR setup.
+
+    Telescope, MKID, and observing parameters are taken from ``base_config``
+    when provided; only ``n_steps``, ``delta_x_m``, ``strategy``, and
+    ``t_exp_per_step_s`` are varied.
+    """
     ref_nm = float(science_goal.get("ref_nm", 656.3))
-    target_snr = float(science_goal.get("target_snr", 10.0))
     target_resolution = float(science_goal.get("target_resolution", 3000.0))
     max_time_s = float(science_goal.get("max_time_s", 3600.0))
+    seed = InstrumentConfig() if base_config is None else base_config
 
     candidate_steps = [1024, 1536, 2048, 3072]
     candidate_delta_x = [6.0e-6, 3.0e-6, 2.0e-6, 1.0e-6]
     strategies = ["hard_cut", "probabilistic"]
 
     best_score = -np.inf
-    best_config = InstrumentConfig()
+    best_config = seed
     sigma_ref = 1.0e7 / ref_nm
 
     for n_steps in candidate_steps:
         for delta_x in candidate_delta_x:
             for strategy in strategies:
-                config = InstrumentConfig(
+                config = seed.with_updates(
                     n_steps=n_steps,
                     delta_x_m=delta_x,
                     strategy=strategy,

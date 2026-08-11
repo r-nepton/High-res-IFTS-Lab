@@ -1,4 +1,4 @@
-# Thesis Figure Outputs
+# Canonical Figure Outputs
 
 - `00_pipeline_overview.png`: End-to-end simulator flowchart from astrophysical source to SNR/ETC output, with module mapping for each stage.
 - `01_fts_signal_chain.png`: Single-folding-order FTS demonstration for the Halpha + [NII] + [SII] complex. The plotted band (14000-16000 cm^-1) is inside folding order 1 for the configured scan (`delta_x_m = 6.25e-7`, `FSR = 8000 cm^-1`). Panels show input lines, science interferogram, and FFT-recovered spectrum with and without apodization.

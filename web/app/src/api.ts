@@ -26,6 +26,38 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+export async function checkHealth(timeoutMs = 15000): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(`${API_BASE}/health`, { signal: controller.signal });
+    if (!response.ok) return false;
+    const data = (await response.json()) as { status?: string };
+    return data.status === "ok";
+  } catch {
+    return false;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
+export async function waitForApi(options?: {
+  attempts?: number;
+  delayMs?: number;
+  timeoutMs?: number;
+}): Promise<boolean> {
+  const attempts = options?.attempts ?? 12;
+  const delayMs = options?.delayMs ?? 5000;
+  const timeoutMs = options?.timeoutMs ?? 12000;
+  for (let i = 0; i < attempts; i += 1) {
+    if (await checkHealth(timeoutMs)) return true;
+    if (i < attempts - 1) {
+      await new Promise((resolve) => window.setTimeout(resolve, delayMs));
+    }
+  }
+  return false;
+}
+
 export async function getPresets(): Promise<Preset[]> {
   const data = await request<{ presets: Preset[] }>("/api/presets");
   return data.presets;

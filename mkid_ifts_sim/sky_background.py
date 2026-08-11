@@ -92,18 +92,30 @@ def sky_spectrum(
     altitude_m: float,
     T_amb: float = 273.0,
     emissivity: float = 0.08,
+    config: "InstrumentConfig | None" = None,
 ) -> np.ndarray:
     """Build the total sky spectrum on the requested wavelength grid.
 
     The continuum is anchored to a dark-sky surface-brightness curve, with a
     moonlight term layered on top and OH/atomic/thermal components added
-    separately.
+    separately. When ``config`` requests calibration tables, the continuum
+    component is taken from the packaged or named sky continuum CSV.
     """
+    from .calibration import resolve_curve
+
     wavelength_nm = np.asarray(wavelength_nm, dtype=float)
     altitude_factor = np.exp(-(altitude_m - 4200.0) / 9000.0)
     moon_scale = _MOON_SCALE.get(moon_phase.lower(), 0.0)
 
-    dark_continuum = _dark_sky_continuum(wavelength_nm)
+    if config is None:
+        dark_continuum = _dark_sky_continuum(wavelength_nm)
+    else:
+        dark_continuum = resolve_curve(
+            wavelength_nm,
+            config,
+            "sky_continuum",
+            lambda: _dark_sky_continuum(wavelength_nm),
+        )
     moonlight = moon_scale * ab_magnitude_to_photon_flux(550.0, 21.0) * (wavelength_nm / 550.0) ** (-1.1)
     zodiacal = 0.35 * dark_continuum * (wavelength_nm / 700.0) ** (-0.3)
     atomic = np.zeros_like(wavelength_nm)

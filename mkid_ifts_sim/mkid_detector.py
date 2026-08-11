@@ -21,7 +21,7 @@ class DetectorRateResult:
     saturation_warning: bool
 
 
-def qe(wavelength_nm: np.ndarray, model: str = "baseline") -> np.ndarray:
+def _parametric_qe(wavelength_nm: np.ndarray, model: str) -> np.ndarray:
     wavelength_nm = np.asarray(wavelength_nm, dtype=float)
     if model == "baseline":
         response = 0.15 + 0.70 * np.exp(-0.5 * ((wavelength_nm - 720.0) / 260.0) ** 2)
@@ -34,7 +34,21 @@ def qe(wavelength_nm: np.ndarray, model: str = "baseline") -> np.ndarray:
     return np.clip(response, 0.0, 1.0)
 
 
-def energy_resolution(wavelength_nm: np.ndarray, config: InstrumentConfig) -> np.ndarray:
+def qe(wavelength_nm: np.ndarray, model: str = "baseline", config: InstrumentConfig | None = None) -> np.ndarray:
+    wavelength_nm = np.asarray(wavelength_nm, dtype=float)
+    if config is None:
+        return _parametric_qe(wavelength_nm, model)
+    from .calibration import resolve_curve
+
+    return resolve_curve(
+        wavelength_nm,
+        config,
+        "qe",
+        lambda: _parametric_qe(wavelength_nm, config.qe_model),
+    )
+
+
+def _parametric_energy_resolution(wavelength_nm: np.ndarray, config: InstrumentConfig) -> np.ndarray:
     wavelength_nm = np.asarray(wavelength_nm, dtype=float)
     ref = config.R_energy_ref
     if config.R_energy_scaling == "sqrt":
@@ -46,6 +60,18 @@ def energy_resolution(wavelength_nm: np.ndarray, config: InstrumentConfig) -> np
     else:
         raise ValueError("Unknown energy resolution scaling.")
     return np.maximum(resolution, 1.0)
+
+
+def energy_resolution(wavelength_nm: np.ndarray, config: InstrumentConfig) -> np.ndarray:
+    from .calibration import resolve_curve
+
+    wavelength_nm = np.asarray(wavelength_nm, dtype=float)
+    return resolve_curve(
+        wavelength_nm,
+        config,
+        "re",
+        lambda: _parametric_energy_resolution(wavelength_nm, config),
+    )
 
 
 def energy_sigma_eV(wavelength_nm: np.ndarray, config: InstrumentConfig) -> np.ndarray:
@@ -79,7 +105,7 @@ def apply_detector_response(
     source_rate = np.asarray(source_rate_per_nm, dtype=float)
     sky_rate = np.asarray(sky_rate_per_nm, dtype=float)
 
-    qe_curve = qe(wavelength_nm, config.qe_model)
+    qe_curve = qe(wavelength_nm, config.qe_model, config=config)
     source_detected = source_rate * qe_curve
     sky_detected = sky_rate * qe_curve
     total_detected = source_detected + sky_detected + config.dark_rate_hz

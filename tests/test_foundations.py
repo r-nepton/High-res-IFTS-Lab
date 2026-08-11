@@ -142,3 +142,25 @@ def test_probabilistic_low_resolution_adds_contamination_noise() -> None:
 def test_templates_load_from_package_data() -> None:
     spectrum = load_template("stellar_g2v")
     assert spectrum.flux_photons_per_s_cm2_nm.shape == spectrum.sigma_cm.shape
+
+
+def test_make_input_source_hii_region_is_not_zeroed() -> None:
+    from mkid_ifts_sim import make_input_source
+
+    spectrum = make_input_source(
+        {"mode": "point", "spectral_type": "hii_region", "magnitude": 22.0, "band": "r", "line_flux": 0.02}
+    )
+    assert float(np.max(spectrum.flux_photons_per_s_cm2_nm)) > 0.0
+
+
+def test_calibration_tables_profile_runs_snr() -> None:
+    from mkid_ifts_sim import snr_from_time
+
+    cfg = InstrumentConfig(calibration_profile="tables", n_steps=256, n_sigma=512)
+    result = snr_from_time(
+        {"mode": "point", "spectral_type": "stellar_g2v", "magnitude": 20.0, "band": "r"},
+        cfg,
+        t_total_s=256.0,
+    )
+    assert result.snr.shape == result.wavelength_nm.shape
+    assert float(np.max(result.snr)) > 0.0

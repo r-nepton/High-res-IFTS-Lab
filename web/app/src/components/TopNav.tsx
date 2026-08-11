@@ -16,7 +16,7 @@ export function TopNav({ page, onPageChange }: TopNavProps) {
   return (
     <header className="top-nav">
       <div>
-        <p className="eyebrow">High-Resolution IFTS Lab · MKID-IFTS Web ETC v1.0</p>
+        <p className="eyebrow">High-Resolution IFTS Lab · MKID-IFTS Web ETC v1.1</p>
         <h1>MKID-IFTS Web ETC</h1>
       </div>
       <nav>

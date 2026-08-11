@@ -5,7 +5,7 @@ WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY mkid_ifts_sim ./mkid_ifts_sim
 COPY web ./web
-COPY outputs/thesis_figures ./outputs/thesis_figures
+COPY outputs/canonical_figures ./outputs/canonical_figures
 COPY project_materials ./project_materials
 
 RUN pip install --no-cache-dir -e ".[web]"

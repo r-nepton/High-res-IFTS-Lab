@@ -73,9 +73,9 @@ def post_time_from_snr(body: TimeFromSnrRequest) -> dict[str, Any]:
 
 @router.post("/optimize-config")
 def post_optimize_config(body: OptimizeConfigRequest) -> dict[str, Any]:
-    _, spectrum = _cfg(body.source, body.config)
+    cfg, spectrum = _cfg(body.source, body.config)
     try:
-        best = optimize_config(spectrum, body.science_goal.model_dump())
+        best = optimize_config(spectrum, body.science_goal.model_dump(), base_config=cfg)
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"config_recommended": config_summary(best), "science_goal": body.science_goal.model_dump()}

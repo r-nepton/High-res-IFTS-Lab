@@ -5,6 +5,8 @@
 - `mkid_ifts_sim.InstrumentConfig`
   - Central simulator configuration dataclass.
   - Covers telescope, IFTS, MKID, observing, order-sorting, and processing parameters.
+  - `calibration_profile`: `"parametric"` (default formulas) or `"tables"` (packaged CSVs under `data/calibration/`).
+  - Optional per-curve overrides: `qe_curve`, `re_curve`, `mirror_reflectivity_curve`, `optics_transmission_curve`, `sky_continuum_curve`.
 
 ## Source Construction
 
@@ -19,16 +21,18 @@
 
 ## Analytical Path
 
+- `mkid_ifts_sim.make_input_source(request, config=None)`
+  - Build a spectrum from a request dict. Emission-line types (`hii_region`, `planetary_nebula`) use `line_flux` and are not AB-normalized at continuum-free bands.
 - `mkid_ifts_sim.prepare_observation(source, config)`
-  - Apply atmosphere, calibrated sky background, telescope throughput, and IFTS optics throughput.
+  - Apply atmosphere, modeled sky background, telescope throughput, and IFTS optics throughput.
 - `mkid_ifts_sim.compute_snr(source_rate_per_nm, sky_rate_per_nm, config, strategy=None)`
   - Compute analytical SNR per recovered spectral channel.
 - `mkid_ifts_sim.snr_from_time(source, config, t_total_s)`
   - Return the analytical SNR curve for a total observing time.
 - `mkid_ifts_sim.time_from_snr(source, config, target_snr, ref_nm)`
   - Solve for the exposure time required to hit a target SNR.
-- `mkid_ifts_sim.optimize_config(source, science_goal)`
-  - Search a discrete configuration grid for a strong reference-wavelength SNR.
+- `mkid_ifts_sim.optimize_config(source, science_goal, base_config=None)`
+  - Search a discrete scan/strategy grid; telescope and MKID settings are taken from `base_config` when provided.
 
 ## Full Simulation Path
 

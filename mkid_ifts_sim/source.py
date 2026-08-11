@@ -219,14 +219,28 @@ def load_template(name: str, sigma_grid_cm: np.ndarray | None = None, **kwargs: 
     return Spectrum(spectrum.sigma_cm, spectrum.flux_photons_per_s_cm2_nm, {**spectrum.meta, "template": name_key})
 
 
+_EMISSION_POINT_TYPES = frozenset({"hii_region", "planetary_nebula"})
+
+
 def make_input_source(request: Mapping[str, Any], config: InstrumentConfig | None = None) -> Spectrum:
     config = InstrumentConfig() if config is None else config
     sigma_grid_cm = config.sigma_grid()
     mode = request.get("mode", "point").lower()
     if mode == "point":
-        spectral_type = request.get("spectral_type", "stellar_g2v")
-        magnitude = float(request.get("magnitude", 20.0))
+        spectral_type = str(request.get("spectral_type", "stellar_g2v")).lower().strip()
         band = request.get("band", "r")
+        if spectral_type in _EMISSION_POINT_TYPES:
+            # Line templates are continuum-free; AB magnitude normalization at the
+            # band center would scale the spectrum to zero. Use line_flux instead.
+            kwargs: dict[str, Any] = {}
+            if "line_flux" in request and request["line_flux"] is not None:
+                kwargs["line_flux"] = float(request["line_flux"])
+            if "fwhm_kms" in request and request["fwhm_kms"] is not None:
+                kwargs["fwhm_kms"] = float(request["fwhm_kms"])
+            if "continuum_level" in request and request["continuum_level"] is not None:
+                kwargs["continuum_level"] = float(request["continuum_level"])
+            return load_template(spectral_type, sigma_grid_cm=sigma_grid_cm, **kwargs)
+        magnitude = float(request.get("magnitude", 20.0))
         spectrum = load_template(spectral_type, sigma_grid_cm=sigma_grid_cm)
         return normalize_to_ab_magnitude(spectrum, magnitude, band)
     if mode == "extended":

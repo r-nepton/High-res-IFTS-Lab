@@ -11,7 +11,7 @@ import numpy as np
 from mkid_ifts_sim import InstrumentConfig, Spectrum, run_full_simulation, load_template
 from mkid_ifts_sim.order_sorting import contamination_fraction, grey_zone_loss
 
-OUTPUT = Path(__file__).resolve().parents[1] / "outputs" / "thesis_figures"
+OUTPUT = Path(__file__).resolve().parents[1] / "outputs" / "canonical_figures"
 OUTPUT.mkdir(parents=True, exist_ok=True)
 E_PER_SIGMA_CM = 1.239841984e-4
 

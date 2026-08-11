@@ -9,7 +9,7 @@ build/
 .ipynb_checkpoints/
 latest github details.txt
 sample_data/
-outputs/thesis_figures/science_recommendations.csv
+outputs/canonical_figures/science_recommendations.csv
 node_modules/
 web/app/dist/
 web/app/.vite/

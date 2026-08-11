@@ -35,9 +35,15 @@ class InterferogramResult:
 
 
 def optics_transmission(wavelength_nm: np.ndarray, config: InstrumentConfig) -> np.ndarray:
+    from .calibration import resolve_curve
+
     wavelength_nm = np.asarray(wavelength_nm, dtype=float)
-    chromatic = 1.0 - 0.03 * ((wavelength_nm - 700.0) / 450.0) ** 2
-    return np.clip(config.optical_transmission * chromatic, 0.0, 1.0)
+
+    def _parametric() -> np.ndarray:
+        chromatic = 1.0 - 0.03 * ((wavelength_nm - 700.0) / 450.0) ** 2
+        return np.clip(config.optical_transmission * chromatic, 0.0, 1.0)
+
+    return resolve_curve(wavelength_nm, config, "optics", _parametric)
 
 
 def modulation_efficiency(wavelength_nm: np.ndarray, beamsplitter_ratio: float = 0.5) -> np.ndarray:

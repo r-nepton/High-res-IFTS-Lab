@@ -92,21 +92,31 @@ export function Explore() {
         ))}
       </section>
       <section className="panel">
-        <h3>Current assumptions</h3>
+        <h3>What the model covers</h3>
         <ul className="clean-list">
-          <li>v1.0 emphasizes the analytical SNR path for speed and interactivity.</li>
-          <li>The sky model includes representative OH structure and thermal continuum approximations.</li>
-          <li>The public controls are capped to keep responses bounded and avoid expensive full simulations.</li>
-          <li>Outputs are planning estimates until tied to measured throughput, sky, and detector calibration.</li>
+          <li>End-to-end MKID-IFTS chain and hard-cut vs probabilistic order sorting.</li>
+          <li>Fast analytical ETC in the web app; full folded-order simulation in the Python package.</li>
+          <li>Configurable telescope, scan, MKID, and observing parameters.</li>
+          <li>Optional calibration tables for QE, energy resolution, mirror, optics, and sky continuum.</li>
+          <li>Independent-pixel multiplex via n_pixels (SNR scales as sqrt of pixel count).</li>
         </ul>
       </section>
       <section className="panel">
-        <h3>Potential v1.1 additions</h3>
+        <h3>What it does not cover yet</h3>
         <ul className="clean-list">
-          <li>Add a more formal SITELLE SN3 side-by-side benchmark table.</li>
-          <li>Replace generic MKID energy-resolution scaling with measured calibration curves.</li>
-          <li>Replace simplified sky and throughput terms with site/instrument-calibrated inputs.</li>
-          <li>Add controlled file upload for user spectra after validation and storage limits are defined.</li>
+          <li>Observatory-calibrated absolute SNR for a specific site or instrument.</li>
+          <li>Full MKID array effects such as crosstalk and pixel non-uniformity.</li>
+          <li>Full-field imaging data cubes.</li>
+          <li>Site atmosphere/sky without user-supplied calibration tables.</li>
+        </ul>
+      </section>
+      <section className="panel">
+        <h3>Next steps</h3>
+        <ul className="clean-list">
+          <li>Drop in measured MKID QE and R_E curves via calibration tables.</li>
+          <li>Add site atmosphere and sky tables when available.</li>
+          <li>Extend imaging / multi-pixel modeling beyond the current multiplex factor.</li>
+          <li>Benchmark against lab measurements or SITELLE-like reference cases.</li>
         </ul>
       </section>
     </main>

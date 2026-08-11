@@ -44,6 +44,7 @@ class InstrumentPayload(BaseModel):
     R_energy_ref_nm: float | None = Field(default=None, gt=0.0, le=2000.0)
     R_energy_scaling: Literal["sqrt", "linear", "flat"] | None = None
     qe_model: Literal["baseline", "blue_optimized", "red_optimized"] | None = None
+    calibration_profile: Literal["parametric", "tables"] | None = None
     dead_time_us: float | None = Field(default=None, ge=0.0, le=1000.0)
     max_count_rate_hz: float | None = Field(default=None, gt=0.0, le=1e9)
     dark_rate_hz: float | None = Field(default=None, ge=0.0, le=1e9)
