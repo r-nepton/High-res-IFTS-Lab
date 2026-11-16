@@ -45,6 +45,7 @@ class CryoManager(object):
 
         # Schedule settings
         self.schedule_cycles = False # By default, the system does not schedule any mag cycles
+        self.scheduled_cycle_starting = False # added initialize
         self.sched_magnetization_hold_current = self.magnetization_hold_current # Amps
         self.sched_magnetization_hold_time = self.magnetization_hold_time # seconds
         self.sched_ramp_up_time = self.ramp_up_time # seconds
