@@ -1,5 +1,6 @@
 import random, serial, serial_dummy, time
 from cryo_delegate import *
+from dataconduits import GenericDataConduit, GenericCryoDataModel
 
 # The back-EMF sensor measures the voltage from the SIM970.
 # This voltage should be kept below (+-)100mV
@@ -10,7 +11,7 @@ class MagnetBackEmfSensorConduit(GenericDataConduit):
 		try:
 			self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.1)
 		except Exception:
-			print "There was a problem connecting to the serial port constructor of: %s" % type(self)
+			print("There was a problem connecting to the serial port constructor of: %s" % type(self))
 			self.serial_connection = serial_dummy.SerialDummy()
 
 		self.SIM970_port = 1
@@ -19,23 +20,25 @@ class MagnetBackEmfSensorConduit(GenericDataConduit):
 	def get_data(self):
 		# Set up the system so it is connected to the right machine.
 		try:
-			self.serial_connection.write("disconnect\r")
-			self.serial_connection.write("CONN 7, 'disconnect'\r")
+			self.serial_connection.write(b"disconnect\r")
+			self.serial_connection.write(b"CONN 7, 'disconnect'\r")
 			self.serial_connection.read(100)
-			self.serial_connection.write("VOLT? %d\r" % self.SIM970_port)
+			# self.serial_connection.write("VOLT? %d\r" % self.SIM970_port)
+			self.serial_connection.write(("VOLT? %d\r" % self.SIM970_port).encode('utf-8'))
 		except Exception:
 			return { 'voltage':'unknown', 'error': 'Unable to connect to SIM972.', 'units': 'volts' }
 			
-		response = ""
+		# response = ""
 		# Okay, we've configured the unit correctly. Now let's query for our data.
 		try: 
 			response = self.serial_connection.read(100);
-			voltage = float(response)
+			# voltage = float(response)
+			voltage = float(response.decode('utf-8').strip())
 		except Exception:
 			return { 'voltage':'unknown', 'error': 'Could not convert response "%s" to voltage' % response, 'units':'volts' }
 
 		# I guess everything worked correctly. Let's clean up now.
-		self.serial_connection.write("disconnect\r")
+		self.serial_connection.write(b"disconnect\r")
 
 		# Send out the measured temperature.
 		return { 'voltage':voltage, 'units':'volts' }
@@ -48,4 +51,5 @@ class MagnetBackEmfSensor(GenericCryoDataModel):
 		self.conduit 		= MagnetBackEmfSensorConduit()
 		self.units 			= self.conduit.units
 		
-		GenericCryoDataModel.__init__(self, self.name)
+		# GenericCryoDataModel.__init__(self, self.name)
+		super().__init__(self.name)

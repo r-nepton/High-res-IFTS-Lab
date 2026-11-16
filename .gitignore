@@ -3,3 +3,6 @@ node_modules/
 *.db
 *.passwords
 *.password
+.env
+etc/secret.passwords
+screenlog.*

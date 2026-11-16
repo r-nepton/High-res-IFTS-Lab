@@ -1,5 +1,6 @@
 from cryo_delegate import *
-import json, serial_dummy, serial
+import json, serial_dummy, serial, time
+from dataconduits import GenericDataConduit, GenericCryoDataModel
 
 # This is the interface for the breakout board. The breakout board contains
 # an arduino which operates as a serial interface. The arduino controls both
@@ -14,13 +15,15 @@ class BreakoutBoardInterface(GenericDataConduit):
 		try:
 			self.serial_connection = serial.Serial('/dev/ttyACM0', 9600, timeout=0.1)
 		except Exception as e:
-			print "There was a problem (%s) connecting to the serial port constructor of: %s" % (e, self.__class__.__name__)
+			print("There was a problem (%s) connecting to the serial port constructor of: %s" % (e, self.__class__.__name__))
 			self.serial_connection = serial_dummy.SerialDummy()
 
 	# This function implements all of the checksums, etc.
 	def send_command(self, command_byte):
-		command_string = command_byte + chr(127 - ord(command_byte)) + "\n"
-		return self.serial_connection.write( command_string )
+		# command_string = command_byte + chr(127 - ord(command_byte)) + "\n"
+		# return self.serial_connection.write( command_string )
+		command_bytes = bytes([ord(command_byte), 127 - ord(command_byte)]) + b"\n"
+		return self.serial_connection.write(command_bytes)
 
 	# This function attempts to close the heat switch.
 	def close_heat_switch(self):
@@ -29,7 +32,7 @@ class BreakoutBoardInterface(GenericDataConduit):
 	# This function gets the data from the conduit. The only data we read, right now,
 	# is the state of the touch sensors.
 	def get_data(self):
-		self.serial_connection.flushInput()
+		self.serial_connection.reset_input_buffer()
 		# The "T" command gets the touch state, and returns it in JSON format.
 		self.send_command("T")
 		state = self.serial_connection.read(100)
@@ -42,10 +45,11 @@ class BreakoutBoardInterface(GenericDataConduit):
 	# This function returns true or false depending on the state
 	# of the connection.
 	def verify_connection(self):
-		self.serial_connection.flushInput();
+		# self.serial_connection.flushInput();
+		self.serial_connection.reset_input_buffer()
 		self.send_command("I")
 		response = self.serial_connection.read(100)
-		if response[0:19] == "BOB control software":
+		if response[0:19] == b"BOB control software":
 			return True 
 		else:
 			return False
@@ -71,7 +75,8 @@ class BreakoutBoardSensor(GenericCryoDataModel):
 		self.conduit 		= BreakoutBoardInterface()
 		self.units 			= self.conduit.units
 
-		GenericCryoDataModel.__init__(self, self.name)
+		# GenericCryoDataModel.__init__(self, self.name)
+		super().__init__(self.name)
 
 	# The poll function is overriden for the breakout board, because
 	# the state rarely ever changes. So we'll only record an entry if the 

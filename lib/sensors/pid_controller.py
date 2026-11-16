@@ -1,5 +1,5 @@
 import random, serial, serial_dummy, time
-from cryo_delegate import *
+# from cryo_delegate import *
 
 class PIDControllerInterface(object):
 	def __init__(self):
@@ -14,7 +14,7 @@ class PIDControllerInterface(object):
 		try:
 			self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.1)
 		except Exception:
-			print "There was a problem connecting to the serial port constructor of: %s" % self.__class__.__name__
+			print("There was a problem connecting to the serial port constructor of: %s" % self.__class__.__name__)
 			self.serial_connection = serial_dummy.SerialDummy()
 
 	# Connect to the SIM960 and verify that the connection is valid. Return
@@ -22,19 +22,19 @@ class PIDControllerInterface(object):
 	def verify_connection(self):
 		# Set up the system so it is connected to the right machine.
 		try:
-			self.serial_connection.write("disconnect\r")
-			self.serial_connection.write("CONN 3, 'disconnect'\r")
+			self.serial_connection.write(b"disconnect\r")
+			self.serial_connection.write(b"CONN 3, 'disconnect'\r")
 			self.serial_connection.read(100)
-			self.serial_connection.write("*IDN?\r")
+			self.serial_connection.write(b"*IDN?\r")
 			result = self.serial_connection.read(100)
-			if result[0:32] == "Stanford_Research_Systems,SIM960":
+			if result[0:32] == b"Stanford_Research_Systems,SIM960":
 				# I guess everything worked correctly. Let's clean up now.
-				self.serial_connection.write("disconnect\r")
+				self.serial_connection.write(b"disconnect\r")
 				return True
 			else:
 				# I guess everything worked correctly. Let's clean up now.
-				self.serial_connection.write("disconnect\r")
-				print "Failed to verify connection with SIM960."
+				self.serial_connection.write(b"disconnect\r")
+				print("Failed to verify connection with SIM960.")
 				return False
 
 		except Exception:
@@ -44,19 +44,21 @@ class PIDControllerInterface(object):
 
 	def copy_pid_output_to_manual_output(self):
 		if self.is_in_PID_mode() == False:
-			print "Unable to copy PID output to manual when already in manual mode."
+			print("Unable to copy PID output to manual when already in manual mode.")
 			return False
 		try:
-			self.serial_connection.write("disconnect\r")
-			self.serial_connection.write("CONN 3, 'disconnect'\r")
+			self.serial_connection.write(b"disconnect\r")
+			self.serial_connection.write(b"CONN 3, 'disconnect'\r")
 			self.serial_connection.read(100)
 			# Set the controller to MANUAL mode (z = 0), refer to SIM960 manual p.38
-			self.serial_connection.write("OMON?\r")
-			result = float( self.serial_connection.read(100) )
-			self.serial_connection.write("MOUT %+2.3f\r" % result)
+			self.serial_connection.write(b"OMON?\r")
+			# result = float( self.serial_connection.read(100) )
+			result = float(self.serial_connection.read(100).decode('utf-8').strip())
+			# self.serial_connection.write(b"MOUT %+2.3f\r" % result)
+			self.serial_connection.write(("MOUT %+2.3f\r" % result).encode('utf-8'))
 
 		except Exception as e:
-			print e
+			print(e)
 			return False
 
 		return False
@@ -64,14 +66,14 @@ class PIDControllerInterface(object):
 	# This function tries to decide whether the system is currently in PID
 	# mode, or manual output mode.
 	def is_in_PID_mode(self):
-		self.serial_connection.write("disconnect\r")
-		self.serial_connection.write("CONN 3, 'disconnect'\r")
+		self.serial_connection.write(b"disconnect\r")
+		self.serial_connection.write(b"CONN 3, 'disconnect'\r")
 		self.serial_connection.read(100)
 		# Now verify the controller setting.
-		self.serial_connection.write("AMAN?\r")
+		self.serial_connection.write(b"AMAN?\r")
 		result = self.serial_connection.read(100)		
 		# If Z = 1, the system is in PID/regulation mode. Else: manual.
-		if result == "1\r\n":
+		if result == b"1\r\n":
 			return True
 		else:
 			return False
@@ -79,30 +81,32 @@ class PIDControllerInterface(object):
 	# Set the internal setpoint value for the PID controller.
 	def set_setpoint(self, setpoint_in_kelvin):
 		try:
-			self.serial_connection.write("disconnect\r")
-			self.serial_connection.write("CONN 3, 'disconnect'\r")
+			self.serial_connection.write(b"disconnect\r")
+			self.serial_connection.write(b"CONN 3, 'disconnect'\r")
 			self.serial_connection.read(100)
 			# Now set the internal setpoint.
-			self.serial_connection.write("SETP %+2.3f\r" % setpoint_in_kelvin)
+			# self.serial_connection.write("SETP %+2.3f\r" % setpoint_in_kelvin)
+			self.serial_connection.write(("SETP %+2.3f\r" % setpoint_in_kelvin).encode('utf-8'))
 
 		except Exception as e:
-			print e
+			print(e)
 			return False
 
 		return False
 
 	def get_setpoint(self):
 		try:
-			self.serial_connection.write("disconnect\r")
-			self.serial_connection.write("CONN 3, 'disconnect'\r")
+			self.serial_connection.write(b"disconnect\r")
+			self.serial_connection.write(b"CONN 3, 'disconnect'\r")
 			self.serial_connection.read(100)
 			# We'll check the manual output.
-			self.serial_connection.write("SETP?\r")
-			result = float(self.serial_connection.read(100))
+			self.serial_connection.write(b"SETP?\r")
+			# result = float(self.serial_connection.read(100))
+			result = float(self.serial_connection.read(100).decode('utf-8').strip())
 			return result
 
 		except Exception as e:
-			print e
+			print(e)
 			return False
 
 		return False
@@ -110,23 +114,23 @@ class PIDControllerInterface(object):
 	# Put the PID controller into manual mode.
 	def set_manual_mode(self):
 		try:
-			self.serial_connection.write("disconnect\r")
-			self.serial_connection.write("CONN 3, 'disconnect'\r")
+			self.serial_connection.write(b"disconnect\r")
+			self.serial_connection.write(b"CONN 3, 'disconnect'\r")
 			self.serial_connection.read(100)
 			# Set the controller to MANUAL mode (z = 0), refer to SIM960 manual p.38
-			self.serial_connection.write("AMAN 0\r")
+			self.serial_connection.write(b"AMAN 0\r")
 			self.serial_connection.read(100)
 			# Now verify the controller setting.
-			self.serial_connection.write("AMAN?\r")
+			self.serial_connection.write(b"AMAN?\r")
 			result = self.serial_connection.read(100)		
 
-			if result == "0\r\n":
+			if result == b"0\r\n":
 				return True
 			else:
 				raise Exception("I can't change the mode of the PID controller, for some reason.")
 
 		except Exception as e:
-			print e
+			print(e)
 			return False
 
 		return False
@@ -134,17 +138,17 @@ class PIDControllerInterface(object):
 	# Set regulation mode.
 	def set_regulation_mode(self):
 		try:
-			self.serial_connection.write("disconnect\r")
-			self.serial_connection.write("CONN 3, 'disconnect'\r")
+			self.serial_connection.write(b"disconnect\r")
+			self.serial_connection.write(b"CONN 3, 'disconnect'\r")
 			self.serial_connection.read(100)
 			# Set the controller to PID mode (z = 1), refer to SIM960 manual p.38
-			self.serial_connection.write("AMAN 1\r")
+			self.serial_connection.write(b"AMAN 1\r")
 			self.serial_connection.read(100)
 			# Now verify the controller setting.
-			self.serial_connection.write("AMAN?\r")
+			self.serial_connection.write(b"AMAN?\r")
 			result = self.serial_connection.read(100)		
 
-			if result == "1\r\n":
+			if result == b"1\r\n":
 				return True
 			else:
 				raise Exception("I can't change the mode of the PID controller, for some reason.")
@@ -158,35 +162,38 @@ class PIDControllerInterface(object):
 	# model, you can get the current back.
 	def set_manual_output_voltage(self, voltage):
 		try:
-			self.serial_connection.write("disconnect\r")
-			self.serial_connection.write("CONN 3, 'disconnect'\r")
+			self.serial_connection.write(b"disconnect\r")
+			self.serial_connection.write(b"CONN 3, 'disconnect'\r")
 			self.serial_connection.read(100)
 			# We'll check the manual output differential.
-			self.serial_connection.write("MOUT?\r")
-			result = float(self.serial_connection.read(100))
+			self.serial_connection.write(b"MOUT?\r")
+			# result = float(self.serial_connection.read(100))
+			result = float(self.serial_connection.read(100).decode('utf-8').strip())
 			if abs(voltage - result) > self.max_manual_output_step:
 				raise Exception("The requested manual output is too large. voltage = %s, step = %s" % (voltage, (voltage - result) ))
 			else:
 				# Ready to set the voltage. The format is, e.g.: "MOUT +3.123"
-				self.serial_connection.write("MOUT %+2.3f\r" % voltage)
+				# self.serial_connection.write("MOUT %+2.3f\r" % voltage)
+				self.serial_connection.write(("MOUT %+2.3f\r" % voltage).encode('utf-8'))
 				return True
 
 		except Exception as e:
-			print e
+			print(e)
 			return False
 
 		return False
 
 	def set_dangerous_manual_output_voltage(self, voltage):
 		try:
-			self.serial_connection.write("disconnect\r")
-			self.serial_connection.write("CONN 3, 'disconnect'\r")
+			self.serial_connection.write(b"disconnect\r")
+			self.serial_connection.write(b"CONN 3, 'disconnect'\r")
 			self.serial_connection.read(100)
 			# Ready to set the voltage. The format is, e.g.: "MOUT +3.123"
-			self.serial_connection.write("MOUT %+2.3f\r" % voltage)
+			# self.serial_connection.write("MOUT %+2.3f\r" % voltage)
+			self.serial_connection.write(("MOUT %+2.3f\r" % voltage).encode('utf-8'))
 			return True
 		except Exception as e:
-			print e
+			print(e)
 			return False
 
 		return False
@@ -194,16 +201,17 @@ class PIDControllerInterface(object):
 	# Get the current output value on the manual circuit.
 	def get_manual_output(self):
 		try:
-			self.serial_connection.write("disconnect\r")
-			self.serial_connection.write("CONN 3, 'disconnect'\r")
+			self.serial_connection.write(b"disconnect\r")
+			self.serial_connection.write(b"CONN 3, 'disconnect'\r")
 			self.serial_connection.read(100)
 			# We'll check the manual output.
-			self.serial_connection.write("MOUT?\r")
-			result = float(self.serial_connection.read(100))
+			self.serial_connection.write(b"MOUT?\r")
+			# result = float(self.serial_connection.read(100))
+			result = float(self.serial_connection.read(100).decode('utf-8').strip())
 			return result
 
 		except Exception as e:
-			print e
+			print(e)
 			return False
 
 		return False
