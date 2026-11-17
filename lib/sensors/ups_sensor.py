@@ -26,11 +26,11 @@ class UPSDataConduit(GenericDataConduit):
 			}
 
 		# First, get the battery capacity.
-		m = re.search("Battery Capacity\.+ (.*?)%\n", result)
+		m = re.search(r"Battery Capacity\.+ (.*?)%\n", result)
 		battery_capacity = int( m.group(1) )
 
 		# Now, get the current power load.
-		m = re.search("Load\.+ (.*?)Watt", result)
+		m = re.search(r"Load\.+ (.*?)Watt", result)
 		power_load = int(m.group(1))
 		
 		# Now determine the power state.
