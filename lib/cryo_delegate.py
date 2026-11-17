@@ -675,27 +675,41 @@ class CryoManagerThread(threading.Thread):
         self.parent = parent
         self.mailbox = queue.Queue()
 
+    # def run(self):
+    #     while True:
+    #         data = self.mailbox.get() 
+    #         # The data received via this mailbox must be formatted in a specific way, 
+    #         # including an action, arguments, and a responder hash.
+    #         assert "responder" in data, "Thread ask has no responder object! I can't respond to it."
+    #         try: 
+    #             assert "action" in data, "Thread ask has no action! I don't know what to do with it."
+    #             response = self.parent.invoke( data['action'], data['arguments'] )
+    #             # Copy the response data into the responder object, which 
+    #             # we received by reference. That way the other thread can
+    #             # read it when we are done with the queue.
+    #             if response != None:
+    #                 for k,v in response.items():
+    #                     data['responder'][k] = v
+    #             # Mark the task as done (free up the queue).
+    #         except Exception:
+    #             print("Error: invalid command sent to delegate.")
+    #             data['responder']['error'] = { "error": "invalid command" }
+    #             raise
+    #         self.mailbox.task_done()
+
     def run(self):
         while True:
-            data = self.mailbox.get() 
-            # The data received via this mailbox must be formatted in a specific way, 
-            # including an action, arguments, and a responder hash.
-            assert "responder" in data, "Thread ask has no responder object! I can't respond to it."
-            try: 
-                assert "action" in data, "Thread ask has no action! I don't know what to do with it."
-                response = self.parent.invoke( data['action'], data['arguments'] )
-                # Copy the response data into the responder object, which 
-                # we received by reference. That way the other thread can
-                # read it when we are done with the queue.
-                if response != None:
-                    for k,v in response.items():
-                        data['responder'][k] = v
-                # Mark the task as done (free up the queue).
-            except Exception:
-                print("Error: invalid command sent to delegate.")
-                data['responder']['error'] = { "error": "invalid command" }
-                raise
-            self.mailbox.task_done()
+            try:
+                request = self.queue.get(timeout=1)
+                result = self.manager.invoke(request['action'], request.get('args', {}))
+                self.responder[request['id']] = result
+            except queue.Empty:
+                continue
+            except Exception as e:
+                import traceback
+                print(f"CryoManagerThread error: {e}")
+                traceback.print_exc()
+                # do NOT re-raise — keep the thread alive
 
 class WakeThread(threading.Thread):
     def __init__(self, event, cryomanager):
