@@ -26,6 +26,6 @@ message = {
 	}
 }
 
-print "Server shutdown message sent."
+print("Server shutdown message sent.")
 
 ws.send( json.dumps( message ) )

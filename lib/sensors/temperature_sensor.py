@@ -9,10 +9,19 @@ class DiodeTemperatureSensorConduit(GenericDataConduit):
 		self.name = "SIM922 Silicon Diode Temperature Sensor #%d" % interface_number
 		self.units = "Kelvin"
 
+		# try:
+		# 	self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.5)
+		# except Exception:
+		# 	print("There was a problem connecting to the serial port constructor of: %s" % self.__class__.__name__)
+		# 	self.serial_connection = serial_dummy.SerialDummy()
+
 		try:
-			self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.5)
-		except Exception:
-			print("There was a problem connecting to the serial port constructor of: %s" % self.__class__.__name__)
+			try:
+				self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.5)
+			except Exception:
+				self.serial_connection = serial.Serial('/dev/tty.usbserial-FTGEAP7O', 9600, timeout=0.5)
+		except Exception as e:
+			print("There was a problem (%s) connecting to the serial port constructor of: %s" % (e, self.__class__.__name__))
 			self.serial_connection = serial_dummy.SerialDummy()
 
 		self.SIM922_port = interface_number
@@ -51,10 +60,19 @@ class RuOxTemperatureSensorConduit(GenericDataConduit):
 		self.name = "SIM921 Ruthenium Oxide Temperature Sensor #%d" % interface_number
 		self.units = "Kelvin"
 
+		# try:
+		# 	self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.5)
+		# except Exception:
+		# 	print("There was a problem connecting to the serial port constructor of: %s" % self.__class__.__name__)
+		# 	self.serial_connection = serial_dummy.SerialDummy()
+
 		try:
-			self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.5)
-		except Exception:
-			print("There was a problem connecting to the serial port constructor of: %s" % self.__class__.__name__)
+			try:
+				self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.5)
+			except Exception:
+				self.serial_connection = serial.Serial('/dev/tty.usbserial-FTGEAP7O', 9600, timeout=0.5)
+		except Exception as e:
+			print("There was a problem (%s) connecting to the serial port constructor of: %s" % (e, self.__class__.__name__))
 			self.serial_connection = serial_dummy.SerialDummy()
 
 		self.SIM925_port = interface_number

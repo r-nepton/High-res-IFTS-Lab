@@ -8,10 +8,19 @@ class MagnetCurrentSensorConduit(GenericDataConduit):
 	def __init__(self):
 		self.name = "SIM970 Magnet Current Sensor #%d" % 2
 		self.units = "Amperes"
+		# try:
+		# 	self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.1)
+		# except Exception:
+		# 	print("There was a problem connecting to the serial port constructor of: %s" % type(self))
+		# 	self.serial_connection = serial_dummy.SerialDummy()
+
 		try:
-			self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.1)
-		except Exception:
-			print("There was a problem connecting to the serial port constructor of: %s" % type(self))
+			try:
+				self.serial_connection = serial.Serial('/dev/SRS_MAINFRAME', 9600, timeout=0.1)
+			except Exception:
+				self.serial_connection = serial.Serial('/dev/tty.usbserial-FTGEAP7O', 9600, timeout=0.1)
+		except Exception as e:
+			print("There was a problem (%s) connecting to the serial port constructor of: %s" % (e, type(self)))
 			self.serial_connection = serial_dummy.SerialDummy()
 
 		self.SIM970_port = 2

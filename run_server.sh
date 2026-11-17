@@ -24,4 +24,5 @@ echo "Compiling coffeescript..."
 cat ./assets/coffeescript/*.coffee | coffee -wcs > ./assets/web.js
 
 echo "Starting cryoserver..."
-sudo screen -L -S cryoserver -d -m /home/matt/anaconda2/bin/python ./server.py
+# sudo screen -L -S cryoserver -d -m /home/matt/anaconda2/bin/python ./server.py
+sudo screen -L -S cryoserver -d -m /Users/gconnolly/.venv/CRYOSTAT/bin/python ./server.py
