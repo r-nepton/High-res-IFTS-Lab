@@ -6,6 +6,7 @@ import inspect
 import json, subprocess, os, sys
 import threading, queue
 import datetime
+import asyncio
 
 # It is helpful to change directories to the current directory of the
 # script. That way, we can access relative file paths properly.
@@ -51,7 +52,7 @@ class JHandler(tornado.websocket.WebSocketHandler):
         #print "%s connecting to cryo-server. Connection #%d" % (self.request.remote_ip, JHandler.connection)
 
 
-    def on_message(self, message):
+    async def on_message(self, message):
         # Remove previous timeout if one exists
         if self.timeout:
             tornado.ioloop.IOLoop.current().remove_timeout(self.timeout)
@@ -73,7 +74,9 @@ class JHandler(tornado.websocket.WebSocketHandler):
                 arguments = {}
                 if 'arguments' in data['data']:
                     arguments = data['data']['arguments']
-                response = actionablerequesthandler.invoke( data['data']['action'],  arguments)
+                # response = actionablerequesthandler.invoke( data['data']['action'],  arguments)
+                # response = await actionablerequesthandler.invoke( data['data']['action'],  arguments)
+                response = await asyncio.to_thread(actionablerequesthandler.invoke, data['data']['action'], arguments)
             else:
                 response = "Invalid action: no action specified";
                 # print("kinda worked")
@@ -87,6 +90,7 @@ class JHandler(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         self.timeout = None
+        # IOLoop.current().remove_timeout(self._timeout)
 
         # DEBUGGING: Update number of connections
         #JHandler.connection -= 1
