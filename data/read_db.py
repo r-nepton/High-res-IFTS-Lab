@@ -8,11 +8,11 @@ def main(sys):
 	try:
 		opts, args = getopt.getopt(argv,"hi:",["input_db="])
 	except getopt.GetoptError:
-		print 'read_db.py -i <input_db>'
+		print('read_db.py -i <input_db>')
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == '-h':
-			print 'read_db.py -i <input_db>'
+			print('read_db.py -i <input_db>')
 			sys.exit()
 		elif opt in ("-i", "--input_db"):
 			input_db = arg
@@ -22,7 +22,7 @@ def read_data(input_db):
 	
 	#Check input_db is a file
 	if not os.path.isfile(input_db):
-		print 'The database \'%s\' does not exist' % input_db
+		print('The database \'%s\' does not exist' % input_db)
 		sys.exit(2)
 
 	#Open database
@@ -30,7 +30,7 @@ def read_data(input_db):
 		database_connection = sqlite3.connect(input_db)
 		sql_cursor = database_connection.cursor()
 	except Exception:
-		print 'Could not open database \'%s\'' % input_db
+		print('Could not open database \'%s\'' % input_db)
  
 	#Create the databse dictionary
 	global cryo_data

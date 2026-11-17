@@ -37,7 +37,7 @@ class BeginRegulationOperation(GenericOperation):
 
 		# Verify the current.
 		current = self.current_sensor.get_data()
-		if isinstance(current['current'],basestring):
+		if isinstance(current['current'],str):
 			# The current is not sensible.
 			self.finished = True
 			self.print_log( "The current cannot be read, indicating an error. Terminating operation." )
@@ -58,7 +58,7 @@ class BeginRegulationOperation(GenericOperation):
 
 		# Now we'll measure the temperature of the FAA.
 		FAA_temperature = self.temperature_FAA_sensor.get_data()
-		if isinstance(FAA_temperature['temperature'],basestring):
+		if isinstance(FAA_temperature['temperature'],str):
 			# The temperature is not sensible.
 			self.finished = True
 			self.print_log( "The FAA temperature could not be read, aborting transition to regulation." )

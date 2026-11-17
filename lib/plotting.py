@@ -11,7 +11,7 @@ def make_sensor_plot(sensor, fields, start, end, data_processor=lambda x: x):
 	data = sensor.range( int(start), int(end) , 200)
 
 	# We could support a list of fields, if we want to plot them together.
-	if isinstance(fields, basestring):
+	if isinstance(fields, str):
 		fields = [ fields ]
 
 	t = []
@@ -25,7 +25,7 @@ def make_sensor_plot(sensor, fields, start, end, data_processor=lambda x: x):
 		# Mostly, those strings are just errors, e.g. "unknown"
 		valid = True
 		for f in fields:
-			if f not in d['data'] or isinstance(d['data'][f], basestring):
+			if f not in d['data'] or isinstance(d['data'][f], str):
 				valid = False
 				break
 

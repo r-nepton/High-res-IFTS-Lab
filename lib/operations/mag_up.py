@@ -49,7 +49,7 @@ class MagUpOperation(GenericOperation):
 
 		# Double-check that the current is sensible.
 		current = self.current_sensor.get_data()
-		if isinstance(current['current'],basestring):
+		if isinstance(current['current'],str):
 			# The current is not sensible.
 			self.finished = True
 			self.print_log( "The current cannot be read, indicating an error. Terminating MagUp operation." )
@@ -79,7 +79,7 @@ class MagUpOperation(GenericOperation):
 
 		# Measure the current data, and double-check that the current is sensible.
 		current = self.current_sensor.get_data()
-		if isinstance(current['current'],basestring):
+		if isinstance(current['current'],str):
 			# The current is not sensible.
 			self.finished = True
 			self.print_log( "The current cannot be read, indicating an error. Terminating MagUp operation." )
@@ -120,7 +120,7 @@ class MagUpOperation(GenericOperation):
 		# Figure out the ramping step. Upper limit: max ramp step.
 		ramping_step = min( self.ramping_rate * dt, self.absolute_max_step_size )
 		if ramping_step == self.absolute_max_step_size:
-			print "Step size hit maximum limit."
+			print("Step size hit maximum limit.")
 
 		# Check to see if we're above the final current.
 		if current['current'] >= self.final_current or self.expected_output_current > self.final_current:
@@ -131,7 +131,7 @@ class MagUpOperation(GenericOperation):
 			#Check that the back emf is not above 100mV
 			if back_emf['voltage'] > 0.1:
 				self.PID_interface.set_current( self.expected_output_current )
-				print "Magnet back EMF is too high, waiting for decrease"
+				print("Magnet back EMF is too high, waiting for decrease")
 			else:
 				self.expected_output_current += ramping_step
 				self.PID_interface.set_current( self.expected_output_current )

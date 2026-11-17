@@ -84,12 +84,12 @@ class BeginMagnetizationOperation(GenericOperation):
 		# Now we'll ramp down the manual PID output to zero.
 		current_output = self.PID_instance.get_manual_output()
 		try:
-                        current_output = float(current_output)
-                except:
-                        print "Failed to determine current output (returned %s).  Halting operation to avoid a distaster" % current_output
-                        self.finished = True
-                        return
-                print "The current manual output is %s V" % current_output
+			current_output = float(current_output)
+		except Exception:
+			print("Failed to determine current output (returned %s).  Halting operation to avoid a disaster" % current_output)
+			self.finished = True
+			return
+		print("The current manual output is %s V" % current_output)
                 
 		# &&& This check no longer makes sense, it is possible for the previous PID output to be negative
 		# Double-check to make sure the manual output value is not negative (which is nonsensical)
@@ -107,7 +107,7 @@ class BeginMagnetizationOperation(GenericOperation):
 		# If the back emf is about 100mV, hold current output
 		if	back_emf['voltage'] > 0.1:
 			self.PID_instance.set_manual_output_voltage( current_output )
-			print "Magnet back EMF is too high, waiting for decrease"
+			print("Magnet back EMF is too high, waiting for decrease")
 		# If within range of 0
 		elif abs(current_output) - step < 0:
 			# Wrap everything up:

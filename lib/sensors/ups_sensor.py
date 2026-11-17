@@ -1,5 +1,6 @@
-from cryo_delegate import *
+# from cryo_delegate import *
 import shell_command, re
+from dataconduits import GenericDataConduit, GenericCryoDataModel
 
 # This class interfaces with the UPS via the command line cyberpower utility.
 # The cyberpower utility is called pwrstat: 

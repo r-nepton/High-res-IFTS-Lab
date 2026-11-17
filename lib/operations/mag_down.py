@@ -37,7 +37,7 @@ class MagDownOperation(GenericOperation):
 
 		# Double-check that the current is sensible.
 		current = self.current_sensor.get_data()
-		if isinstance(current['current'],basestring):
+		if isinstance(current['current'],str):
 			# The current is not sensible.
 			self.finished = True
 			self.print_log("The current cannot be read, indicating an error. Terminating MagDown operation.")
@@ -80,7 +80,7 @@ class MagDownOperation(GenericOperation):
 
 		# Measure the current data, and double-check that the current is sensible.
 		current = self.current_sensor.get_data()
-		if isinstance(current['current'],basestring):
+		if isinstance(current['current'],str):
 			# The current is not sensible.
 			self.finished = True
 			self.print_log("The current cannot be read, indicating an error. Terminating MagDown operation.")
@@ -118,7 +118,7 @@ class MagDownOperation(GenericOperation):
 		# Make sure the back EMF is above -100mV
 			if back_emf['voltage'] < -0.1:
 				self.PID_interface.set_current( self.expected_output_current)
-				print "Magnet back EMF is too large, waiting for decrease"
+				print("Magnet back EMF is too large, waiting for decrease")
 			else:
 				self.expected_output_current -= ramping_step
 				self.PID_interface.set_current( self.expected_output_current )

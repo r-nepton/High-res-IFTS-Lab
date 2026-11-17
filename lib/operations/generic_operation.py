@@ -31,7 +31,7 @@ class GenericOperation(object):
 
 	def print_log(self, message):
 		now = datetime.datetime.now()
-		print " [%s] <%s> (s#%s) %s " % ( now.strftime("%I:%M%p %d %B %Y"), self.__class__.__name__, self.step_index, message )
+		print(" [%s] <%s> (s#%s) %s " % ( now.strftime("%I:%M%p %d %B %Y"), self.__class__.__name__, self.step_index, message ))
 
 	# The step function is called whenever a generic operation is stepped.
 	def step(self):

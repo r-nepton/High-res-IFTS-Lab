@@ -1,5 +1,6 @@
 from syncom_multidrop import *
 from cryo_delegate import *
+from dataconduits import GenericDataConduit, GenericCryoDataModel
 
 # The temperature sensor reads the diode temperatures from the SIM922.
 # The four channels are laid out on page 45 of the HPD104 operating manual.
@@ -32,7 +33,7 @@ class CompressorSensorConduit(GenericDataConduit):
 			# The result is in tenths of a degree celsius.
 			inlet_temperature = float(result) / 10
 			if inlet_temperature > 100:
-				print "Excessive compressor temperature: %s" % result
+				print("Excessive compressor temperature: %s" % result)
 				inlet_temperature = "?"
 
 			# Measure the outlet temperature.
@@ -42,7 +43,7 @@ class CompressorSensorConduit(GenericDataConduit):
 			outlet_temperature = float(result) / 10
 
 			if outlet_temperature > 100:
-				print "Excessive compressor temperature: %s" % result
+				print("Excessive compressor temperature: %s" % result)
 				outlet_temperature = "?"
 
 			# Measure the helium temperature.
@@ -52,7 +53,7 @@ class CompressorSensorConduit(GenericDataConduit):
 			oil_temperature = float(result) / 10
 
 			if oil_temperature > 100:
-				print "Excessive compressor temperature: %s" % result
+				print("Excessive compressor temperature: %s" % result)
 				oil_temperature = "?"
 
 		except Exception as exception:

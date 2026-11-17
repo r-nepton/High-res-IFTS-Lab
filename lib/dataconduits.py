@@ -1,6 +1,7 @@
 import random
-import cryo_delegate
+# import cryo_delegate
 import sqlite3, json, os, sys, numpy, time
+from functools import reduce
 # A GenericDataConduit represents a method
 # for getting data from a device.
 
@@ -21,7 +22,7 @@ class GenericDataConduit:
 		result = {}
 
 		def valid_field(field, dictionary):
-			return field in dictionary and not isinstance(dictionary[field], basestring)
+			return field in dictionary and not isinstance(dictionary[field], str)
 
 		def field_count(field, dictionary):
 			if field+'_data_count' in dictionary:
@@ -76,12 +77,14 @@ class GenericCryoDataModel(object):
 		# The latest data goes here.
 		self.latest_data = None
 
+		import cryo_delegate
 		self.db = cryo_delegate.database_connection.cursor() # database connection.
 		self.initialize()
 
 	def __del__(self):
-		print "Saving database '%s'..." % self.name
+		print("Saving database '%s'..." % self.name)
 		try:
+			import cryo_delegate
 			cryo_delegate.database_connection.commit()
 		except Exception():
 			pass
