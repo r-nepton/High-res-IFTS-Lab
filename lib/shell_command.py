@@ -7,7 +7,7 @@ def shell_command(command, timeout=3):
 		self['process'] = None
 		self['response'] = None
 		def encapsulation():
-			self['process'] = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			self['process'] = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 			self['response'] = ''.join( self['process'].stdout.readlines() )
 			self['process'].stdout.close()
 
