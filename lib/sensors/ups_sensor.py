@@ -18,7 +18,8 @@ class UPSDataConduit(GenericDataConduit):
 			result = ""
 
 		# Check to see if the pwrstat utility is operating normally.
-		if not re.search("The UPS information shows as following:", result):
+		# if not re.search("The UPS information shows as following:", result):
+		if not result or not re.search("The UPS information shows as following:", result):
 			return {
 				"error": "There was a problem connecting to the UPS.",
 				"error_message": result
@@ -51,4 +52,5 @@ class UPSSensor(GenericCryoDataModel):
 		self.conduit 		= UPSDataConduit()
 		self.units 			= self.conduit.units
 
-		GenericCryoDataModel.__init__(self, self.name)
+		# GenericCryoDataModel.__init__(self, self.name)
+		super().__init__(self.name)
